@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     internal lateinit var gridView: GridView
     val TAG = "debug"
 
+    var adapter2: RecipeAdapter? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         gridView = findViewById(R.id.gridView) as GridView
 
 
-        val adapter2 = RecipeAdapter(
+        adapter2 = RecipeAdapter(
             this, array
         )
 
@@ -46,21 +48,12 @@ class MainActivity : AppCompatActivity() {
             ).show()
 
             array += "geh"
-            adapter2.notifyDataSetChanged()
-        }
-
-        var dir = File(
-            Environment.getRootDirectory().toString() + File.separator + "AmritaCafe"
-        )
-
-        Log.d(TAG, "Path: : " + dir.toString())
-        Log.d(TAG, "Exists? : " + dir.exists())
-        if (!dir.exists()) {
-            Log.d(TAG, "Crated: " + dir.mkdirs())
+            Log.d(TAG, "adding1")
+            adapter2?.notifyDataSetChanged()
         }
 
 
-//        val listView = findViewById<ListView>(R.id.order_ListView)
+
         order_ListView.adapter = adapter2
 
         order_ListView.onItemClickListener =
@@ -76,8 +69,21 @@ class MainActivity : AppCompatActivity() {
                 ).show()
 
                 array += "geh"
-                adapter2.notifyDataSetChanged()
+                Log.d(TAG, "adding2")
+                adapter2?.notifyDataSetChanged()
             }
+
+
+        var dir = File(
+            Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
+        )
+
+        Log.d(TAG, "Path: : " + dir.toString())
+        Log.d(TAG, "Exists? : " + dir.exists())
+        if (!dir.exists()) {
+            Log.d(TAG, "Crated: " + dir.mkdirs())
+        }
+
 
     }
 
@@ -110,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             val rowView = inflater.inflate(R.layout.order_list, parent, false)
 
             val label = rowView.findViewById<TextView>(R.id.label);
-            label.text = "hello222"
+            label.text = "VG"
 
             return rowView
         }
