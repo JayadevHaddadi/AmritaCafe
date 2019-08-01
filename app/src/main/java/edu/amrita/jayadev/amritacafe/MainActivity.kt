@@ -6,13 +6,18 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.BaseAdapter
+import android.widget.GridView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var array: Array<String> = arrayOf<String>("item 1")
+    data class OrderItem(val name: String, val amount: Int, val totPrice: Int)
+
+    private var orderList: MutableList<OrderItem> = mutableListOf()
     internal lateinit var gridView: GridView
     val TAG = "debug"
 
@@ -26,173 +31,62 @@ class MainActivity : AppCompatActivity() {
 
 
         adapter2 = RecipeAdapter(
-            this, array
+            this, orderList
         )
 
-        val list = SettingsRetriver.getList(this)
-        val adapter = AlphabetAdapter(applicationContext, list)
+        val menuList = SettingsRetriver.getList(this)
+        val adapter = AlphabetAdapter(applicationContext, menuList)
 
         gridView.adapter = adapter
 
         gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
-            Toast.makeText(
-                applicationContext,
-                "hello", Toast.LENGTH_SHORT
-            ).show()
-
-            array += "geh"
+            orderList.add(OrderItem(menuList[position].name,1,menuList[position].price))
             Log.d(TAG, "adding1")
             adapter2?.notifyDataSetChanged()
         }
-
-
 
         order_ListView.adapter = adapter2
 
         order_ListView.onItemClickListener =
             AdapterView.OnItemClickListener { adapterView: AdapterView<*>, view1: View, i: Int, l: Long ->
-
-                // value of item that is clicked
-                val itemValue = order_ListView.getItemAtPosition(i) as String
-
-                // Toast the values
-                Toast.makeText(
-                    applicationContext,
-                    "Position :$i\nItem Value : $itemValue", Toast.LENGTH_LONG
-                ).show()
-
-                array += "geh"
-                Log.d(TAG, "adding2")
+                orderList.removeAt(i)
                 adapter2?.notifyDataSetChanged()
             }
 
     }
 
-    fun updateFromDatabase(list: MutableList<SettingsRetriver.OrderItem>) {
-        Log.d(TAG, "CALLBACK: ")
-
-
-
-    }
-
     class RecipeAdapter(
         private val context: Context,
-        private var dataSource: Array<String>
+        private var orderList: MutableList<OrderItem>
     ) : BaseAdapter() {
 
         private val inflater: LayoutInflater =
             context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-        //1
         override fun getCount(): Int {
-            return dataSource.size
+            return orderList.size
         }
 
-        //2
         override fun getItem(position: Int): Any {
-            return dataSource[position]
+            return orderList[position]
         }
 
-        //3
         override fun getItemId(position: Int): Long {
             return position.toLong()
         }
 
-        //4
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            // Get view for row item
             val rowView = inflater.inflate(R.layout.order_list, parent, false)
 
-            val label = rowView.findViewById<TextView>(R.id.label);
-            label.text = "VG"
+            val label = rowView.findViewById<TextView>(R.id.label)
+            val amount = rowView.findViewById<TextView>(R.id.amount_TV)
+            val price = rowView.findViewById<TextView>(R.id.price_TV)
+            label.text = orderList[position].name
+            amount.text = orderList[position].amount.toString()
+            price.text = orderList[position].totPrice.toString()
 
             return rowView
         }
 
-    }
-
-
-    companion object {
-        internal val numbers = arrayOf(
-            "Burgers",
-            "VG",
-            "CB",
-            "LUXB",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "A",
-            "N",
-            "O",
-            "P",
-            "Q",
-            "R",
-            "S",
-            "T",
-            "U",
-            "V",
-            "W",
-            "X",
-            "Y",
-            "Z",
-            "B",
-            "A",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "N",
-            "A",
-            "O",
-            "P",
-            "Q",
-            "R",
-            "S",
-            "T",
-            "U",
-            "V",
-            "W",
-            "X",
-            "Y",
-            "Z",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "N",
-            "O",
-            "P",
-            "Q",
-            "R",
-            "S",
-            "T",
-            "U",
-            "V",
-            "W",
-            "X",
-            "Y",
-            "Z"
-        )
     }
 }

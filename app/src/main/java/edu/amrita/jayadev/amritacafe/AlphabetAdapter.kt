@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 
-class AlphabetAdapter(private val mContext: Context, private val mLetters: MutableList<SettingsRetriver.OrderItem>) : BaseAdapter() {
+class AlphabetAdapter(private val mContext: Context, private val mLetters: MutableList<SettingsRetriver.MenuItem>) : BaseAdapter() {
 
     override fun getCount(): Int {
         return mLetters.size

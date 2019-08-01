@@ -9,12 +9,12 @@ import java.io.*
 
 class SettingsRetriver {
 
-    data class OrderItem(val name: String, val cat: String, val price: Int)
+    data class MenuItem(val name: String, val cat: String, val price: Int)
 
     companion object {
 
-        fun getList(con: Context): MutableList<OrderItem> {
-            var dir = File(
+        fun getList(con: Context): MutableList<MenuItem> {
+            val dir = File(
                 Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
             )
 
@@ -24,7 +24,7 @@ class SettingsRetriver {
                 Log.d(TAG, "Crated: " + dir.mkdirs())
             }
 
-            var file = File(dir.toString() + File.separator + "Settings.txt")
+            val file = File(dir.toString() + File.separator + "Settings.txt")
 
             if (!file.isFile) {
                 createDefaultFile(file, con)
@@ -32,7 +32,7 @@ class SettingsRetriver {
 
             val br = BufferedReader(FileReader(file))
 
-            var orderList: MutableList<OrderItem> = mutableListOf<OrderItem>()
+            val menuList: MutableList<MenuItem> = mutableListOf()
 
             try {
                 br.readLine()
@@ -46,7 +46,7 @@ class SettingsRetriver {
                     if(price.equals("")){
                         currentCat = name
                     } else {
-                        orderList.add(OrderItem(name,currentCat,price.toInt()))
+                        menuList.add(MenuItem(name,currentCat,price.toInt()))
                     }
                     line = br.readLine().trim()
                 }
@@ -56,7 +56,7 @@ class SettingsRetriver {
 
             }
 
-            return orderList
+            return menuList
         }
 
         val TAG = "debug"
