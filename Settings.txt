@@ -1,0 +1,18 @@
+MENU ITEMS:
+Burger, 
+VB, 40
+CVB, 60
+Patty, 20
+PB, 65
+DB, 80
+Topping,
+Honey, 10 
+Sides, 
+Tomato, 10
+
+ORDER RANGE: 
+100
+
+PRINTER IP: 
+192.168.0.1
+192.168.0.2

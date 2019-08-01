@@ -2,7 +2,6 @@ package edu.amrita.jayadev.amritacafe
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,12 +29,8 @@ class MainActivity : AppCompatActivity() {
             this, array
         )
 
-        // Create adapter to set value for grid view
-//        val adapter = ArrayAdapter(
-//            this,
-//            android.R.layout.simple_list_item_1, numbers
-//        )
-        val adapter = AlphabetAdapter(applicationContext, numbers)
+        val list = SettingsRetriver.getList(this)
+        val adapter = AlphabetAdapter(applicationContext, list)
 
         gridView.adapter = adapter
 
@@ -73,16 +66,11 @@ class MainActivity : AppCompatActivity() {
                 adapter2?.notifyDataSetChanged()
             }
 
+    }
 
-        var dir = File(
-            Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
-        )
+    fun updateFromDatabase(list: MutableList<SettingsRetriver.OrderItem>) {
+        Log.d(TAG, "CALLBACK: ")
 
-        Log.d(TAG, "Path: : " + dir.toString())
-        Log.d(TAG, "Exists? : " + dir.exists())
-        if (!dir.exists()) {
-            Log.d(TAG, "Crated: " + dir.mkdirs())
-        }
 
 
     }

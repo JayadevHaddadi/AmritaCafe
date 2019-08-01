@@ -8,9 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
-import androidx.core.view.marginTop
 
-class AlphabetAdapter(private val mContext: Context, private val mLetters: Array<String>) : BaseAdapter() {
+class AlphabetAdapter(private val mContext: Context, private val mLetters: MutableList<SettingsRetriver.OrderItem>) : BaseAdapter() {
 
     override fun getCount(): Int {
         return mLetters.size
@@ -39,7 +38,7 @@ class AlphabetAdapter(private val mContext: Context, private val mLetters: Array
                 .findViewById<View>(R.id.grid_item_letter) as TextView
 
             // set values into views
-            letterView.text = mLetters[position]  // using dummy data for now
+            letterView.text = mLetters[position].name  // using dummy data for now
             if(mLetters[position].equals("Burgers")) {
                 letterView.setBackgroundColor(Color.RED)
                 letterView.setTextSize(25f)
