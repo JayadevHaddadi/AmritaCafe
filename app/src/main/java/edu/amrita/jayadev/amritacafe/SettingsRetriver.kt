@@ -26,7 +26,7 @@ class SettingsRetriver {
 
             val file = File(dir.toString() + File.separator + "Settings.txt")
 
-            if (!file.isFile) {
+            if (!file.isFile || true) { // TODO FORCE CREATE
                 createDefaultFile(file, con)
             }
 
@@ -42,10 +42,10 @@ class SettingsRetriver {
                     println(line)
                     val split = line.split(",")
                     val name = split[0].trim()
-                    val price = split[1].trim()
-                    if(price.equals("")){
+                    if(split.size == 1) {
                         currentCat = name
                     } else {
+                        val price = split[1].trim()
                         menuList.add(MenuItem(name,currentCat,price.toInt()))
                     }
                     line = br.readLine().trim()
@@ -65,22 +65,46 @@ class SettingsRetriver {
             //CREATE DEFAULT FILE
             file.createNewFile()
 
-            val fos = FileOutputStream(file, true)
+            val fos = FileOutputStream(file, false)
 
-            val defaultText = ("MENU:\n" +
-                    "Burger, \n" +
-                    "VB, 30\n" +
-                    "CB,60\n" +
-                    "DB,  80\n" +
-                    "PP, 30\n" +
-                    "Topping,\n" +
-                    "Honey, 10 \n" +
-                    "Sides, \n" +
-                    "Tomato, 10\n" +
-                    "\n" +
-                    "RANGE: 100\n" +
-                    "\n" +
-                    "IP: 192.168.0.1")
+            val defaultText =
+                """MENU ITEMS:
+BURGER
+VB, 40
+CB, 60
+Patty, 20
+PSTOB, 65
+DLXB, 80
+Bun, 10
+PIZZA
+VN VEG PZA,100
+VN GM PZA,100
+VEG PZA,125
+PSTO PZA,100
+pan pza, 150
+olv pza,135
+med pza,125
+gm pza,150
+ch pza,100
+PASTA
+vn gm past,100
+psto past,60
+past tom ch,80
+past all soy,90
+dlx past,115
+SALAD
+SPRSAL, 50
+sal,30
+psto sal,75
+dxl sal, 90
+
+ORDER RANGE: 
+100
+
+PRINTER IP: 
+192.168.0.10
+192.168.0.11
+""".trimMargin()
 
             fos.write(defaultText.toByteArray())
             fos.close()
