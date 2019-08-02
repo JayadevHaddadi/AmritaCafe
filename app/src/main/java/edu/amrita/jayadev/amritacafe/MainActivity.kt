@@ -5,8 +5,12 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.GridView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.epson.epos2.printer.Printer
 import kotlinx.android.synthetic.main.activity_main.*
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,6 +83,35 @@ class MainActivity : AppCompatActivity() {
             editor.apply()
 
             order_numberr_TV.text = orderNumber.toString()
+
+            try {
+                val mPrinter = Printer(Printer.TM_M30,Printer.MODEL_ANK,this)
+
+                mPrinter.connect("TCP:192.168.0.10", Printer.PARAM_DEFAULT);
+
+                var method = ""
+                val textData = StringBuilder()
+
+                method = "addTextAlign"
+                method = "addFeedLine"
+                mPrinter.addFeedLine(1)
+
+                method = "addText"
+                mPrinter.addText(textData.toString())
+                textData.append("MAAAIN STRING")
+                method = "addText"
+                mPrinter.addText(textData.toString())
+                method = "addFeedLine"
+                mPrinter.addFeedLine(2)
+
+                method = "addCut"
+                mPrinter.addCut(Printer.CUT_FEED)
+
+                mPrinter.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this,  "errrroorrr: ${e.toString()}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
