@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import kotlinx.android.synthetic.main.order_list.view.*
+import kotlinx.android.synthetic.main.order_item.view.*
 
 class OrderAdapter(
     private val context: Context,
@@ -30,7 +30,7 @@ class OrderAdapter(
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val rowView = inflater.inflate(R.layout.order_list, parent, false)
+        val rowView = inflater.inflate(R.layout.order_item, parent, false)
 
         val label = rowView.findViewById<TextView>(R.id.label)
         val amount = rowView.findViewById<TextView>(R.id.amount_TV)

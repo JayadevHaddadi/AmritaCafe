@@ -2,17 +2,21 @@ package edu.amrita.jayadev.amritacafe
 
 
 import android.content.Context
-import android.graphics.Color
+import android.content.res.TypedArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 
-class MenuAdapter(private val mContext: Context, private val mLetters: MutableList<SettingsRetriver.MenuItem>) : BaseAdapter() {
+class MenuAdapter(private val mContext: Context, private val menuItems: MutableList<SettingsRetriver.MenuItem>) : BaseAdapter() {
+
+    var colorNumber = -1
+    var currentCategory = ""
+    val colors: TypedArray = mContext.resources.obtainTypedArray(R.array.colors)
 
     override fun getCount(): Int {
-        return mLetters.size
+        return menuItems.size
     }
 
     override fun getItem(position: Int): Any? {
@@ -30,23 +34,17 @@ class MenuAdapter(private val mContext: Context, private val mLetters: MutableLi
         val gridView: View
 
         if (convertView == null) {
-            // get layout from xml file
-            gridView = inflater.inflate(R.layout.alphabet_grid_item, null)
+            gridView = inflater.inflate(R.layout.menu_item, null)
 
-            // pull views
-            val letterView = gridView
+            val nameView = gridView
                 .findViewById<View>(R.id.grid_item_letter) as TextView
 
-            // set values into views
-            letterView.text = mLetters[position].name  // using dummy data for now
-            if(mLetters[position].equals("Burgers")) {
-                letterView.setBackgroundColor(Color.RED)
-                letterView.setTextSize(25f)
+            nameView.text = menuItems[position].name
+            if(!menuItems[position].category.equals(currentCategory)) {
+                currentCategory = menuItems[position].category
+                colorNumber++
             }
-            else
-                letterView.setBackgroundColor(Color.YELLOW)
-
-
+            nameView.setBackgroundColor(colors.getColor(colorNumber,0))
 
         } else {
             gridView = convertView

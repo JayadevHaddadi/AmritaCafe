@@ -9,7 +9,7 @@ import java.io.*
 
 class SettingsRetriver {
 
-    data class MenuItem(val name: String, val cat: String, val price: Int)
+    data class MenuItem(val name: String, val category: String, val price: Int)
 
     companion object {
 
