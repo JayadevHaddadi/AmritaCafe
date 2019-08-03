@@ -14,15 +14,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    data class OrderItem(
-        val name: String,
-        var amount: Int,
-        var totPrice: Int,
-        var comment: String = "",
-        var commentOn: Boolean = false
-    )
-
-    val TAG = "debug"
     private val MAX_RANGE = 100
     private var orderNumber: Int = 100
 
@@ -30,12 +21,11 @@ class MainActivity : AppCompatActivity() {
     private val ORDER_NR_KEY: String = "ORDER_NR"
     private lateinit var sharedPreference: SharedPreferences
 
-    private var orderList: MutableList<OrderItem> = mutableListOf()
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var gridView: GridView
 
     val settings = SettingsRetriver(this)
-    var totalCost = 0
+    var totalToPay = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,22 +37,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         gridView = findViewById(R.id.gridView) as GridView
-
         orderAdapter = OrderAdapter(
-            this, orderList
+            this, this::updateOrderList
         )
 
         val menuList = settings.menuList
-
         val adapter = MenuAdapter(applicationContext, menuList)
-
         gridView.adapter = adapter
-
         gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
             if (menuList[position].name == "")
                 return@OnItemClickListener
 
-            for (orderItem in orderList) {
+            //Not perfect code, All interactions with orderlist should be done by one class onlu and not
+            // in two as below 2 examples
+            for (orderItem in orderAdapter.orderList) {
                 if (menuList[position].name == orderItem.name) {
                     orderItem.amount++
                     orderItem.totPrice += menuList[position].price
@@ -70,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                     return@OnItemClickListener
                 }
             }
-            orderList.add(OrderItem(menuList[position].name, 1, menuList[position].price))
+            orderAdapter.add(OrderAdapter.OrderItem(menuList[position].name, 1, menuList[position].price))
             updateOrderList(menuList[position].price)
         }
 
@@ -85,8 +73,8 @@ class MainActivity : AppCompatActivity() {
         updateOrderNumber()
 
         order_button.setOnClickListener {
-            orderList.clear()
-            totalCost = 0
+            orderAdapter.clear()
+            totalToPay = 0
             updateOrderList(0)
 
             orderNumber++
@@ -95,15 +83,16 @@ class MainActivity : AppCompatActivity() {
             println("Printing to: ${settings.printerOne}")
 
             try {
-                val mPrinter = Printer(Printer.TM_T82, Printer.MODEL_ANK, this) // TM_M30
-                mPrinter.connect("TCP:" + settings.printerOne, Printer.PARAM_DEFAULT);
-                val textData = StringBuilder()
-                mPrinter.addFeedLine(1)
-                mPrinter.addText(textData.toString())
-                textData.append("MAAAIN STRING")
-                mPrinter.addText(textData.toString())
-                mPrinter.addFeedLine(2)
+                val mPrinter = Printer(Printer.TM_T82, Printer.MODEL_ANK, this) // TM_M30, MODEL_ANK correct
+                mPrinter.connect("TCP:" + settings.printerOne, Printer.PARAM_DEFAULT);//param_default correct
+                mPrinter.beginTransaction()
+                mPrinter.addTextAlign(1);
+                mPrinter.addFeedLine(1);
+                mPrinter.addText("AMMMMAAAAA!!!!!")
+                mPrinter.addFeedLine(1);
                 mPrinter.addCut(Printer.CUT_FEED)
+                mPrinter.sendData(Printer.PARAM_DEFAULT)
+                mPrinter.endTransaction()
                 mPrinter.disconnect()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -125,8 +114,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateOrderList(cost: Int) {
-        totalCost += cost
-        total_cost_TV.setText(totalCost.toString())
+        totalToPay += cost
+        total_cost_TV.setText(totalToPay.toString())
         orderAdapter.notifyDataSetChanged()
     }
 }

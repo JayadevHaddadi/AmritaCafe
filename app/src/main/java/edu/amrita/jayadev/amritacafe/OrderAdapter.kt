@@ -11,15 +11,24 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import kotlinx.android.synthetic.main.order_item.view.*
+import kotlin.reflect.KFunction1
 
 
 class OrderAdapter(
     private val context: Context,
-    private var orderList: MutableList<MainActivity.OrderItem>
+    private val updateOrderList: KFunction1<Int, Unit>
 ) : BaseAdapter() {
+
+    data class OrderItem(
+        val name: String,
+        var amount: Int,
+        var totPrice: Int,
+        var comment: String = ""
+    )
 
     private val inflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    val orderList: MutableList<OrderItem> = mutableListOf()
 
     override fun getCount(): Int {
         return orderList.size
@@ -31,6 +40,14 @@ class OrderAdapter(
 
     override fun getItemId(position: Int): Long {
         return position.toLong()
+    }
+
+    fun add(item: OrderItem) {
+        orderList.add(item)
+    }
+
+    fun clear() {
+        orderList.clear()
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -45,8 +62,8 @@ class OrderAdapter(
 
         val cancelButton = rowView.findViewById<ImageView>(R.id.cancel_button)
         cancelButton.setOnClickListener {
+            updateOrderList(-orderList[position].totPrice)
             orderList.removeAt(position)
-            notifyDataSetChanged()
         }
 
         rowView.comment_ET.addTextChangedListener(object : TextWatcher {
@@ -61,20 +78,13 @@ class OrderAdapter(
             }
         })
 
-        if (orderList[position].commentOn) {
-            if (orderList[position].comment.trim().equals("")) {
-                rowView.comment_ET.visibility = View.GONE
-                orderList[position].commentOn = false
-            }
-            else {
-                rowView.comment_ET.visibility = View.VISIBLE
-                rowView.comment_ET.setText(orderList[position].comment)
-            }
+        if (!orderList[position].comment.trim().equals("")) {
+            rowView.comment_ET.visibility = View.VISIBLE
+            rowView.comment_ET.setText(orderList[position].comment)
         }
 
         rowView.setOnClickListener {
             rowView.comment_ET.visibility = View.VISIBLE
-            orderList[position].commentOn = true
 
             rowView.comment_ET.requestFocus()
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
