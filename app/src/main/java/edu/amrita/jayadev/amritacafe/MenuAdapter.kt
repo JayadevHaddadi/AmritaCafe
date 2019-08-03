@@ -34,7 +34,7 @@ class MenuAdapter(private val mContext: Context, private val menuItems: MutableL
 
         val gridView: View
 
-        if (convertView == null) {
+//        if (convertView == null) {
             gridView = inflater.inflate(R.layout.menu_item, null)
 
             val nameView = gridView
@@ -47,13 +47,14 @@ class MenuAdapter(private val mContext: Context, private val menuItems: MutableL
                 colorNumber++
             }
             if(menuItems[position].name.equals(""))
-                nameView.setBackgroundColor(Color.WHITE)
+                nameView.setBackgroundColor(Color.TRANSPARENT)
             else
                 nameView.setBackgroundColor(colors.getColor(colorNumber,0))
 
-        } else {
-            gridView = convertView
-        }
+//        }
+//        else {
+//            gridView = convertView
+//        }
         return gridView
     }
 }
