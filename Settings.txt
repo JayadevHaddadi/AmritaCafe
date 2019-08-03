@@ -1,18 +1,28 @@
 MENU ITEMS:
-Burger, 
+Burger
 VB, 40
 CVB, 60
 Patty, 20
 PB, 65
 DB, 80
-Topping,
+Pizza
+VN VEG PZA,100
+VN GM PZA,100
+VEG PZA,125
+PSTO PZA,100
+pan pza, 150
+olv pza,135
+med pza,125
+gm pza,150
+ch pza,100
+Topping
 Honey, 10 
-Sides, 
+Sides
 Tomato, 10
 
 ORDER RANGE: 
 100
 
 PRINTER IP: 
-192.168.0.1
-192.168.0.2
+192.168.0.10
+192.168.0.11

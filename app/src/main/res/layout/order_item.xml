@@ -38,7 +38,7 @@
             app:layout_constraintStart_toEndOf="@+id/textView4"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             app:layout_constraintBottom_toBottomOf="@+id/cancel_button"
-            android:layout_marginTop="8dp">
+            >
     </TextView>
 
 

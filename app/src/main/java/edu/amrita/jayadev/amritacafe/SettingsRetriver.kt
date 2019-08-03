@@ -37,16 +37,25 @@ class SettingsRetriver {
             try {
                 br.readLine()
                 var line = br.readLine().trim()
-                var currentCat = "None"
+                var currentCategory = "None"
+                var currentNumberOfCat = 0
                 while (!line.equals("")) {
                     println(line)
                     val split = line.split(",")
-                    val name = split[0].trim()
+                    val name = split[0].trim().toUpperCase()
                     if(split.size == 1) {
-                        currentCat = name
+                        if(!currentCategory.equals("None")) {
+                            val missingFromFullRow = 10 - menuList.size % 10
+                            if(missingFromFullRow!=10)
+                                for (i in 1..missingFromFullRow) {
+                                    menuList.add(MenuItem("", currentCategory, 0))
+                                }
+                        }
+                        currentCategory = name
                     } else {
+                        currentNumberOfCat++
                         val price = split[1].trim()
-                        menuList.add(MenuItem(name,currentCat,price.toInt()))
+                        menuList.add(MenuItem(name,currentCategory,price.toInt()))
                     }
                     line = br.readLine().trim()
                 }
@@ -85,7 +94,7 @@ pan pza, 150
 olv pza,135
 med pza,125
 gm pza,150
-ch pza,100
+ch pza,10
 PASTA
 vn gm past,100
 psto past,60
@@ -97,6 +106,36 @@ SPRSAL, 50
 sal,30
 psto sal,75
 dxl sal, 90
+OMELETE
+ON OM, 35
+GM OM,95
+veg ch om,70
+olv om,65
+psto om,55
+frt om,35
+dxl om,105
+veg om,50
+vn om,40
+FRIES
+SMSAFF,35
+LGSAFF,70
+LGFF,60
+SMFF,30
+BREAKFAST
+ft,30
+oat,25
+por,25
+hash,20
+pan,30
+rag pan,30
+ft,30
+vn om,40
+SANDWICH
+oms,45
+ecs,55
+gc frt,45
+dxl gc,75
+gc,40
 
 ORDER RANGE: 
 100
