@@ -1,13 +1,17 @@
 package edu.amrita.jayadev.amritacafe
 
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import kotlinx.android.synthetic.main.order_item.view.*
+
 
 class OrderAdapter(
     private val context: Context,
@@ -45,16 +49,36 @@ class OrderAdapter(
             notifyDataSetChanged()
         }
 
-        if(orderList[position].commentOn) {
-            rowView.comment_ET.visibility = View.VISIBLE
-            rowView.comment_ET.requestFocus()
-//                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-//                imm.showSoftInput(rowView.comment_ET,0)
+        rowView.comment_ET.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                orderList[position].comment = rowView.comment_ET.text.toString()
+            }
+        })
+
+        if (orderList[position].commentOn) {
+            if (orderList[position].comment.trim().equals("")) {
+                rowView.comment_ET.visibility = View.GONE
+                orderList[position].commentOn = false
+            }
+            else {
+                rowView.comment_ET.visibility = View.VISIBLE
+                rowView.comment_ET.setText(orderList[position].comment)
+            }
         }
 
         rowView.setOnClickListener {
             rowView.comment_ET.visibility = View.VISIBLE
             orderList[position].commentOn = true
+
+            rowView.comment_ET.requestFocus()
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(rowView.comment_ET, 0)
         }
 
         return rowView
