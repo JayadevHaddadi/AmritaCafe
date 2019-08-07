@@ -12,8 +12,10 @@ class SettingsRetriver(con: Context) {
     var printerOne = "192.168.0.10"
     var printerTwo = "192.168.0.11"
     var range = 100
-    val menuList: MutableList<MenuItem> = mutableListOf()
+    val dinnerLunchMenu: MutableList<MenuItem> = mutableListOf()
+    val breakfastMenu: MutableList<MenuItem> = mutableListOf()
     private val TAG = "debug"
+
     init {
         val dir = File(
             Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
@@ -27,7 +29,7 @@ class SettingsRetriver(con: Context) {
 
         val file = File(dir.toString() + File.separator + "Settings.txt")
 
-        if (!file.isFile ) { // || true
+        if (!file.isFile || true) { // TODO || true
             createDefaultFile(file, con)
         }
 
@@ -37,26 +39,58 @@ class SettingsRetriver(con: Context) {
             br.readLine()
             var line = br.readLine().trim()
             var currentCategory = "None"
-            var currentNumberOfCat = 0
+            var currentNumberOfDinnerLunch = 0
+            var currentNumberOfBreakfast = 0
 
             //MENU
             while (!line.equals("")) {
                 val split = line.split(",")
                 val name = split[0].trim().toUpperCase()
                 if (split.size == 1) {
+                    //NEW CATEGORY
                     if (!currentCategory.equals("None")) {
-                        val missingFromFullRow = 10 - menuList.size % 10
-                        if (missingFromFullRow != 10)
-                            for (i in 1..missingFromFullRow) {
-                                currentNumberOfCat++
-                                menuList.add(MenuItem("", currentCategory, 0))
-                            }
+                        if (currentNumberOfDinnerLunch == 0) {
+                            dinnerLunchMenu.removeAt(dinnerLunchMenu.size - 1)
+                        } else {
+                            val missingFromFullRow = 10 - dinnerLunchMenu.size % 10
+                            if (missingFromFullRow != 10)
+                                for (i in 1..missingFromFullRow) {
+                                    dinnerLunchMenu.add(MenuItem("", currentCategory, 0))
+                                }
+                            currentNumberOfDinnerLunch = 0
+                        }
+                        if (currentNumberOfBreakfast == 0) {
+                            breakfastMenu.removeAt(breakfastMenu.size - 1)
+                        } else {
+                            val missingFromFullRow = 10 - breakfastMenu.size % 10
+                            if (missingFromFullRow != 10)
+                                for (i in 1..missingFromFullRow) {
+                                    breakfastMenu.add(MenuItem("", currentCategory, 0))
+                                }
+                            currentNumberOfBreakfast = 0
+                        }
                     }
                     currentCategory = name
+                    breakfastMenu.add(MenuItem(currentCategory, currentCategory, 0))
+                    dinnerLunchMenu.add(MenuItem(currentCategory, currentCategory, 0))
                 } else {
-                    currentNumberOfCat++
                     val price = split[1].trim()
-                    menuList.add(MenuItem(name, currentCategory, price.toInt()))
+                    if (split.size == 3) {
+                        val toCategory = split[2].trim().toLowerCase()
+                        if (toCategory == "b") {
+                            breakfastMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                            currentNumberOfBreakfast++
+                        }
+                        else if (toCategory == "a") {
+                            currentNumberOfDinnerLunch++
+                            currentNumberOfBreakfast++
+                            dinnerLunchMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                            breakfastMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                        }
+                    } else {
+                        currentNumberOfDinnerLunch++
+                        dinnerLunchMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                    }
                 }
                 line = br.readLine().trim()
             }

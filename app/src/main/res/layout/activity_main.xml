@@ -104,5 +104,6 @@
             android:layout_marginRight="8dp"
             android:fontFamily="serif-monospace"
             android:textSize="30sp"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:visibility="gone"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

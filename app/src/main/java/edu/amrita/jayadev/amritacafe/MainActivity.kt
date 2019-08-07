@@ -4,9 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import android.widget.GridView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.epson.epos2.printer.Printer
@@ -14,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var menuAdapter: MenuAdapter
     private val MAX_RANGE = 100
     private var orderNumber: Int = 100
 
@@ -22,30 +24,32 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreference: SharedPreferences
 
     private lateinit var orderAdapter: OrderAdapter
-    private lateinit var gridView: GridView
 
     val settings = SettingsRetriver(this)
     var totalToPay = 0
 
+    val LUNCH_DINNER = "Lunch/Dinner"
+    val BREAKFAST = "Breakfast"
+    var currentMenu = LUNCH_DINNER
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        try {
-            this.supportActionBar!!.hide()
-        } catch (e: NullPointerException) {
-        }
+//        try {
+//            this.supportActionBar!!.hide()
+//        } catch (e: NullPointerException) {
+//        }
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main)
 
-        gridView = findViewById(R.id.gridView) as GridView
         orderAdapter = OrderAdapter(
             this, this::updateOrderList
         )
 
-        val menuList = settings.menuList
-        val adapter = MenuAdapter(applicationContext, menuList)
-        gridView.adapter = adapter
+        menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
+        gridView.adapter = menuAdapter
         gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
-            if (menuList[position].name == "")
+            val menuList = menuAdapter.menuItems
+            if (menuList[position].name == "" || menuList[position].price == 0)
                 return@OnItemClickListener
 
             //Not perfect code, All interactions with orderlist should be done by one class onlu and not
@@ -117,5 +121,30 @@ class MainActivity : AppCompatActivity() {
         totalToPay += cost
         total_cost_TV.setText(totalToPay.toString())
         orderAdapter.notifyDataSetChanged()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.switch_menu -> {
+                if (item.title == LUNCH_DINNER) {
+                    menuAdapter.setMenu(settings.breakfastMenu)
+                    item.setTitle(BREAKFAST)
+                } else if (item.title == BREAKFAST) {
+                    menuAdapter.setMenu(settings.dinnerLunchMenu)
+                    item.setTitle(LUNCH_DINNER)
+                }
+                true
+            }
+            R.id.settings -> {
+                return true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

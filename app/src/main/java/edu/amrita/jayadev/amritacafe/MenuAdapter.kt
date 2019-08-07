@@ -4,13 +4,15 @@ package edu.amrita.jayadev.amritacafe
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Color
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 
-class MenuAdapter(private val mContext: Context, private val menuItems: MutableList<SettingsRetriver.MenuItem>) : BaseAdapter() {
+class MenuAdapter(private val mContext: Context, var menuItems: MutableList<SettingsRetriver.MenuItem>) :
+    BaseAdapter() {
 
     var colorNumber = -1
     var currentCategory = ""
@@ -35,26 +37,34 @@ class MenuAdapter(private val mContext: Context, private val menuItems: MutableL
         val gridView: View
 
 //        if (convertView == null) {
-            gridView = inflater.inflate(R.layout.menu_item, null)
+        gridView = inflater.inflate(R.layout.menu_item, null)
 
-            val nameView = gridView
-                .findViewById<View>(R.id.grid_item_letter) as TextView
+        val nameView = gridView
+            .findViewById<View>(R.id.grid_item_letter) as TextView
 
-            nameView.text = menuItems[position].name
+        nameView.text = menuItems[position].name
+        if(menuItems[position].price==0)
+            nameView.setTypeface(null, Typeface.BOLD)
 
-            if(!menuItems[position].category.equals(currentCategory)) {
-                currentCategory = menuItems[position].category
-                colorNumber++
-            }
-            if(menuItems[position].name.equals(""))
-                nameView.setBackgroundColor(Color.TRANSPARENT)
-            else
-                nameView.setBackgroundColor(colors.getColor(colorNumber,0))
+        if (!menuItems[position].category.equals(currentCategory)) {
+            currentCategory = menuItems[position].category
+            colorNumber++
+        }
+        if (menuItems[position].name.equals(""))
+            nameView.setBackgroundColor(Color.TRANSPARENT)
+        else
+            nameView.setBackgroundColor(colors.getColor(colorNumber, 0))
 
 //        }
 //        else {
 //            gridView = convertView
 //        }
         return gridView
+    }
+
+    fun setMenu(menuList: MutableList<SettingsRetriver.MenuItem>) {
+        menuItems = menuList
+        notifyDataSetChanged()
+        colorNumber = -1
     }
 }
