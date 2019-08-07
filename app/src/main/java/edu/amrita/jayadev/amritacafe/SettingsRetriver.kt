@@ -29,7 +29,7 @@ class SettingsRetriver(con: Context) {
 
         val file = File(dir.toString() + File.separator + "Settings.txt")
 
-        if (!file.isFile || true) { // TODO || true
+        if (!file.isFile ) { // TODO || true
             createDefaultFile(file, con)
         }
 

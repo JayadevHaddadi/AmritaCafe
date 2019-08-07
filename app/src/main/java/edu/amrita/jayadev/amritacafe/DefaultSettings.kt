@@ -20,6 +20,11 @@ vn gm pza,100
 psto pza,100
 gm pza,150
 pan pza, 150
+FRIES
+smff,30
+lgff,60
+smsaff,35
+lgsaff,70
 PASTA
 plain past, 30
 tom past,60
@@ -33,6 +38,12 @@ sal,30
 sprsal, 50
 psto sal,75
 dxl sal, 90
+SANDWICH
+ecs,55,a
+oms,45,a
+gc,40,a
+dxl gc,75
+gc frt,45
 OMELETE
 fried egg, 15, a
 plain om, 30, a
@@ -45,17 +56,6 @@ veg om,50, a
 veg ch om,70, a
 dxl om,105, a
 gm om,95, a
-FRIES
-smff,30
-lgff,60
-smsaff,35
-lgsaff,70
-SANDWICH
-ecs,55,a
-oms,45,a
-gc,40,a
-dxl gc,75
-gc frt,45
 BREAKFAST
 pan,30,b
 rag pan,30,b

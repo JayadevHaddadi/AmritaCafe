@@ -8,13 +8,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.epson.epos2.printer.Printer
+import edu.amrita.jayadev.amritacafe.printer.Printer
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var mPrinter: Printer
     private lateinit var menuAdapter: MenuAdapter
     private val MAX_RANGE = 100
     private var orderNumber: Int = 100
@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
 //        }
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main)
+
+        mPrinter = Printer(this)
 
         orderAdapter = OrderAdapter(
             this, this::updateOrderList
@@ -85,23 +87,8 @@ class MainActivity : AppCompatActivity() {
             updateOrderNumber()
 
             println("Printing to: ${settings.printerOne}")
+            mPrinter.runPrintReceiptSequence()
 
-            try {
-                val mPrinter = Printer(Printer.TM_T82, Printer.MODEL_ANK, this) // TM_M30, MODEL_ANK correct
-                mPrinter.connect("TCP:" + settings.printerOne, Printer.PARAM_DEFAULT);//param_default correct
-                mPrinter.beginTransaction()
-                mPrinter.addTextAlign(1);
-                mPrinter.addFeedLine(1);
-                mPrinter.addText("AMMMMAAAAA!!!!!")
-                mPrinter.addFeedLine(1);
-                mPrinter.addCut(Printer.CUT_FEED)
-                mPrinter.sendData(Printer.PARAM_DEFAULT)
-                mPrinter.endTransaction()
-                mPrinter.disconnect()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this, "errrroorrr: $e", Toast.LENGTH_LONG).show()
-            }
         }
     }
 
