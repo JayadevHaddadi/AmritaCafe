@@ -31,14 +31,16 @@
 
     <TextView
             android:id="@+id/label"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             tools:text="Item 1"
             app:layout_constraintTop_toTopOf="@+id/cancel_button"
             app:layout_constraintStart_toEndOf="@+id/textView4"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             app:layout_constraintBottom_toBottomOf="@+id/cancel_button"
-            >
+            app:layout_constraintEnd_toStartOf="@+id/price_TV"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp">
     </TextView>
 
 

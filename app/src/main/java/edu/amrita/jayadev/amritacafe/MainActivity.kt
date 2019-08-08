@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mPrinter: Printer
+    private lateinit var kitchenPrinter: Printer
     private lateinit var menuAdapter: MenuAdapter
     private val MAX_RANGE = 100
     private var orderNumber: Int = 100
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main)
 
-        mPrinter = Printer(this)
+        kitchenPrinter = Printer(this,settings.kitchenPrinterIP)
 
         orderAdapter = OrderAdapter(
             this, this::updateOrderList
@@ -79,16 +79,15 @@ class MainActivity : AppCompatActivity() {
         updateOrderNumber()
 
         order_button.setOnClickListener {
-            orderAdapter.clear()
-            totalToPay = 0
-            updateOrderList(0)
+            println("Printing to: ${settings.kitchenPrinterIP}")
+            kitchenPrinter.runPrintReceiptSequence(orderAdapter.orderList,orderNumber,totalToPay)
 
             orderNumber++
             updateOrderNumber()
 
-            println("Printing to: ${settings.printerOne}")
-            mPrinter.runPrintReceiptSequence()
-
+            orderAdapter.clear()
+            totalToPay = 0
+            updateOrderList(0)
         }
     }
 

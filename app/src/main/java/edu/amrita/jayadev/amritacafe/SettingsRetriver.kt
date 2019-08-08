@@ -9,7 +9,7 @@ class SettingsRetriver(con: Context) {
 
     data class MenuItem(val name: String, val category: String, val price: Int)
 
-    var printerOne = "192.168.0.10"
+    var kitchenPrinterIP = "192.168.0.10"
     var printerTwo = "192.168.0.11"
     var range = 100
     val dinnerLunchMenu: MutableList<MenuItem> = mutableListOf()
@@ -102,7 +102,7 @@ class SettingsRetriver(con: Context) {
             //PRINTER
             br.readLine().trim()
             br.readLine().trim()
-            printerOne = br.readLine().trim()
+            kitchenPrinterIP = br.readLine().trim()
             printerTwo = br.readLine().trim()
 
             br.close()
