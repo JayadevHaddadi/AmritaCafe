@@ -1,15 +1,15 @@
 package edu.amrita.jayadev.amritacafe.printer
 
 import android.app.Activity
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
+import edu.amrita.jayadev.amritacafe.OrderAdapter
 import edu.amrita.jayadev.amritacafe.R
 
-public class Printer(val mContext: Activity) : ReceiveListener {
+public class Printer(val mContext: Activity, val printerIP: String) : ReceiveListener {
 
     var mPrinter: Printer? = null
 
@@ -25,12 +25,16 @@ public class Printer(val mContext: Activity) : ReceiveListener {
         })
     }
 
-    fun runPrintReceiptSequence(): Boolean {
+    fun runPrintReceiptSequence(
+        orderList: MutableList<OrderAdapter.OrderItem>,
+        orderNumber: Int,
+        totalToPay: Int
+    ): Boolean {
         if (!initializeObject()) {
             return false
         }
 
-        if (!createReceiptData()) {
+        if (!createReceiptData(orderList,orderNumber,totalToPay)) {
             finalizeObject()
             return false
         }
@@ -56,102 +60,40 @@ public class Printer(val mContext: Activity) : ReceiveListener {
         return true
     }
 
-    private fun createReceiptData(): Boolean {
+    private fun createReceiptData(
+        orderList: MutableList<OrderAdapter.OrderItem>,
+        orderNumber: Int,
+        totalToPay: Int
+    ): Boolean {
         var method = ""
-        val logoData = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.store)
-        var textData: StringBuilder? = StringBuilder()
-        val barcodeWidth = 2
-        val barcodeHeight = 100
+//        val logoData = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.store)
+        val textData: StringBuilder = StringBuilder()
 
         if (mPrinter == null) {
             return false
         }
 
         try {
-            method = "addTextAlign"
-            mPrinter!!.addTextAlign(Printer.ALIGN_CENTER)
+//            mPrinter!!.addTextAlign(Printer.ALIGN_CENTER)
 
-            method = "addImage"
-            mPrinter!!.addImage(
-                logoData, 0, 0,
-                logoData.width,
-                logoData.height,
-                Printer.COLOR_1,
-                Printer.MODE_MONO,
-                Printer.HALFTONE_DITHER,
-                Printer.PARAM_DEFAULT.toDouble(),
-                Printer.COMPRESS_AUTO
-            )
-
-            method = "addFeedLine"
-            mPrinter!!.addFeedLine(1)
-            textData!!.append("THE STORE 123 (555) 555 – 5555\n")
-            textData.append("STORE DIRECTOR – John Smith\n")
-            textData.append("\n")
-            textData.append("7/01/07 16:58 6153 05 0191 134\n")
-            textData.append("ST# 21 OP# 001 TE# 01 TR# 747\n")
-            textData.append("------------------------------\n")
-            method = "addText"
-            mPrinter!!.addText(textData.toString())
-            textData.delete(0, textData.length)
-
-            textData.append("400 OHEIDA 3PK SPRINGF  9.99 R\n")
-            textData.append("410 3 CUP BLK TEAPOT    9.99 R\n")
-            textData.append("445 EMERIL GRIDDLE/PAN 17.99 R\n")
-            textData.append("438 CANDYMAKER ASSORT   4.99 R\n")
-            textData.append("474 TRIPOD              8.99 R\n")
-            textData.append("433 BLK LOGO PRNTED ZO  7.99 R\n")
-            textData.append("458 AQUA MICROTERRY SC  6.99 R\n")
-            textData.append("493 30L BLK FF DRESS   16.99 R\n")
-            textData.append("407 LEVITATING DESKTOP  7.99 R\n")
-            textData.append("441 **Blue Overprint P  2.99 R\n")
-            textData.append("476 REPOSE 4PCPM CHOC   5.49 R\n")
-            textData.append("461 WESTGATE BLACK 25  59.99 R\n")
-            textData.append("------------------------------\n")
-            method = "addText"
-            mPrinter!!.addText(textData.toString())
-            textData.delete(0, textData.length)
-
-            textData.append("SUBTOTAL                160.38\n")
-            textData.append("TAX                      14.43\n")
-            method = "addText"
-            mPrinter!!.addText(textData.toString())
-            textData.delete(0, textData.length)
-
-            method = "addTextSize"
+            mPrinter!!.addTextSize(3, 3)
+            mPrinter!!.addText("ORDER: $orderNumber\n")
             mPrinter!!.addTextSize(2, 2)
-            method = "addText"
-            mPrinter!!.addText("TOTAL    174.81\n")
-            method = "addTextSize"
-            mPrinter!!.addTextSize(1, 1)
-            method = "addFeedLine"
             mPrinter!!.addFeedLine(1)
 
-            textData.append("CASH                    200.00\n")
-            textData.append("CHANGE                   25.19\n")
-            textData.append("------------------------------\n")
-            method = "addText"
+            for (item in orderList){
+                textData.append("${item.amount} ${item.name}\t\t${item.totPrice}\n")
+                if(item.comment!="")
+                    textData.append("   ${item.comment}\n")
+                textData.append("\n")
+            }
             mPrinter!!.addText(textData.toString())
             textData.delete(0, textData.length)
 
-            textData.append("Purchased item total number\n")
-            textData.append("Sign Up and Save !\n")
-            textData.append("With Preferred Saving Card\n")
-            method = "addText"
-            mPrinter!!.addText(textData.toString())
-            textData.delete(0, textData.length)
-            method = "addFeedLine"
-            mPrinter!!.addFeedLine(2)
+            mPrinter!!.addTextSize(2, 2)
+            mPrinter!!.addText("TOTAL\t\t$totalToPay\n")
+            mPrinter!!.addFeedLine(1)
 
-            method = "addBarcode"
-            mPrinter!!.addBarcode(
-                "01209457",
-                Printer.BARCODE_CODE39,
-                Printer.HRI_BELOW,
-                Printer.FONT_A,
-                barcodeWidth,
-                barcodeHeight
-            )
 
             method = "addCut"
             mPrinter!!.addCut(Printer.CUT_FEED)
@@ -160,7 +102,7 @@ public class Printer(val mContext: Activity) : ReceiveListener {
             return false
         }
 
-        textData = null
+//        textData = null
 
         return true
     }
@@ -309,7 +251,7 @@ public class Printer(val mContext: Activity) : ReceiveListener {
         }
 
         try {
-            mPrinter!!.connect("TCP:192.168.0.11", Printer.PARAM_DEFAULT)
+            mPrinter!!.connect("TCP:"+printerIP, Printer.PARAM_DEFAULT)
         } catch (e: Exception) {
             ShowMsg.showException(e, "connect", mContext)
             return false
