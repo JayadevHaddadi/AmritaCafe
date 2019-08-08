@@ -1,8 +1,6 @@
 package edu.amrita.jayadev.amritacafe.printer
 
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import com.epson.epos2.Epos2CallbackCode
 import com.epson.epos2.Epos2Exception
 import edu.amrita.jayadev.amritacafe.R
@@ -49,13 +47,13 @@ object ShowMsg {
     }
 
     private fun show(msg: String, context: Context) {
-        val alertDialog = AlertDialog.Builder(context)
-        alertDialog.setMessage(msg)
-        alertDialog.setPositiveButton(
-            "OK",
-            DialogInterface.OnClickListener { dialog, whichButton -> return@OnClickListener })
-        alertDialog.create()
-        alertDialog.show()
+//        val alertDialog = AlertDialog.Builder(context)
+//        alertDialog.setMessage(msg)
+//        alertDialog.setPositiveButton(
+//            "OK",
+//            DialogInterface.OnClickListener { dialog, whichButton -> return@OnClickListener })
+//        alertDialog.create()
+//        alertDialog.show()
     }
 
     private fun getEposExceptionText(state: Int): String {

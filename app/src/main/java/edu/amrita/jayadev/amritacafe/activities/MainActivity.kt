@@ -51,6 +51,9 @@ class MainActivity : AppCompatActivity() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main)
 
+//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+//        setSupportActionBar(toolbar)
+
         orderAdapter = OrderAdapter(
             this, this::updateOrderList
         )
@@ -65,9 +68,20 @@ class MainActivity : AppCompatActivity() {
         currentOrderNumber = DbConstants.sharedPreference.getInt(DbConstants.ORDER_NR_KEY, currentOrderNumber)
 
         order_button.setOnClickListener {
-            println("Printing to: ${settings.kitchenPrinterIP}")
-            kitchenPrinter.runPrintReceiptSequence(orderAdapter.orderList, currentOrderNumber, totalToPay)
-            receiptPrinter.runPrintReceiptSequence(orderAdapter.orderList, currentOrderNumber, totalToPay)
+            Thread(Runnable {
+                kitchenPrinter.runPrintReceiptSequence(
+                    orderAdapter.orderList,
+                    currentOrderNumber,
+                    totalToPay
+                )
+            }).start()
+            Thread(Runnable {
+                receiptPrinter.runPrintReceiptSequence(
+                    orderAdapter.orderList,
+                    currentOrderNumber,
+                    totalToPay
+                )
+            }).start()
 
             currentOrderNumber++
             updateOrderNumber()
@@ -80,11 +94,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
         settings.readSettings()
         kitchenPrinter = Printer(this, settings.kitchenPrinterIP)
         receiptPrinter = Printer(this, settings.receiptPrinterIP)
-
         menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
         gridView.adapter = menuAdapter
         gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
