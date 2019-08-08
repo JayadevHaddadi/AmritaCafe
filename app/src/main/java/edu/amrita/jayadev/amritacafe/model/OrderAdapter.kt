@@ -1,4 +1,4 @@
-package edu.amrita.jayadev.amritacafe
+package edu.amrita.jayadev.amritacafe.model
 
 import android.content.Context
 import android.text.Editable
@@ -10,6 +10,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import edu.amrita.jayadev.amritacafe.R
 import kotlinx.android.synthetic.main.order_item.view.*
 import kotlin.reflect.KFunction1
 

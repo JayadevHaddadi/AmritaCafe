@@ -1,22 +1,23 @@
-package edu.amrita.jayadev.amritacafe
+package edu.amrita.jayadev.amritacafe.settings
 
 import android.content.Context
 import android.os.Environment
 import android.util.Log
 import java.io.*
 
-class SettingsRetriver(con: Context) {
+class SettingsRetriver(val con: Context) {
 
     data class MenuItem(val name: String, val category: String, val price: Int)
 
     var kitchenPrinterIP = "192.168.0.10"
-    var printerTwo = "192.168.0.11"
-    var range = 100
+    var receiptPrinterIP = "192.168.0.11"
     val dinnerLunchMenu: MutableList<MenuItem> = mutableListOf()
     val breakfastMenu: MutableList<MenuItem> = mutableListOf()
     private val TAG = "debug"
 
-    init {
+    fun readSettings() {
+        dinnerLunchMenu.clear()
+        breakfastMenu.clear()
         val dir = File(
             Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
         )
@@ -29,7 +30,7 @@ class SettingsRetriver(con: Context) {
 
         val file = File(dir.toString() + File.separator + "Settings.txt")
 
-        if (!file.isFile ) { // TODO || true
+        if (!file.isFile) { // TODO || true
             createDefaultFile(file, con)
         }
 
@@ -55,7 +56,13 @@ class SettingsRetriver(con: Context) {
                             val missingFromFullRow = 10 - dinnerLunchMenu.size % 10
                             if (missingFromFullRow != 10)
                                 for (i in 1..missingFromFullRow) {
-                                    dinnerLunchMenu.add(MenuItem("", currentCategory, 0))
+                                    dinnerLunchMenu.add(
+                                        MenuItem(
+                                            "",
+                                            currentCategory,
+                                            0
+                                        )
+                                    )
                                 }
                             currentNumberOfDinnerLunch = 0
                         }
@@ -65,52 +72,87 @@ class SettingsRetriver(con: Context) {
                             val missingFromFullRow = 10 - breakfastMenu.size % 10
                             if (missingFromFullRow != 10)
                                 for (i in 1..missingFromFullRow) {
-                                    breakfastMenu.add(MenuItem("", currentCategory, 0))
+                                    breakfastMenu.add(
+                                        MenuItem(
+                                            "",
+                                            currentCategory,
+                                            0
+                                        )
+                                    )
                                 }
                             currentNumberOfBreakfast = 0
                         }
                     }
                     currentCategory = name
-                    breakfastMenu.add(MenuItem(currentCategory, currentCategory, 0))
-                    dinnerLunchMenu.add(MenuItem(currentCategory, currentCategory, 0))
+                    breakfastMenu.add(
+                        MenuItem(
+                            currentCategory,
+                            currentCategory,
+                            0
+                        )
+                    )
+                    dinnerLunchMenu.add(
+                        MenuItem(
+                            currentCategory,
+                            currentCategory,
+                            0
+                        )
+                    )
                 } else {
                     val price = split[1].trim()
                     if (split.size == 3) {
                         val toCategory = split[2].trim().toLowerCase()
                         if (toCategory == "b") {
-                            breakfastMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                            breakfastMenu.add(
+                                MenuItem(
+                                    name,
+                                    currentCategory,
+                                    price.toInt()
+                                )
+                            )
                             currentNumberOfBreakfast++
-                        }
-                        else if (toCategory == "a") {
+                        } else if (toCategory == "a") {
                             currentNumberOfDinnerLunch++
                             currentNumberOfBreakfast++
-                            dinnerLunchMenu.add(MenuItem(name, currentCategory, price.toInt()))
-                            breakfastMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                            dinnerLunchMenu.add(
+                                MenuItem(
+                                    name,
+                                    currentCategory,
+                                    price.toInt()
+                                )
+                            )
+                            breakfastMenu.add(
+                                MenuItem(
+                                    name,
+                                    currentCategory,
+                                    price.toInt()
+                                )
+                            )
                         }
                     } else {
                         currentNumberOfDinnerLunch++
-                        dinnerLunchMenu.add(MenuItem(name, currentCategory, price.toInt()))
+                        dinnerLunchMenu.add(
+                            MenuItem(
+                                name,
+                                currentCategory,
+                                price.toInt()
+                            )
+                        )
                     }
                 }
                 line = br.readLine().trim()
             }
 
-            //RANGE
-            br.readLine().trim()
-            range = br.readLine().trim().toInt()
-
-            //PRINTER
-            br.readLine().trim()
-            br.readLine().trim()
+            br.readLine().trim() // KITCHEN PRINTER:
             kitchenPrinterIP = br.readLine().trim()
-            printerTwo = br.readLine().trim()
-
+            br.readLine().trim() // RECEIPT PRINTER:
+            receiptPrinterIP = br.readLine().trim()
             br.close()
         } catch (e: IOException) {
         }
     }
 
-    private fun createDefaultFile(file: File, con: Context) {
+    fun createDefaultFile(file: File, con: Context) {
         //CREATE DEFAULT FILE
         file.createNewFile()
         val fos = FileOutputStream(file, false)

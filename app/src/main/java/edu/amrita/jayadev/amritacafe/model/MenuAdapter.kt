@@ -1,4 +1,4 @@
-package edu.amrita.jayadev.amritacafe
+package edu.amrita.jayadev.amritacafe.model
 
 
 import android.content.Context
@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
 
 class MenuAdapter(private val mContext: Context, var menuItems: MutableList<SettingsRetriver.MenuItem>) :
     BaseAdapter() {

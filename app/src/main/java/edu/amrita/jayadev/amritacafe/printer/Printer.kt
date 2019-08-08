@@ -6,8 +6,8 @@ import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
-import edu.amrita.jayadev.amritacafe.OrderAdapter
 import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 
 public class Printer(val mContext: Activity, val printerIP: String) : ReceiveListener {
 
@@ -34,7 +34,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             return false
         }
 
-        if (!createReceiptData(orderList,orderNumber,totalToPay)) {
+        if (!createReceiptData(orderList, orderNumber, totalToPay)) {
             finalizeObject()
             return false
         }
@@ -49,7 +49,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
 
     private fun initializeObject(): Boolean {
         try {
-            mPrinter = Printer(Printer.TM_M30,Printer.MODEL_ANK,mContext)
+            mPrinter = Printer(Printer.TM_M30, Printer.MODEL_ANK, mContext)
         } catch (e: Exception) {
             ShowMsg.showException(e, "Printer", mContext)
             return false
@@ -66,34 +66,30 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         totalToPay: Int
     ): Boolean {
         var method = ""
-//        val logoData = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.store)
-        val textData: StringBuilder = StringBuilder()
 
         if (mPrinter == null) {
             return false
         }
 
         try {
-//            mPrinter!!.addTextAlign(Printer.ALIGN_CENTER)
-
             mPrinter!!.addTextSize(3, 3)
             mPrinter!!.addText("ORDER: $orderNumber\n")
             mPrinter!!.addTextSize(2, 2)
             mPrinter!!.addFeedLine(1)
 
-            for (item in orderList){
-                textData.append("${item.amount} ${item.name}\t\t${item.totPrice}\n")
-                if(item.comment!="")
-                    textData.append("   ${item.comment}\n")
+            val textData: StringBuilder = StringBuilder()
+            orderList.forEach {
+                val countAndName = "${it.amount} ${it.name}"
+                val priceString = "${it.totPrice}"
+                textData.append(getLineWithSpaces(countAndName, priceString))
+                if (it.comment != "")
+                    textData.append("   ${it.comment}\n")
                 textData.append("\n")
             }
             mPrinter!!.addText(textData.toString())
-            textData.delete(0, textData.length)
 
-            mPrinter!!.addTextSize(2, 2)
-            mPrinter!!.addText("TOTAL\t\t$totalToPay\n")
+            mPrinter!!.addText(getLineWithSpaces("TOTAL", "$totalToPay"))
             mPrinter!!.addFeedLine(1)
-
 
             method = "addCut"
             mPrinter!!.addCut(Printer.CUT_FEED)
@@ -102,9 +98,22 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             return false
         }
 
-//        textData = null
-
         return true
+    }
+
+    private fun getLineWithSpaces(countAndName: String, priceString: String): String {
+        val textData: StringBuilder = StringBuilder()
+
+        val size = countAndName.length + priceString.length
+        val missingSpace = 20 - size
+        textData.append(countAndName)
+        for (i in 1..missingSpace) {
+            textData.append(" ")
+        }
+        textData.append(priceString)
+        textData.append("\n")
+
+        return textData.toString()
     }
 
     private fun finalizeObject() {
@@ -150,6 +159,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             try {
                 mPrinter!!.disconnect()
             } catch (ex: Exception) {
+                ex.printStackTrace()
                 // Do nothing
             }
 
@@ -225,7 +235,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
 
     private fun dispPrinterWarnings(status: PrinterStatusInfo?) {
 //        val edtWarnings = findViewById<View>(R.id.edtWarnings) as EditText
-        var warningsMsg = ""
+        var warningsMsg = "???????????"
 
         if (status == null) {
             return
@@ -240,7 +250,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         }
 
 //        edtWarnings.setText(warningsMsg)
-        Toast.makeText(mContext,warningsMsg,Toast.LENGTH_LONG).show()
+        Toast.makeText(mContext, warningsMsg, Toast.LENGTH_LONG).show()
     }
 
     private fun connectPrinter(): Boolean {
@@ -251,7 +261,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         }
 
         try {
-            mPrinter!!.connect("TCP:"+printerIP, Printer.PARAM_DEFAULT)
+            mPrinter!!.connect("TCP:" + printerIP, Printer.PARAM_DEFAULT)
         } catch (e: Exception) {
             ShowMsg.showException(e, "connect", mContext)
             return false

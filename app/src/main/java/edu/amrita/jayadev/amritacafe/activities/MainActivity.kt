@@ -1,6 +1,7 @@
-package edu.amrita.jayadev.amritacafe
+package edu.amrita.jayadev.amritacafe.activities
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.os.Bundle
@@ -9,23 +10,32 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import androidx.appcompat.app.AppCompatActivity
+import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.model.MenuAdapter
+import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.printer.Printer
+import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var kitchenPrinter: Printer
-    private lateinit var menuAdapter: MenuAdapter
     private val MAX_RANGE = 100
-    private var orderNumber: Int = 100
+    private var currentOrderNumber = 100
+    private var orderRange = 100
 
-    private val PREFERENCE_KEY: String = "PREFERENCE_NAME"
-    private val ORDER_NR_KEY: String = "ORDER_NR"
-    private lateinit var sharedPreference: SharedPreferences
+    object DbConstants {
+        val PREFERENCE_KEY = "PREFERENCE_KEY"
+        val ORDER_NR_KEY = "ORDER_KEY"
+        val RANGE_KEY = "RANGE_KEY"
+        lateinit var sharedPreference: SharedPreferences
+    }
 
+    private lateinit var kitchenPrinter: Printer
+    private lateinit var receiptPrinter: Printer
+    private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
 
-    val settings = SettingsRetriver(this)
+    var settings = SettingsRetriver(this)
     var totalToPay = 0
 
     val LUNCH_DINNER = "Lunch/Dinner"
@@ -41,11 +51,39 @@ class MainActivity : AppCompatActivity() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main)
 
-        kitchenPrinter = Printer(this,settings.kitchenPrinterIP)
-
         orderAdapter = OrderAdapter(
             this, this::updateOrderList
         )
+
+        order_ListView.adapter = orderAdapter
+
+        order_ListView.onItemClickListener =
+            AdapterView.OnItemClickListener { adapterView: AdapterView<*>, view1: View, i: Int, l: Long ->
+            }
+
+        DbConstants.sharedPreference = getSharedPreferences(DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
+        currentOrderNumber = DbConstants.sharedPreference.getInt(DbConstants.ORDER_NR_KEY, currentOrderNumber)
+
+        order_button.setOnClickListener {
+            println("Printing to: ${settings.kitchenPrinterIP}")
+            kitchenPrinter.runPrintReceiptSequence(orderAdapter.orderList, currentOrderNumber, totalToPay)
+            receiptPrinter.runPrintReceiptSequence(orderAdapter.orderList, currentOrderNumber, totalToPay)
+
+            currentOrderNumber++
+            updateOrderNumber()
+
+            orderAdapter.clear()
+            totalToPay = 0
+            updateOrderList(0)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        settings.readSettings()
+        kitchenPrinter = Printer(this, settings.kitchenPrinterIP)
+        receiptPrinter = Printer(this, settings.receiptPrinterIP)
 
         menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
         gridView.adapter = menuAdapter
@@ -64,43 +102,29 @@ class MainActivity : AppCompatActivity() {
                     return@OnItemClickListener
                 }
             }
-            orderAdapter.add(OrderAdapter.OrderItem(menuList[position].name, 1, menuList[position].price))
+            orderAdapter.add(
+                OrderAdapter.OrderItem(
+                    menuList[position].name,
+                    1,
+                    menuList[position].price
+                )
+            )
             updateOrderList(menuList[position].price)
         }
-
-        order_ListView.adapter = orderAdapter
-
-        order_ListView.onItemClickListener =
-            AdapterView.OnItemClickListener { adapterView: AdapterView<*>, view1: View, i: Int, l: Long ->
-            }
-
-        sharedPreference = getSharedPreferences(PREFERENCE_KEY, Context.MODE_PRIVATE)
-        orderNumber = sharedPreference.getInt(ORDER_NR_KEY, orderNumber)
+        orderRange = DbConstants.sharedPreference.getInt(DbConstants.RANGE_KEY, 100)
         updateOrderNumber()
-
-        order_button.setOnClickListener {
-            println("Printing to: ${settings.kitchenPrinterIP}")
-            kitchenPrinter.runPrintReceiptSequence(orderAdapter.orderList,orderNumber,totalToPay)
-
-            orderNumber++
-            updateOrderNumber()
-
-            orderAdapter.clear()
-            totalToPay = 0
-            updateOrderList(0)
-        }
     }
 
     private fun updateOrderNumber() {
-        println("OrderNr:$orderNumber Range:${settings.range}")
-        if (orderNumber < settings.range || orderNumber >= (settings.range + MAX_RANGE))
-            orderNumber = settings.range
+        println("OrderNr:$currentOrderNumber Range:${orderRange}")
+        if (currentOrderNumber < orderRange || currentOrderNumber >= (orderRange + MAX_RANGE))
+            currentOrderNumber = orderRange
 
-        val editor = sharedPreference.edit()
-        editor.putInt(ORDER_NR_KEY, orderNumber)
+        val editor = DbConstants.sharedPreference.edit()
+        editor.putInt(DbConstants.ORDER_NR_KEY, currentOrderNumber)
         editor.apply()
 
-        order_numberr_TV.text = orderNumber.toString()
+        order_numberr_TV.text = currentOrderNumber.toString()
     }
 
     private fun updateOrderList(cost: Int) {
@@ -128,7 +152,9 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.settings -> {
-                return true
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+                true
             }
             else -> super.onOptionsItemSelected(item)
         }

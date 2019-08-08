@@ -1,4 +1,4 @@
-package edu.amrita.jayadev.amritacafe
+package edu.amrita.jayadev.amritacafe.settings
 
 class Constants {
     companion object {
@@ -45,7 +45,6 @@ gc,40,a
 dxl gc,75
 gc frt,45
 OMELETE
-fried egg, 15, a
 plain om, 30, a
 on om, 35, a
 ch om, 50, a
@@ -56,6 +55,8 @@ veg om,50, a
 veg ch om,70, a
 dxl om,105, a
 gm om,95, a
+fri egg sun, 15, a
+fri egg hard, 15, a
 BREAKFAST
 pan,30,b
 rag pan,30,b
@@ -99,11 +100,9 @@ sprts,10
 soya,10
 tom,10,a
 
-ORDER RANGE:
-100
-
-PRINTER IP:
+KITCHEN PRINTER:
 192.168.0.10
+RECEIPT PRINTER:
 192.168.0.11
 """.trimMargin()
     }
