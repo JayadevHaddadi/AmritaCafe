@@ -1,7 +1,10 @@
 package edu.amrita.jayadev.amritacafe.printer
 
 import android.app.Activity
-import android.widget.Toast
+import android.graphics.Color
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
@@ -9,20 +12,46 @@ import com.epson.epos2.printer.ReceiveListener
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 
-public class Printer(val mContext: Activity, val printerIP: String) : ReceiveListener {
+class Printer(
+    val mContext: Activity,
+    val printerIP: String,
+    val feedBackTV: TextView,
+    val progressBar: ProgressBar
+) : ReceiveListener {
+
+    init {
+        mContext.runOnUiThread {
+            feedBackTV.visibility = View.INVISIBLE
+            progressBar.visibility = View.VISIBLE
+        }
+    }
 
     var mPrinter: Printer? = null
 
     override fun onPtrReceive(p0: Printer?, code: Int, status: PrinterStatusInfo, p3: String?) {
         mContext.runOnUiThread(Runnable {
-            ShowMsg.showResult(code, makeErrorMessage(status), mContext)
+            ShowMsg.showResult(code, makeErrorMessage(status), mContext, this::setMessageInDialog)
 
             dispPrinterWarnings(status)
+
+//            setMessageInDialog(showResult)
 
 //            updateButtonState(true)
 
             Thread(Runnable { disconnectPrinter() }).start()
         })
+    }
+
+    fun setMessageInDialog(message: String) {
+        mContext.runOnUiThread {
+            feedBackTV.text = message
+            feedBackTV.visibility = View.VISIBLE
+            progressBar.visibility = View.INVISIBLE
+            if (message == "PRINT_SUCCESS")
+                feedBackTV.setTextColor(Color.GREEN)
+            else
+                feedBackTV.setTextColor(Color.RED)
+        }
     }
 
     fun runPrintReceiptSequence(
@@ -51,7 +80,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         try {
             mPrinter = Printer(Printer.TM_M30, Printer.MODEL_ANK, mContext)
         } catch (e: Exception) {
-            ShowMsg.showException(e, "Printer", mContext)
+            ShowMsg.showException(e, "Printer", mContext, this::setMessageInDialog)
             return false
         }
 
@@ -94,7 +123,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             method = "addCut"
             mPrinter!!.addCut(Printer.CUT_FEED)
         } catch (e: Exception) {
-            ShowMsg.showException(e, method, mContext)
+            ShowMsg.showException(e, method, mContext, this::setMessageInDialog)
             return false
         }
 
@@ -137,12 +166,12 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             return false
         }
 
-        val status = mPrinter!!.getStatus()
+        val status = mPrinter!!.status
 
         dispPrinterWarnings(status)
 
         if (!isPrintable(status)) {
-            ShowMsg.showMsg(makeErrorMessage(status), mContext)
+            ShowMsg.showMsg(makeErrorMessage(status), mContext, this::setMessageInDialog)
             try {
                 mPrinter!!.disconnect()
             } catch (ex: Exception) {
@@ -155,7 +184,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         try {
             mPrinter!!.sendData(Printer.PARAM_DEFAULT)
         } catch (e: Exception) {
-            ShowMsg.showException(e, "sendData", mContext)
+            ShowMsg.showException(e, "sendData", mContext, this::setMessageInDialog)
             try {
                 mPrinter!!.disconnect()
             } catch (ex: Exception) {
@@ -265,7 +294,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         try {
             mPrinter!!.connect("TCP:" + printerIP, Printer.PARAM_DEFAULT)
         } catch (e: Exception) {
-            ShowMsg.showException(e, "connect", mContext)
+            ShowMsg.showException(e, "connect", mContext, this::setMessageInDialog)
             return false
         }
 
@@ -273,7 +302,7 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             mPrinter!!.beginTransaction()
             isBeginTransaction = true
         } catch (e: Exception) {
-            ShowMsg.showException(e, "beginTransaction", mContext)
+            ShowMsg.showException(e, "beginTransaction", mContext, this::setMessageInDialog)
         }
 
         if (isBeginTransaction == false) {
@@ -297,13 +326,27 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
         try {
             mPrinter!!.endTransaction()
         } catch (e: Exception) {
-            mContext.runOnUiThread(Runnable { ShowMsg.showException(e, "endTransaction", mContext) })
+            mContext.runOnUiThread(Runnable {
+                ShowMsg.showException(
+                    e,
+                    "endTransaction",
+                    mContext,
+                    this::setMessageInDialog
+                )
+            })
         }
 
         try {
             mPrinter!!.disconnect()
         } catch (e: Exception) {
-            mContext.runOnUiThread(Runnable { ShowMsg.showException(e, "disconnect", mContext) })
+            mContext.runOnUiThread(Runnable {
+                ShowMsg.showException(
+                    e,
+                    "disconnect",
+                    mContext,
+                    this::setMessageInDialog
+                )
+            })
         }
 
         finalizeObject()

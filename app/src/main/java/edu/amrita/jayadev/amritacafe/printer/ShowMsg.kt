@@ -4,9 +4,15 @@ import android.content.Context
 import com.epson.epos2.Epos2CallbackCode
 import com.epson.epos2.Epos2Exception
 import edu.amrita.jayadev.amritacafe.R
+import kotlin.reflect.KFunction1
 
 object ShowMsg {
-    fun showException(e: Exception, method: String, context: Context) {
+    fun showException(
+        e: Exception,
+        method: String,
+        context: Context,
+        showInDialog: KFunction1<String, Unit>
+    ) {
         var msg = ""
         if (e is Epos2Exception) {
             msg = String.format(
@@ -19,42 +25,52 @@ object ShowMsg {
         } else {
             msg = e.toString()
         }
-        show(msg, context)
+        show(msg, context, showInDialog)
     }
 
-    fun showResult(code: Int, errMsg: String, context: Context) {
+    fun showResult(code: Int, errMsg: String, context: Context, showInDialog: KFunction1<String, Unit>) {
         var msg = ""
         if (errMsg.isEmpty()) {
             msg = String.format(
-                "\t%s\n\t%s\n",
-                context.getString(R.string.title_msg_result),
+                "%s",
                 getCodeText(code)
             )
         } else {
             msg = String.format(
-                "\t%s\n\t%s\n\n\t%s\n\t%s\n",
-                context.getString(R.string.title_msg_result),
+                "%s\n%s",
                 getCodeText(code),
-                context.getString(R.string.title_msg_description),
                 errMsg
             )
         }
-        show(msg, context)
+        show(msg, context, showInDialog)
+//        return msg
     }
 
-    fun showMsg(msg: String, context: Context) {
-        show(msg, context)
+    fun showMsg(
+        msg: String,
+        context: Context,
+        showInDialog: KFunction1<String, Unit>
+    ) {
+        show(msg, context, showInDialog)
     }
 
-    private fun show(msg: String, context: Context) {
-//        val alertDialog = AlertDialog.Builder(context)
-//        alertDialog.setMessage(msg)
-//        alertDialog.setPositiveButton(
-//            "OK",
-//            DialogInterface.OnClickListener { dialog, whichButton -> return@OnClickListener })
-//        alertDialog.create()
-//        alertDialog.show()
-        println("THIS IS THE MESSAGE: $msg" )
+    private fun show(
+        msg: String,
+        context: Context,
+        showInDialog: KFunction1<String, Unit>
+    ) {
+//        try {
+//            val alertDialog = AlertDialog.Builder(context)
+//            alertDialog.setMessage(msg)
+//            alertDialog.setPositiveButton(
+//                "OK",
+//                DialogInterface.OnClickListener { dialog, whichButton -> return@OnClickListener })
+//            alertDialog.create()
+//            alertDialog.show()
+//        } catch (e: Exception) {
+        showInDialog(msg)
+        println("THIS IS THE MESSAGE: $msg")
+//        }
     }
 
     private fun getEposExceptionText(state: Int): String {

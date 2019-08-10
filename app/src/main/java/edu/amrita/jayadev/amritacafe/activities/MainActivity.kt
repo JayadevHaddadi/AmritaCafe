@@ -5,10 +5,14 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
@@ -16,9 +20,11 @@ import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.printer.Printer
 import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.login_dialog.view.*
 
 class MainActivity : AppCompatActivity() {
 
+    private var currentReceiptTV: TextView? = null
     private val MAX_RANGE = 100
     private var currentOrderNumber = 100
     private var orderRange = 100
@@ -30,8 +36,6 @@ class MainActivity : AppCompatActivity() {
         lateinit var sharedPreference: SharedPreferences
     }
 
-    private lateinit var kitchenPrinter: Printer
-    private lateinit var receiptPrinter: Printer
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
 
@@ -40,7 +44,6 @@ class MainActivity : AppCompatActivity() {
 
     val LUNCH_DINNER = "Lunch/Dinner"
     val BREAKFAST = "Breakfast"
-    var currentMenu = LUNCH_DINNER
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +51,7 @@ class MainActivity : AppCompatActivity() {
 //            this.supportActionBar!!.hide()
 //        } catch (e: NullPointerException) {
 //        }
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
 
 //        val toolbar = findViewById<Toolbar>(R.id.toolbar)
@@ -74,35 +77,83 @@ class MainActivity : AppCompatActivity() {
             val finalOrderNumber = currentOrderNumber
             val finalTotalToPay = totalToPay
 
-            Thread(Runnable {
-                kitchenPrinter.runPrintReceiptSequence(
+            val mDialogView = LayoutInflater.from(this).inflate(R.layout.login_dialog, null)
+            //AlertDialogBuilder
+            val mBuilder = AlertDialog.Builder(this)
+                .setView(mDialogView)
+
+            val mAlertDialog = mBuilder.show()
+            mAlertDialog.setCanceledOnTouchOutside(false)
+            //show dialog
+            //login button click of custom layout
+            currentReceiptTV = mDialogView.receipt_TV
+
+            startAPrintJob(
+                settings.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
+                finalOrder,
+                finalOrderNumber,
+                finalTotalToPay
+            )
+            startAPrintJob(
+                settings.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
+                finalOrder,
+                finalOrderNumber,
+                finalTotalToPay
+            )
+            mDialogView.kitchen_button.setOnClickListener {
+                startAPrintJob(
+                    settings.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
                     finalOrder,
                     finalOrderNumber,
                     finalTotalToPay
                 )
-            }).start()
-            Thread(Runnable {
-                receiptPrinter.runPrintReceiptSequence(
+            }
+            mDialogView.receipt_button.setOnClickListener {
+                startAPrintJob(
+                    settings.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
                     finalOrder,
                     finalOrderNumber,
                     finalTotalToPay
                 )
-            }).start()
+            }
 
-            currentOrderNumber++
-            updateOrderNumber()
+//            //cancel button click of custom layout
+            mDialogView.next_button.setOnClickListener {
+                currentOrderNumber++
+                updateOrderNumber()
 
-            orderAdapter.clear()
-            totalToPay = 0
-            updateOrderList(0)
+                orderAdapter.clear()
+                totalToPay = 0
+                updateOrderList(0)
+                mAlertDialog.dismiss()
+            }
+
+
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    fun startAPrintJob(
+        receiptPrinterIP: String,
+        receiptTv: TextView,
+        receiptProgress: ProgressBar,
+        finalOrder: MutableList<OrderAdapter.OrderItem>,
+        finalOrderNumber: Int,
+        finalTotalToPay: Int
+    ) {
+        Thread(Runnable {
+            val tempPrinter =
+                Printer(this, receiptPrinterIP, receiptTv, receiptProgress)
+            tempPrinter.runPrintReceiptSequence(
+                finalOrder,
+                finalOrderNumber,
+                finalTotalToPay
+            )
+        }).start()
+    }
+
+    override fun onStart() {
+        super.onStart()
         settings.readSettings()
-        kitchenPrinter = Printer(this, settings.kitchenPrinterIP)
-        receiptPrinter = Printer(this, settings.receiptPrinterIP)
         menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
         gridView.adapter = menuAdapter
         gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
@@ -147,7 +198,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateOrderList(cost: Int) {
         totalToPay += cost
-        total_cost_TV.setText(totalToPay.toString())
+        total_cost_TV.text = totalToPay.toString()
         orderAdapter.notifyDataSetChanged()
     }
 
@@ -162,10 +213,10 @@ class MainActivity : AppCompatActivity() {
             R.id.switch_menu -> {
                 if (item.title == LUNCH_DINNER) {
                     menuAdapter.setMenu(settings.breakfastMenu)
-                    item.setTitle(BREAKFAST)
+                    item.title = BREAKFAST
                 } else if (item.title == BREAKFAST) {
                     menuAdapter.setMenu(settings.dinnerLunchMenu)
-                    item.setTitle(LUNCH_DINNER)
+                    item.title = LUNCH_DINNER
                 }
                 true
             }
