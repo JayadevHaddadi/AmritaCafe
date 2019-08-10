@@ -249,8 +249,10 @@ public class Printer(val mContext: Activity, val printerIP: String) : ReceiveLis
             warningsMsg += mContext.getString(R.string.handlingmsg_warn_battery_near_end)
         }
 
+
+        println("THIS IS THE TOAST: $warningsMsg" )
 //        edtWarnings.setText(warningsMsg)
-        Toast.makeText(mContext, warningsMsg, Toast.LENGTH_LONG).show()
+//        Toast.makeText(mContext, warningsMsg, Toast.LENGTH_LONG).show()
     }
 
     private fun connectPrinter(): Boolean {

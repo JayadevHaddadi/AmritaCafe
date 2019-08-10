@@ -67,19 +67,25 @@ class MainActivity : AppCompatActivity() {
         DbConstants.sharedPreference = getSharedPreferences(DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
         currentOrderNumber = DbConstants.sharedPreference.getInt(DbConstants.ORDER_NR_KEY, currentOrderNumber)
 
+
+
         order_button.setOnClickListener {
+            val finalOrder = orderAdapter.orderList.toMutableList()
+            val finalOrderNumber = currentOrderNumber
+            val finalTotalToPay = totalToPay
+
             Thread(Runnable {
                 kitchenPrinter.runPrintReceiptSequence(
-                    orderAdapter.orderList,
-                    currentOrderNumber,
-                    totalToPay
+                    finalOrder,
+                    finalOrderNumber,
+                    finalTotalToPay
                 )
             }).start()
             Thread(Runnable {
                 receiptPrinter.runPrintReceiptSequence(
-                    orderAdapter.orderList,
-                    currentOrderNumber,
-                    totalToPay
+                    finalOrder,
+                    finalOrderNumber,
+                    finalTotalToPay
                 )
             }).start()
 

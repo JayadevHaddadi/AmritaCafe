@@ -54,6 +54,7 @@ object ShowMsg {
 //            DialogInterface.OnClickListener { dialog, whichButton -> return@OnClickListener })
 //        alertDialog.create()
 //        alertDialog.show()
+        println("THIS IS THE MESSAGE: $msg" )
     }
 
     private fun getEposExceptionText(state: Int): String {

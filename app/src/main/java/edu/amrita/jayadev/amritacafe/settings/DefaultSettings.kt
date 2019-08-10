@@ -29,7 +29,7 @@ PASTA
 plain past, 30
 tom past,60
 tom ch past,80
-tom ch soy past,90
+tomchsoy past,90
 psto past,60
 vn gm past,100
 dlx past,115
@@ -55,8 +55,8 @@ veg om,50, a
 veg ch om,70, a
 dxl om,105, a
 gm om,95, a
-fri egg sun, 15, a
-fri egg hard, 15, a
+fe sun, 15, a
+fe hard, 15, a
 BREAKFAST
 pan,30,b
 rag pan,30,b
