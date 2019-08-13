@@ -20,10 +20,12 @@ import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.printer.Printer
 import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.login_dialog.view.*
+import kotlinx.android.synthetic.main.response_dialog.view.*
+
 
 class MainActivity : AppCompatActivity() {
 
+    private var dialogOpen = false
     private var currentReceiptTV: TextView? = null
     private val MAX_RANGE = 100
     private var currentOrderNumber = 100
@@ -73,17 +75,32 @@ class MainActivity : AppCompatActivity() {
 
 
         order_button.setOnClickListener {
+            dialogOpen = true
             val finalOrder = orderAdapter.orderList.toMutableList()
             val finalOrderNumber = currentOrderNumber
             val finalTotalToPay = totalToPay
 
-            val mDialogView = LayoutInflater.from(this).inflate(R.layout.login_dialog, null)
+            val mDialogView =
+                LayoutInflater.from(this).inflate(edu.amrita.jayadev.amritacafe.R.layout.response_dialog, null)
             //AlertDialogBuilder
             val mBuilder = AlertDialog.Builder(this)
                 .setView(mDialogView)
 
             val mAlertDialog = mBuilder.show()
             mAlertDialog.setCanceledOnTouchOutside(false)
+//            mAlertDialog.onBackPressed {
+//
+//            }
+//            mAlertDialog.setOnDismissListener {
+//                println("dismiss1")
+//            }
+//            mAlertDialog.setOnCancelListener {
+//                println("cancel")
+//            }
+            mAlertDialog.setOnKeyListener { dialogInterface, i, keyEvent ->
+                println("key")
+                true
+            }
             //show dialog
             //login button click of custom layout
             currentReceiptTV = mDialogView.receipt_TV
@@ -116,9 +133,9 @@ class MainActivity : AppCompatActivity() {
                     finalTotalToPay
                 )
             }
-
 //            //cancel button click of custom layout
             mDialogView.next_button.setOnClickListener {
+                dialogOpen = false
                 currentOrderNumber++
                 updateOrderNumber()
 
@@ -127,9 +144,13 @@ class MainActivity : AppCompatActivity() {
                 updateOrderList(0)
                 mAlertDialog.dismiss()
             }
-
-
         }
+    }
+
+    override fun onBackPressed() {
+        println("dilaogopen: $dialogOpen")
+        if (!dialogOpen)
+            finish()
     }
 
     fun startAPrintJob(
@@ -229,3 +250,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
+private fun AlertDialog.onBackPressed(function: () -> Unit) {
+    println("?????ssss")
+//    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+}
+

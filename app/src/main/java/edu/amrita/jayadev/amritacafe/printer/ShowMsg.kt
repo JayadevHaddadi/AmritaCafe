@@ -16,7 +16,7 @@ object ShowMsg {
         var msg = ""
         if (e is Epos2Exception) {
             msg = String.format(
-                "%s\n\t%s\n%s\n\t%s",
+                "%s: %s\n%s: %s",
                 context.getString(R.string.title_err_code),
                 getEposExceptionText(e.errorStatus),
                 context.getString(R.string.title_err_method),

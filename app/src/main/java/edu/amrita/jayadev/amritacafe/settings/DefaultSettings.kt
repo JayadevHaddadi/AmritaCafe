@@ -38,12 +38,23 @@ sal,30
 sprsal, 50
 psto sal,75
 dxl sal, 90
+kitch, 30
+stem veg, 30
 SANDWICH
 ecs,55,a
 oms,45,a
 gc,40,a
 dxl gc,75
 gc frt,45
+TOAST
+T,5, a
+BT, 10, a
+BJT, 15, a
+BHT, 15, a
+HT, 10, a
+PBT, 10, a
+ChT, 20, a
+ChocT, 15, a
 OMELETE
 plain om, 30, a
 on om, 35, a

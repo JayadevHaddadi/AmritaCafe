@@ -9,9 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.TextView
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
+import kotlinx.android.synthetic.main.menu_item.view.*
 
 class MenuAdapter(private val mContext: Context, var menuItems: MutableList<SettingsRetriver.MenuItem>) :
     BaseAdapter() {
@@ -36,32 +36,33 @@ class MenuAdapter(private val mContext: Context, var menuItems: MutableList<Sett
         val inflater = mContext
             .getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-        val gridView: View
+        val cell: View
 
-//        if (convertView == null) {
-        gridView = inflater.inflate(R.layout.menu_item, null)
-
-        val nameView = gridView
-            .findViewById<View>(R.id.grid_item_letter) as TextView
-
-        nameView.text = menuItems[position].name
-        if(menuItems[position].price==0)
-            nameView.setTypeface(null, Typeface.BOLD)
-
-        if (!menuItems[position].category.equals(currentCategory)) {
-            currentCategory = menuItems[position].category
-            colorNumber++
-        }
-        if (menuItems[position].name.equals(""))
-            nameView.setBackgroundColor(Color.TRANSPARENT)
+        if (convertView == null)
+            cell = inflater.inflate(R.layout.menu_item, null)
         else
-            nameView.setBackgroundColor(colors.getColor(colorNumber, 0))
+            cell = convertView
 
-//        }
-//        else {
-//            gridView = convertView
-//        }
-        return gridView
+        if (convertView?.name?.text != menuItems[position].name) {
+
+            cell.name.text = menuItems[position].name
+            if (menuItems[position].price == 0)
+                cell.name.setTypeface(null, Typeface.BOLD)
+            else
+                cell.name.setTypeface(null, Typeface.NORMAL)
+
+            if (!menuItems[position].category.equals(currentCategory)) {
+                currentCategory = menuItems[position].category
+                colorNumber++
+            }
+            if (menuItems[position].name.equals(""))
+                cell.name.setBackgroundColor(Color.TRANSPARENT)
+            else
+                cell.name.setBackgroundColor(colors.getColor(colorNumber, 0))
+
+        }
+
+        return cell
     }
 
     fun setMenu(menuList: MutableList<SettingsRetriver.MenuItem>) {

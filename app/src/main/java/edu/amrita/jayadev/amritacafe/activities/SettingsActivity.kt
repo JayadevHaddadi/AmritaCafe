@@ -1,9 +1,11 @@
 package edu.amrita.jayadev.amritacafe.activities
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.settings.Constants
@@ -28,12 +30,13 @@ class SettingsActivity : AppCompatActivity() {
 
         loadFromFile()
 //        val sharedPreference = getSharedPreferences(MainActivity.DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
-        range_ET.setText(MainActivity.DbConstants.sharedPreference.getInt("RANGE_KEY",100).toString())
+        range_ET.setText(MainActivity.DbConstants.sharedPreference.getInt("RANGE_KEY", 100).toString())
     }
 
     private fun loadFromFile() {
         if (!file.isFile) { // TODO || true
-            createDefaultFile(null)
+            resetDefault()
+            proptReset(null)
         }
 
         val br = BufferedReader(FileReader(file))
@@ -48,23 +51,7 @@ class SettingsActivity : AppCompatActivity() {
         menu_settings_ET.setText(text)
     }
 
-    override fun onPause() {
-        super.onPause()
-        file.createNewFile()
-        val fos = FileOutputStream(file, false)
-        fos.write(menu_settings_ET.text.toString().toByteArray())
-        fos.close()
-
-//        val sharedPreference = getSharedPreferences(MainActivity.DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
-        val editor = MainActivity.DbConstants.sharedPreference.edit()
-        editor.putInt("RANGE_KEY", range_ET.text.toString().toInt())
-        editor.apply()
-
-
-        println("onPause")
-    }
-
-    fun createDefaultFile(view: View?) {
+    private fun resetDefault() {
         val dir = File(
             Environment.getExternalStorageDirectory().toString() + File.separator + "AmritaCafe"
         )
@@ -84,5 +71,42 @@ class SettingsActivity : AppCompatActivity() {
         fos.close()
 
         loadFromFile()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        file.createNewFile()
+        val fos = FileOutputStream(file, false)
+        fos.write(menu_settings_ET.text.toString().toByteArray())
+        fos.close()
+
+//        val sharedPreference = getSharedPreferences(MainActivity.DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
+        val editor = MainActivity.DbConstants.sharedPreference.edit()
+        editor.putInt("RANGE_KEY", range_ET.text.toString().toInt())
+        editor.apply()
+
+
+        println("onPause")
+    }
+
+    fun proptReset(view: View?) {
+
+        val alertDialog = AlertDialog.Builder(this)
+        alertDialog.setTitle("Reset Menu?")
+        alertDialog.setMessage("Menu will be reset to the default settings")
+        alertDialog.setPositiveButton(
+            "RESET",
+            { dialogInterface: DialogInterface, i: Int ->
+                resetDefault()
+            }
+        )
+        alertDialog.setNegativeButton(
+            "cancel", { dialogInterface: DialogInterface, i: Int ->
+
+            }
+
+        )
+        alertDialog.create()
+        alertDialog.show()
     }
 }

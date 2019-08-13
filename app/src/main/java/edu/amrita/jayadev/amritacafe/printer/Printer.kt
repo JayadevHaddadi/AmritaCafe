@@ -28,11 +28,19 @@ class Printer(
 
     var mPrinter: Printer? = null
 
+    class SafeThread : Runnable {
+        @Synchronized
+        override fun run() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+    }
+
     override fun onPtrReceive(p0: Printer?, code: Int, status: PrinterStatusInfo, p3: String?) {
-        mContext.runOnUiThread(Runnable {
+        mContext.runOnUiThread({
             ShowMsg.showResult(code, makeErrorMessage(status), mContext, this::setMessageInDialog)
 
-            dispPrinterWarnings(status)
+            dispPrinterWarnings(status) // not dangerous
 
 //            setMessageInDialog(showResult)
 
@@ -40,17 +48,43 @@ class Printer(
 
             Thread(Runnable { disconnectPrinter() }).start()
         })
+
+//            .runOnUiThread(new Runnable() {
+//
+//            /* renamed from: com.dhru.pos.restaurant.print.PrintEPSON$1$1 */
+//            class C05501 implements Runnable {
+//            C05501() {
+//            }
+//
+//            public void run() {
+//                PrintEPSON.this.disconnectPrinter();
+//            }
+//        }
+//
+//            public synchronized void run() {
+//                ShowMsg.showResult(i, PrintEPSON.this.makeErrorMessage(printerStatusInfo), PrintEPSON.this.context);
+//                PrintEPSON.this.dispPrinterWarnings(printerStatusInfo);
+//                new Thread(new C05501()).start();
+//            }
+//        });
+//
     }
 
+    @Synchronized
     fun setMessageInDialog(message: String) {
         mContext.runOnUiThread {
-            feedBackTV.text = message
-            feedBackTV.visibility = View.VISIBLE
-            progressBar.visibility = View.INVISIBLE
-            if (message == "PRINT_SUCCESS")
-                feedBackTV.setTextColor(Color.GREEN)
-            else
-                feedBackTV.setTextColor(Color.RED)
+            try {
+                feedBackTV.text = message
+                feedBackTV.visibility = View.VISIBLE
+                progressBar.visibility = View.INVISIBLE
+                if (message == "PRINT_SUCCESS")
+                    feedBackTV.setTextColor(Color.GREEN)
+                else
+                    feedBackTV.setTextColor(Color.RED)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -101,10 +135,20 @@ class Printer(
         }
 
         try {
-            mPrinter!!.addTextSize(3, 3)
+            val debug = false
+            var titleSize = 3
+            var textSize = 2
+            if (debug) {
+                titleSize = 1
+                textSize = 1
+            }
+
+
+            mPrinter!!.addTextSize(titleSize, titleSize)
             mPrinter!!.addText("ORDER: $orderNumber\n")
-            mPrinter!!.addTextSize(2, 2)
-            mPrinter!!.addFeedLine(1)
+            mPrinter!!.addTextSize(textSize, textSize)
+            if (!debug)
+                mPrinter!!.addFeedLine(1)
 
             val textData: StringBuilder = StringBuilder()
             orderList.forEach {
@@ -112,13 +156,14 @@ class Printer(
                 val priceString = "${it.totPrice}"
                 textData.append(getLineWithSpaces(countAndName, priceString))
                 if (it.comment != "")
-                    textData.append("   ${it.comment}\n")
+                    textData.append("  ${it.comment}\n")
                 textData.append("\n")
             }
             mPrinter!!.addText(textData.toString())
 
             mPrinter!!.addText(getLineWithSpaces("TOTAL", "$totalToPay"))
-            mPrinter!!.addFeedLine(1)
+            if (!debug)
+                mPrinter!!.addFeedLine(1)
 
             method = "addCut"
             mPrinter!!.addCut(Printer.CUT_FEED)
@@ -279,7 +324,7 @@ class Printer(
         }
 
 
-        println("THIS IS THE TOAST: $warningsMsg" )
+        println("THIS IS THE TOAST: $warningsMsg")
 //        edtWarnings.setText(warningsMsg)
 //        Toast.makeText(mContext, warningsMsg, Toast.LENGTH_LONG).show()
     }
