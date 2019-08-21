@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.AdapterView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -66,8 +65,7 @@ class MainActivity : AppCompatActivity() {
         order_ListView.adapter = orderAdapter
 
         order_ListView.onItemClickListener =
-            AdapterView.OnItemClickListener { adapterView: AdapterView<*>, view1: View, i: Int, l: Long ->
-            }
+            AdapterView.OnItemClickListener { _, _, _, _ -> }
 
         DbConstants.sharedPreference = getSharedPreferences(DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
         currentOrderNumber = DbConstants.sharedPreference.getInt(DbConstants.ORDER_NR_KEY, currentOrderNumber)
@@ -97,7 +95,7 @@ class MainActivity : AppCompatActivity() {
 //            mAlertDialog.setOnCancelListener {
 //                println("cancel")
 //            }
-            mAlertDialog.setOnKeyListener { dialogInterface, i, keyEvent ->
+            mAlertDialog.setOnKeyListener { _, _, _ ->
                 println("key")
                 true
             }
@@ -177,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         settings.readSettings()
         menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
         gridView.adapter = menuAdapter
-        gridView.onItemClickListener = AdapterView.OnItemClickListener { parent, v, position, id ->
+        gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             val menuList = menuAdapter.menuItems
             if (menuList[position].name == "" || menuList[position].price == 0)
                 return@OnItemClickListener
@@ -250,8 +248,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
-private fun AlertDialog.onBackPressed(function: () -> Unit) {
+//PORT     STATE SERVICE
+//80/tcp   open  http
+//443/tcp  open  https
+//515/tcp  open  printer
+//9100/tcp open  jetdirect
+//
+private fun AlertDialog.onBackPressed() {
     println("?????ssss")
 //    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 }
