@@ -36,33 +36,23 @@ class MenuAdapter(private val mContext: Context, var menuItems: List<MenuItem>) 
         val inflater = mContext
             .getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-        val cell: View
+        return convertView ?: inflater.inflate(R.layout.menu_item, parent, false).apply {
 
-        if (convertView == null)
-            cell = inflater.inflate(R.layout.menu_item, null)
-        else
-            cell = convertView
-
-        if (convertView?.name?.text != menuItems[position].name) {
-
-            cell.name.text = menuItems[position].code
+            name.text = menuItems[position].code
             if (menuItems[position].price == 0)
-                cell.name.setTypeface(null, Typeface.BOLD)
+                name.setTypeface(null, Typeface.BOLD)
             else
-                cell.name.setTypeface(null, Typeface.NORMAL)
+                name.setTypeface(null, Typeface.NORMAL)
 
-            if (!menuItems[position].category.equals(currentCategory)) {
+            if (menuItems[position].category.name != currentCategory) {
                 currentCategory = menuItems[position].category.name
                 colorNumber++
             }
-            if (menuItems[position].name.equals(""))
-                cell.name.setBackgroundColor(Color.TRANSPARENT)
+            if (menuItems[position].name == "")
+                name.setBackgroundColor(Color.TRANSPARENT)
             else
-                cell.name.setBackgroundColor(colors.getColor(colorNumber, 0))
-
+                name.setBackgroundColor(colors.getColor(colorNumber, 0))
         }
-
-        return cell
     }
 
     fun setMenu(menuList: List<MenuItem>) {
