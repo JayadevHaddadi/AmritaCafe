@@ -10,10 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import edu.amrita.jayadev.amritacafe.R
-import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
+import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import kotlinx.android.synthetic.main.menu_item.view.*
 
-class MenuAdapter(private val mContext: Context, var menuItems: MutableList<SettingsRetriver.MenuItem>) :
+class MenuAdapter(private val mContext: Context, var menuItems: List<MenuItem>) :
     BaseAdapter() {
 
     var colorNumber = -1
@@ -45,14 +45,14 @@ class MenuAdapter(private val mContext: Context, var menuItems: MutableList<Sett
 
         if (convertView?.name?.text != menuItems[position].name) {
 
-            cell.name.text = menuItems[position].name
+            cell.name.text = menuItems[position].code
             if (menuItems[position].price == 0)
                 cell.name.setTypeface(null, Typeface.BOLD)
             else
                 cell.name.setTypeface(null, Typeface.NORMAL)
 
             if (!menuItems[position].category.equals(currentCategory)) {
-                currentCategory = menuItems[position].category
+                currentCategory = menuItems[position].category.name
                 colorNumber++
             }
             if (menuItems[position].name.equals(""))
@@ -65,7 +65,7 @@ class MenuAdapter(private val mContext: Context, var menuItems: MutableList<Sett
         return cell
     }
 
-    fun setMenu(menuList: MutableList<SettingsRetriver.MenuItem>) {
+    fun setMenu(menuList: List<MenuItem>) {
         menuItems = menuList
         notifyDataSetChanged()
         colorNumber = -1

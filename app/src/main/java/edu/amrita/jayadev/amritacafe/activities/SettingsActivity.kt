@@ -13,7 +13,6 @@ import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.*
 
 class SettingsActivity : AppCompatActivity() {
-
     private lateinit var file: File
 
     override fun onCreate(savedInstanceState: Bundle?) {

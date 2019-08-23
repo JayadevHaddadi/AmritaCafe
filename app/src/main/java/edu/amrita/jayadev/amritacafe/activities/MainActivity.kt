@@ -17,7 +17,9 @@ import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.printer.Printer
-import edu.amrita.jayadev.amritacafe.settings.SettingsRetriver
+import edu.amrita.jayadev.amritacafe.settings.Configuration
+import edu.amrita.jayadev.amritacafe.settings.breakfastMenu
+import edu.amrita.jayadev.amritacafe.settings.lunchDinnerMenu
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.response_dialog.view.*
 
@@ -31,20 +33,19 @@ class MainActivity : AppCompatActivity() {
     private var orderRange = 100
 
     object DbConstants {
-        val PREFERENCE_KEY = "PREFERENCE_KEY"
-        val ORDER_NR_KEY = "ORDER_KEY"
-        val RANGE_KEY = "RANGE_KEY"
+        const val PREFERENCE_KEY = "PREFERENCE_KEY"
+        const val ORDER_NR_KEY = "ORDER_KEY"
+        const val RANGE_KEY = "RANGE_KEY"
         lateinit var sharedPreference: SharedPreferences
     }
 
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
 
-    var settings = SettingsRetriver(this)
     var totalToPay = 0
 
-    val LUNCH_DINNER = "Lunch/Dinner"
-    val BREAKFAST = "Breakfast"
+    private val LUNCH_DINNER = "Lunch/Dinner"
+    private val BREAKFAST = "Breakfast"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 //            this.supportActionBar!!.hide()
 //        } catch (e: NullPointerException) {
 //        }
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
 
@@ -104,20 +106,20 @@ class MainActivity : AppCompatActivity() {
             currentReceiptTV = mDialogView.receipt_TV
 
             startAPrintJob(
-                settings.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
+                Configuration.current.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
                 finalOrder,
                 finalOrderNumber,
                 finalTotalToPay
             )
             startAPrintJob(
-                settings.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
+                Configuration.current.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
                 finalOrder,
                 finalOrderNumber,
                 finalTotalToPay
             )
             mDialogView.kitchen_button.setOnClickListener {
                 startAPrintJob(
-                    settings.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
+                    Configuration.current.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
                     finalOrder,
                     finalOrderNumber,
                     finalTotalToPay
@@ -125,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             }
             mDialogView.receipt_button.setOnClickListener {
                 startAPrintJob(
-                    settings.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
+                    Configuration.current.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
                     finalOrder,
                     finalOrderNumber,
                     finalTotalToPay
@@ -151,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             finish()
     }
 
-    fun startAPrintJob(
+    private fun startAPrintJob(
         receiptPrinterIP: String,
         receiptTv: TextView,
         receiptProgress: ProgressBar,
@@ -172,8 +174,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        settings.readSettings()
-        menuAdapter = MenuAdapter(applicationContext, settings.dinnerLunchMenu)
+        Configuration.loadLocal(this)
+        menuAdapter = MenuAdapter(applicationContext, Configuration.current.menu)
         gridView.adapter = menuAdapter
         gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             val menuList = menuAdapter.menuItems
@@ -231,10 +233,10 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.switch_menu -> {
                 if (item.title == LUNCH_DINNER) {
-                    menuAdapter.setMenu(settings.breakfastMenu)
+                    menuAdapter.setMenu(Configuration.current.menu.lunchDinnerMenu)
                     item.title = BREAKFAST
                 } else if (item.title == BREAKFAST) {
-                    menuAdapter.setMenu(settings.dinnerLunchMenu)
+                    menuAdapter.setMenu(Configuration.current.menu.breakfastMenu)
                     item.title = LUNCH_DINNER
                 }
                 true
@@ -247,15 +249,5 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-}
-//PORT     STATE SERVICE
-//80/tcp   open  http
-//443/tcp  open  https
-//515/tcp  open  printer
-//9100/tcp open  jetdirect
-//
-private fun AlertDialog.onBackPressed() {
-    println("?????ssss")
-//    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 }
 
