@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.preference.*
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.settings.Configuration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 class MainPreferencesFragment : PreferenceFragmentCompat() {
     /**
@@ -19,19 +23,32 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
 
-        val updateUrlPref = findPreference<EditTextPreference>("update_url")
-        updateUrlPref?.summaryProvider = Preference.SummaryProvider<EditTextPreference> {
-            "Updated: ${Configuration.lastUpdated(context!!)}"
+        println("THIS IS MY FPMOPPLE.")
+        findPreference<EditTextPreference>("update_url")?.run {
+            summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
         }
 
         findPreference<SwitchPreferenceCompat>("update_now")?.run {
+            summaryProvider = Preference.SummaryProvider<SwitchPreferenceCompat> {
+                "Updated: ${Configuration.lastUpdated(context!!)}"
+            }
             setOnPreferenceChangeListener { _, newValue ->
-                println("The new value is $newValue")
-//                this.isEnabled = newValue != true
+                println("Changed")
+                if (newValue == true) {
+                    isEnabled = false
+                    GlobalScope.launch(Dispatchers.IO) {
+                        Configuration.refresh(context)
+                        findPreference<SwitchPreferenceCompat>("update_now")?.run {
+                            performClick()
+                        }
+                    }
+                } else {
+                    isEnabled = true
+                }
                 true
             }
-
         }
+
 
     }
 }

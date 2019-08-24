@@ -63,8 +63,10 @@ data class Configuration (
 
         suspend fun refresh(context: Context) {
             val url = PreferenceManager.getDefaultSharedPreferences(context).getString("update_url", URL)!!
-            val (_, _, result) = Fuel.get(url)
+
+            val (request, response, result) = Fuel.get(url)
                 .awaitObjectResponseResult(kotlinxDeserializerOf(loader = serializer()))
+            println(response.responseMessage)
             result.fold(
                 success = {
                     mutex.withLock {

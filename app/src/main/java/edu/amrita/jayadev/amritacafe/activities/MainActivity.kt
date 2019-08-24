@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.settings -> {
-                val intent = Intent(this, SettingsActivity::class.java)
+                val intent = Intent(this, PreferencesActivity::class.java)
                 startActivity(intent)
                 true
             }

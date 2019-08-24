@@ -24,7 +24,7 @@
 
     <PreferenceCategory app:title="Menu" >
         <EditTextPreference
-                app:defaultValue="https://tinyurl.com/amritacafe"
+                app:defaultValue="https://bit.ly/2MBGU46"
                 app:key="update_url"
                 app:title="Menu Update URL" />
 
