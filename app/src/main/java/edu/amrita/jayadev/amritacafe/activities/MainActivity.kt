@@ -7,13 +7,14 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
-import android.view.MenuItem
+import android.view.MenuItem as ViewMenuItem
 import android.widget.AdapterView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.printer.Printer
@@ -177,32 +178,25 @@ class MainActivity : AppCompatActivity() {
         Configuration.loadLocal(this)
         menuAdapter = MenuAdapter(applicationContext, Configuration.current.menu)
         gridView.adapter = menuAdapter
-        gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val menuList = menuAdapter.menuItems
-            if (menuList[position].name == "" || menuList[position].price == 0)
-                return@OnItemClickListener
+        gridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
 
-            //Not perfect code, All interactions with orderlist should be done by one class onlu and not
-            // in two as below 2 examples
-            for (orderItem in orderAdapter.orderList) {
-                if (menuList[position].name == orderItem.name) {
-                    orderItem.amount++
-                    orderItem.totPrice += menuList[position].price
-                    updateOrderList(menuList[position].price)
-                    return@OnItemClickListener
+            when (val menuItem = view.tag) {
+                is MenuItem -> {
+                    orderAdapter.orderList.find { it.name == menuItem.code }?.run {
+                        amount++
+                        totPrice += menuItem.price
+                    }
+                        ?: orderAdapter.add(
+                            OrderAdapter.OrderItem(
+                                menuItem.code, 1, menuItem.price
+                            )
+                        )
+                    updateOrderList(menuItem.price)
                 }
             }
-            orderAdapter.add(
-                OrderAdapter.OrderItem(
-                    menuList[position].name,
-                    1,
-                    menuList[position].price
-                )
-            )
-            updateOrderList(menuList[position].price)
         }
+
         orderRange = DbConstants.sharedPreference.getInt(DbConstants.RANGE_KEY, 100)
-        updateOrderNumber()
     }
 
     private fun updateOrderNumber() {
@@ -229,7 +223,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    override fun onOptionsItemSelected(item: ViewMenuItem): Boolean {
         return when (item.itemId) {
             R.id.switch_menu -> {
                 if (item.title == LUNCH_DINNER) {

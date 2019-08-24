@@ -8,6 +8,8 @@ import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import kotlinx.serialization.Serializable
 import android.content.Context
+import android.text.format.DateUtils
+import androidx.preference.PreferenceManager
 import edu.amrita.jayadev.amritacafe.menu.Availability
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,13 +36,20 @@ data class Configuration (
     val menu: List<MenuItem>
 ) {
 
-
     companion object {
         private var _current = defaultConfiguration
         val current get() = _current
         private const val FILENAME = "config.json"
         private const val URL = "https://gist.github.com/tylergannon/a927c213cd97ce656016bf9aaa326231"
         private val mutex = Mutex()
+
+        fun lastUpdated(context: Context) : String = File(context.filesDir, FILENAME).run {
+            if (exists()) {
+                DateUtils.getRelativeTimeSpanString(lastModified()).toString()
+            } else {
+                "Never"
+            }
+        }
 
 
         fun loadLocal(context: Context) =
@@ -53,9 +62,8 @@ data class Configuration (
             }
 
         suspend fun refresh(context: Context) {
-            context.filesDir
-
-            val (_, _, result) = Fuel.get(URL)
+            val url = PreferenceManager.getDefaultSharedPreferences(context).getString("update_url", URL)!!
+            val (_, _, result) = Fuel.get(url)
                 .awaitObjectResponseResult(kotlinxDeserializerOf(loader = serializer()))
             result.fold(
                 success = {

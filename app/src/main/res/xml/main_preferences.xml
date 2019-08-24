@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Main" >
+        <SwitchPreferenceCompat
+                app:key="meal"
+                app:defaultValue="LunchDinner"
+                app:title="Choose Meal"
+                app:summaryOn="Lunch / Dinner"
+                app:summaryOff="Breakfast" />
+
+        <EditTextPreference
+                app:defaultValue="192.168.1.17"
+                app:key="kitchen_printer_ip"
+                app:title="Kitchen Printer IP"
+                app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+                app:defaultValue="192.168.1.17"
+                app:key="receipt_printer_ip"
+                app:title="Receipt Printer IP"
+                app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Menu" >
+        <EditTextPreference
+                app:defaultValue="https://tinyurl.com/amritacafe"
+                app:key="update_url"
+                app:title="Menu Update URL" />
+
+        <SwitchPreferenceCompat
+                app:title="Update Now"
+                app:key="update_now"
+                app:defaultValue="false" />
+
+        <EditTextPreference
+                app:key="menu_json"
+                app:title="Menu Config" />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
