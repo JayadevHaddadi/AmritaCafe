@@ -3,6 +3,7 @@ package edu.amrita.jayadev.amritacafe.fragments
 import android.os.Bundle
 import androidx.preference.*
 import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -48,7 +49,5 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
                 true
             }
         }
-
-
     }
 }

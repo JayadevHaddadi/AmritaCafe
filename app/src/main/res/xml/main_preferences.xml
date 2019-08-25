@@ -10,7 +10,7 @@
                 app:summaryOff="Breakfast" />
 
         <EditTextPreference
-                app:defaultValue="192.168.1.17"
+                app:defaultValue="192.168.1.11"
                 app:key="kitchen_printer_ip"
                 app:title="Kitchen Printer IP"
                 app:useSimpleSummaryProvider="true" />
@@ -19,6 +19,24 @@
                 app:defaultValue="192.168.1.17"
                 app:key="receipt_printer_ip"
                 app:title="Receipt Printer IP"
+                app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+                app:key="order_number_offset"
+                app:title="Order Number Offset"
+                app:defaultValue="0"
+                app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+                app:key="order_number_seed"
+                app:title="Next Order Seed"
+                app:defaultValue="0"
+                app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+                app:key="order_number_interval"
+                app:title="Order Number Interval"
+                app:defaultValue="3"
                 app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 

@@ -28,12 +28,12 @@ class ReceiptWriterImpl(val orderNumber: Int, val orderItems: List<OrderItem>) {
     }
 
     private val orderItemsText get() =
-        orderItems.map {
-            "${it.quantity} ${it.name}".padEnd(17) +
+        orderItems.joinToString("\n") {
+            "${it.quantity} ${it.menuItem.code}".padEnd(17) +
                     it.totalPrice.toString().padStart(3) +
                     if (it.comment.isBlank()) ""
                     else "\n * ${it.comment}"
-        }.joinToString("\n")
+        }
 
     private val orderTotalText get() = orderItems.map { it.totalPrice }.sum().toString()
 }
