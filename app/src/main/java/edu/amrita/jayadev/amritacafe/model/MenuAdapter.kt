@@ -14,22 +14,38 @@ import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.menu.Category
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import kotlinx.android.synthetic.main.menu_item.view.*
+import java.util.*
+import kotlin.Comparator
 
 class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
     BaseAdapter() {
 
-    private fun setTheItems(menuItems: List<MenuItem>) : List<Any>
-        = menuItems.groupBy {
-           it.category
-        }.toSortedMap(Comparator { left, right -> left.ordinal.compareTo(right.ordinal) })
-            .map<Category, List<MenuItem>, List<Any>> { (category, items) ->
-                listOf(category) + items + Array(10 - (items.size + 1) % 10) {Unit}
-        }.flatten()
+    init {
+        setTheItems(menu)
+    }
 
-    private var menuItems = setTheItems(menu)
+    private fun setTheItems(items: List<MenuItem>) {
 
-    var colorNumber = -1
-    val colors: TypedArray = mContext.resources.obtainTypedArray(R.array.colors)
+        items.groupBy {
+            it.category
+        }.toSortedMap(
+            Comparator { left, right ->
+                left.ordinal.compareTo(right.ordinal) }
+        ).let { menuByCategory ->
+            menuItems = menuByCategory.map { (category, items) ->
+                listOf(category) + items + Array((10 - (items.size + 1) % 10) % 10) {Unit}
+            }.flatten()
+
+            val colors: TypedArray = mContext.resources.obtainTypedArray(R.array.colors)
+            colorMap = menuByCategory.keys.mapIndexed { idx, cat ->
+                cat to colors.getColor(idx, 0)
+            }.toMap()
+            colors.recycle()
+        }
+    }
+
+    private lateinit var menuItems : List<Any>
+    private lateinit var colorMap : Map<Category, Int>
 
     override fun getCount(): Int {
         return menuItems.size
@@ -43,38 +59,39 @@ class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
         return position.toLong()
     }
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val inflater = mContext
-            .getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup) : View
+    = convertOrInflate(convertView, parent).apply {
 
-        return convertView ?: inflater.inflate(R.layout.menu_item, parent, false).apply {
-            val menuItem = menuItems[position]
+        val menuItem = menuItems[position]
 
-            tag = menuItem
+        tag = menuItem
 
-            when (menuItem) {
-                is Category -> {
-                    name.setTypeface(null, BOLD)
-                    name.text = menuItem.name
-                    colorNumber++
-                }
-                is MenuItem -> {
-                    name.text = menuItem.code
-                    name.setTypeface(null, Typeface.NORMAL)
-                }
+        when (menuItem) {
+            is Category -> {
+                name.setTypeface(null, BOLD)
+                name.text = menuItem.name
+                name.setBackgroundColor(colorMap.getValue(menuItem))
             }
-
-            if (menuItem is Unit) {
+            is MenuItem -> {
+                name.text = menuItem.code
+                name.setTypeface(null, Typeface.NORMAL)
+                name.setBackgroundColor(colorMap.getValue(menuItem.category))
+            }
+            is Unit -> {
                 name.setBackgroundColor(Color.TRANSPARENT)
-            } else {
-                name.setBackgroundColor(colors.getColor(colorNumber, 0))
+                name.text = ""
             }
+
         }
     }
 
+    private fun convertOrInflate(view: View?, parent: ViewGroup) =
+        view ?: mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE).let {
+        (it as LayoutInflater).inflate(R.layout.menu_item, parent, false)
+    }
+
     fun setMenu(menuList: List<MenuItem>) {
-        menuItems = setTheItems(menuList)
+        setTheItems(menuList)
         notifyDataSetChanged()
-        colorNumber = -1
     }
 }

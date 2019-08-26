@@ -2,12 +2,10 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory app:title="Main" >
-        <SwitchPreferenceCompat
+        <Preference
                 app:key="meal"
                 app:defaultValue="LunchDinner"
-                app:title="Choose Meal"
-                app:summaryOn="Lunch / Dinner"
-                app:summaryOff="Breakfast" />
+                app:title="Toggle Meal" />
 
         <EditTextPreference
                 app:defaultValue="192.168.1.11"
@@ -21,23 +19,6 @@
                 app:title="Receipt Printer IP"
                 app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-                app:key="order_number_offset"
-                app:title="Order Number Offset"
-                app:defaultValue="0"
-                app:useSimpleSummaryProvider="true" />
-
-        <EditTextPreference
-                app:key="order_number_seed"
-                app:title="Next Order Seed"
-                app:defaultValue="0"
-                app:useSimpleSummaryProvider="true" />
-
-        <EditTextPreference
-                app:key="order_number_interval"
-                app:title="Order Number Interval"
-                app:defaultValue="3"
-                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Menu" >
@@ -46,14 +27,26 @@
                 app:key="update_url"
                 app:title="Menu Update URL" />
 
-        <SwitchPreferenceCompat
-                app:title="Update Now"
-                app:key="update_now"
-                app:defaultValue="false" />
+        <Preference
+                app:title="Update On Web"
+                app:key="update_now" />
+
+        <Preference
+            app:title="Reset to default"
+            app:key="menu_reset" />
 
         <EditTextPreference
+                app:defaultValue="[]"
                 app:key="menu_json"
                 app:title="Menu Config" />
+
+    </PreferenceCategory>
+    <PreferenceCategory app:title="Order Numbers">
+        <EditTextPreference
+           app:key="order_number_range"
+           app:defaultValue="100"
+           app:title="Range"
+           app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 

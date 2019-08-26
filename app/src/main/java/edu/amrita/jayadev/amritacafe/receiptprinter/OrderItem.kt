@@ -8,6 +8,8 @@ data class OrderItem(
     val quantity: Int,
     var comment: String = ""
 ) {
+    fun increment() = copy(quantity = quantity + 1)
+
     val totalPrice get() = menuItem.price * quantity
 }
 

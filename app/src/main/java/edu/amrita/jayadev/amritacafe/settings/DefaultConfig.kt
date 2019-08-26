@@ -6,9 +6,7 @@ import edu.amrita.jayadev.amritacafe.menu.Category
 import edu.amrita.jayadev.amritacafe.menu.Location
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 
-val defaultConfiguration = Configuration(
-    "192.168.1.17",
-    "192.168.1.17",
+val defaultConfiguration =
     listOf(
         MenuItem(
             "Veggie Burger",
@@ -99,6 +97,4 @@ val defaultConfiguration = Configuration(
             Category.Eggs
         )
     )
-)
-
 

@@ -1,33 +1,30 @@
 package edu.amrita.jayadev.amritacafe.receiptprinter
 
-import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.preference.PreferenceManager
+import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class OrderNumberService(context: Context) {
+class OrderNumberService(private val preferences: SharedPreferences) {
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private var lastOrderNumber get() = preferences.getInt(LAST_ORDER_NUMBER, 0)
+        set(value) {
+            preferences.edit {
+                putInt(LAST_ORDER_NUMBER, value)
+                apply()
+            }
+        }
 
     suspend fun next() = mutex.withLock {
-        val seed = preferences.getInt("order_number_seed", 0)
-        val interval = preferences.getInt("order_number_interval", 3)
-        val offset = preferences.getInt("order_number_offset", 0)
+        val range = preferences.getString(Configuration.ORDER_NUMBER_RANGE, "100")!!.toInt()
 
-        val nextNumber = if (seed % interval != offset) {
-            seed + interval - (seed % interval)
-        } else {
-            seed + interval
-        }
-        preferences.edit {
-            putInt("order_number_seed", nextNumber)
-            commit()
-        }
-        nextNumber
+        lastOrderNumber = range + (lastOrderNumber + 1) % 100
+        lastOrderNumber
     }
 
     companion object {
+        const val LAST_ORDER_NUMBER = "last_order_number"
         private val mutex = Mutex()
     }
 }

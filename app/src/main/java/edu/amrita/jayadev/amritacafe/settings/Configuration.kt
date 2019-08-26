@@ -8,13 +8,17 @@ import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import kotlinx.serialization.Serializable
 import android.content.Context
+import android.content.SharedPreferences
 import android.text.format.DateUtils
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import edu.amrita.jayadev.amritacafe.menu.Availability
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.list
+import kotlinx.serialization.parse
 import java.io.File
 
 val List<MenuItem>.breakfastMenu get() = this.filter { it.availability != Availability.LunchDinner }
@@ -29,58 +33,84 @@ val List<MenuItem>.lunchDinnerMenu get() = this.filter { it.availability != Avai
  * Defaults to the defaultConfiguration for testing.
  *
  */
-@Serializable
 data class Configuration (
-    val receiptPrinterIP: String,
-    val kitchenPrinterIP: String,
-    val menu: List<MenuItem>
+    private val preferences: SharedPreferences
 ) {
+    private val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true))
+    private fun buildMenu() = json.parse(
+        MenuItem.serializer().list,
+        preferences.getString(MENU_JSON, "[]")!!
+    )
+
+    private var mealChangedListeners = mutableListOf<() -> Unit>()
+
+    fun registerMealChangedListener(block : () -> Unit) {
+        mealChangedListeners.add(block)
+    }
+
+    private val poopSauce = SharedPreferences.OnSharedPreferenceChangeListener {pref: SharedPreferences, name: String ->
+        println("$name value changed")
+        if (name == MEAL) {
+            mealChangedListeners.forEach { it() }
+        }
+    }
+
+    private fun preferencesChangeListener(pref: SharedPreferences, name: String) {
+        println("$name value changed")
+        if (name == MEAL) {
+            println("Dorth")
+            mealChangedListeners.forEach { it() }
+        }
+    }
+
+    init {
+        preferences.registerOnSharedPreferenceChangeListener(poopSauce)
+    }
+
+    var fullMenu : List<MenuItem> = buildMenu()
+        private set
+
+    fun toggleMeal() {
+        currentMeal =
+            if (currentMeal == Availability.Breakfast) Availability.LunchDinner
+            else Availability.Breakfast
+    }
+
+    var currentMeal get() = Availability.valueOf(preferences.getString(MEAL, "Breakfast")!!)
+        set(value) {
+            preferences.edit {
+                putString(MEAL, value.name)
+                apply()
+            }
+        }
+
+    val currentMenu get() = fullMenu.filter {
+        it.availability in listOf(Availability.All, currentMeal)
+    }
+
+    val receiptPrinterConnStr
+        get() = "TCP:" + preferences.getString(IP_RECEIPT_PRINTER, "")!!
+
+    val kitchenPrinterConnStr
+        get() = "TCP:" + preferences.getString(IP_KITCEN_PRINTER, "")!!
+
+    init {
+        preferences.registerOnSharedPreferenceChangeListener { preferences, string ->
+            if (string == MENU_JSON) {
+                fullMenu = buildMenu()
+            }
+        }
+    }
 
     companion object {
-        private var _current = defaultConfiguration
-        val current get() = _current
-        private const val FILENAME = "config.json"
-        private const val URL = "https://gist.github.com/tylergannon/a927c213cd97ce656016bf9aaa326231"
-        private val mutex = Mutex()
-
-        fun lastUpdated(context: Context) : String = File(context.filesDir, FILENAME).run {
-            if (exists()) {
-                DateUtils.getRelativeTimeSpanString(lastModified()).toString()
-            } else {
-                "Never"
-            }
-        }
-
-
-        fun loadLocal(context: Context) =
-            File(context.filesDir, FILENAME).run {
-                _current = if (exists()) {
-                    Json(JsonConfiguration.Stable).parse(serializer(), readText())
-                } else {
-                    defaultConfiguration
-                }
-            }
-
-        suspend fun refresh(context: Context) {
-            val url = PreferenceManager.getDefaultSharedPreferences(context).getString("update_url", URL)!!
-
-            val (request, response, result) = Fuel.get(url)
-                .awaitObjectResponseResult(kotlinxDeserializerOf(loader = serializer()))
-            println(response.responseMessage)
-            result.fold(
-                success = {
-                    mutex.withLock {
-                        _current = it
-                        File(context.filesDir, FILENAME).writeText(
-                            Json(JsonConfiguration.Stable).stringify(serializer(), it)
-                        )
-                    }
-                },
-                failure = {
-                    loadLocal(context)
-                }
-            )
-        }
+        const val MENU_RESET = "menu_reset"
+        const val MENU_JSON = "menu_json"
+        const val UPDATE_NOW = "update_now"
+        const val UPDATE_URL = "update_url"
+        const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
+        const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
+        const val MEAL = "meal"
+        const val ORDER_NUMBER_RANGE = "order_number_range"
     }
 }
 

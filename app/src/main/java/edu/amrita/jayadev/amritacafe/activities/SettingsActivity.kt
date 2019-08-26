@@ -29,7 +29,6 @@ class SettingsActivity : AppCompatActivity() {
 
         loadFromFile()
 //        val sharedPreference = getSharedPreferences(MainActivity.DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
-        range_ET.setText(MainActivity.DbConstants.sharedPreference.getInt("RANGE_KEY", 100).toString())
     }
 
     private fun loadFromFile() {
@@ -80,9 +79,6 @@ class SettingsActivity : AppCompatActivity() {
         fos.close()
 
 //        val sharedPreference = getSharedPreferences(MainActivity.DbConstants.PREFERENCE_KEY, Context.MODE_PRIVATE)
-        val editor = MainActivity.DbConstants.sharedPreference.edit()
-        editor.putInt("RANGE_KEY", range_ET.text.toString().toInt())
-        editor.apply()
 
 
         println("onPause")

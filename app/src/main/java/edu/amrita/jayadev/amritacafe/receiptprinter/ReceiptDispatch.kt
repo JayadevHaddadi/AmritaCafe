@@ -4,6 +4,7 @@ import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
+import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,10 +28,10 @@ class ReceiptDispatch(private val connectionString: String,
      *    * If an error is caught, clean up and resume the continuation, with feedback.
      *  * Make calls to *listener* object, to give feedback to the app.
      */
-    suspend fun print(orderNumber: Int, orderItems: List<OrderItem>) {
+    suspend fun print(vararg orders: Order) {
         try {
 
-            val (code, status) = executePrintJob(orderNumber, orderItems)
+            val (code, status) = executePrintJob(*orders)
 
             val response = PrintDispatchResponse.fromPrinterCallback(code, status)
             listener.printComplete(response)
@@ -40,20 +41,20 @@ class ReceiptDispatch(private val connectionString: String,
         }
     }
 
-    fun dispatchPrint(orderNumber: Int, orderItems: List<OrderItem>) = runBlocking {
+    fun dispatchPrint(vararg orders: Order) = runBlocking {
         launch(Dispatchers.IO) {
-            print(orderNumber, orderItems)
+            print(*orders)
         }
     }
 
-    private suspend fun executePrintJob(orderNumber: Int, orderItems: List<OrderItem>) = suspendCoroutine<CallbackData> { continuation ->
+    private suspend fun executePrintJob(vararg orders: Order) = suspendCoroutine<CallbackData> { continuation ->
         val printer = Printer(Printer.TM_M30, Printer.MODEL_ANK, null)
         printer.setReceiveEventListener(buildListener(continuation))
         try {
             printer.connect(connectionString, Printer.PARAM_DEFAULT)
             printer.beginTransaction()
 
-            receiptWriter.writeToPrinter(orderNumber, orderItems, printer)
+            receiptWriter.writeToPrinter(*orders, printer = printer)
 
             printer.endTransaction()
             printer.sendData(Printer.PARAM_DEFAULT)

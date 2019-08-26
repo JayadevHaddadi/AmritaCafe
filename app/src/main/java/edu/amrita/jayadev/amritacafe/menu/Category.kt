@@ -2,5 +2,16 @@
 package edu.amrita.jayadev.amritacafe.menu
 
 enum class Category {
-    Pizza, Burger, Toast, Salad, Side, Kitcheri, Eggs
+    Pizza,
+    Burger,
+    Fries,
+    Pasta,
+    Eggs,
+    Toast,
+    Salad,
+    Side,
+    Kitcheri,
+    Breakfast,
+    Sandwich,
+    Topping
 }

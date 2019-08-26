@@ -8,28 +8,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.TextView
 import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.menu.MenuItem
+import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
 import kotlinx.android.synthetic.main.order_item.view.*
-import kotlin.reflect.KFunction1
 
 
-class OrderAdapter(
-    private val context: Context,
-    private val updateOrderList: KFunction1<Int, Unit>
-) : BaseAdapter() {
+class OrderAdapter(context: Context) : BaseAdapter() {
 
-    data class OrderItem(
-        val name: String,
-        var amount: Int,
-        var totPrice: Int,
-        var comment: String = ""
-    )
 
     private val inflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-    val orderList: MutableList<OrderItem> = mutableListOf()
+    private val orderList: MutableList<OrderItem> = mutableListOf()
+
+    val orderItems : List<OrderItem> = orderList
+
+    var orderChanged : () -> Unit = {}
 
     override fun getCount(): Int {
         return orderList.size
@@ -43,56 +37,72 @@ class OrderAdapter(
         return position.toLong()
     }
 
-    fun add(item: OrderItem) {
-        orderList.add(item)
+    fun add(item: MenuItem) {
+        orderList.add(OrderItem(item, 1))
+        notifyDataSetChanged()
+        orderChanged()
     }
 
     fun clear() {
         orderList.clear()
+        notifyDataSetChanged()
+        orderChanged()
     }
+
+    private fun reuseOrInflate(view: View?, parent: ViewGroup) =
+        view ?: inflater.inflate(R.layout.order_item, parent, false).apply {
+
+            val orderItemView = this
+            amount_TV.setOnClickListener {
+
+                val position = tag as Int
+
+                orderList[position] = orderList[position].increment()
+                notifyDataSetChanged()
+                orderChanged()
+            }
+
+            setOnClickListener {
+                comment_ET.run {
+                    visibility = View.VISIBLE
+                    requestFocus()
+                    context.getSystemService(Context.INPUT_METHOD_SERVICE).also {
+                        (it as InputMethodManager).showSoftInput(this, 0)
+                    }
+                }
+            }
+
+            cancel_button.setOnClickListener {
+                orderList.removeAt(tag as Int)
+                notifyDataSetChanged()
+                orderChanged()
+            }
+
+            comment_ET.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(p0: Editable?) {}
+
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    val position = orderItemView.tag as Int
+                    orderList[position] = orderItems[position].copy(comment = p0.toString().trim())
+                }
+            })
+        }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val rowView = inflater.inflate(R.layout.order_item, parent, false)
+        return reuseOrInflate(convertView, parent).apply {
+            tag = position
 
-        val label = rowView.findViewById<TextView>(R.id.label)
-        val amount = rowView.findViewById<TextView>(R.id.amount_TV)
-        val price = rowView.findViewById<TextView>(R.id.price_TV)
-        label.text = orderList[position].name
-        amount.text = orderList[position].amount.toString()
-        price.text = orderList[position].totPrice.toString()
-
-        val cancelButton = rowView.findViewById<ImageView>(R.id.cancel_button)
-        cancelButton.setOnClickListener {
-            updateOrderList(-orderList[position].totPrice)
-            orderList.removeAt(position)
-        }
-
-        rowView.comment_ET.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {
+            orderList[position].let { orderItem ->
+                label.text = orderItem.menuItem.code
+                amount_TV.text = orderItem.quantity.toString()
+                price_TV.text = orderItem.totalPrice.toString()
+                comment_ET.setText(orderItem.comment)
+                comment_ET.visibility =
+                    if (orderItem.comment.isNotBlank()) View.VISIBLE
+                    else View.INVISIBLE
             }
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                orderList[position].comment = rowView.comment_ET.text.toString()
-            }
-        })
-
-        if (!orderList[position].comment.trim().equals("")) {
-            rowView.comment_ET.visibility = View.VISIBLE
-            rowView.comment_ET.setText(orderList[position].comment)
         }
-
-        rowView.setOnClickListener {
-            rowView.comment_ET.visibility = View.VISIBLE
-
-            rowView.comment_ET.requestFocus()
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(rowView.comment_ET, 0)
-        }
-
-        return rowView
     }
-
 }
