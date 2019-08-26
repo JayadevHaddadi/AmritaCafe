@@ -31,12 +31,17 @@ class ReceiptDispatch(private val connectionString: String,
     suspend fun print(vararg orders: Order) {
         try {
 
+            println("Wanna print")
             val (code, status) = executePrintJob(*orders)
+            println("Printed shit")
 
             val response = PrintDispatchResponse.fromPrinterCallback(code, status)
+            println("Notify")
             listener.printComplete(response)
             listener.notifyPrinterStatus(response.printerStatus)
+            println("Did notify")
         } catch (exception: Epos2Exception) {
+            println("Erorr")
             listener.error(ErrorStatus.fromCode(exception.errorStatus), exception)
         }
     }
@@ -47,7 +52,28 @@ class ReceiptDispatch(private val connectionString: String,
         }
     }
 
-    private suspend fun executePrintJob(vararg orders: Order) = suspendCoroutine<CallbackData> { continuation ->
+    private suspend fun executePrintJob(vararg orders: Order) = buildPrinter().let { printer ->
+        try {
+            printer.connect(connectionString, Printer.PARAM_DEFAULT)
+            return@let suspendCoroutine<CallbackData> { continuation ->
+                printer.setReceiveEventListener(buildListener(continuation))
+
+                printer.beginTransaction()
+
+                receiptWriter.writeToPrinter(*orders, printer = printer)
+
+                printer.endTransaction()
+                printer.sendData(Printer.PARAM_DEFAULT)
+            }
+        } finally {
+            if (connected(printer))
+                printer.disconnect()
+        }
+    }
+
+    private fun buildPrinter() = Printer(Printer.TM_M30, Printer.MODEL_ANK, null)
+
+    private suspend fun dork(vararg orders: Order) = suspendCoroutine<CallbackData> { continuation ->
         val printer = Printer(Printer.TM_M30, Printer.MODEL_ANK, null)
         printer.setReceiveEventListener(buildListener(continuation))
         try {

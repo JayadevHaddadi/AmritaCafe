@@ -6,15 +6,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.epson.epos2.Epos2Exception
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
-import edu.amrita.jayadev.amritacafe.receiptprinter.OrderNumberService
+import edu.amrita.jayadev.amritacafe.receiptprinter.*
+import edu.amrita.jayadev.amritacafe.receiptprinter.writer.WorkOrderWriter
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
@@ -22,7 +25,27 @@ import kotlinx.coroutines.launch
 import android.view.MenuItem as ViewMenuItem
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PrintStatusListener {
+    override fun printComplete(status: PrintDispatchResponse) {
+        runOnUiThread {
+            Toast.makeText(this, "That was awesome", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun notifyPrinterStatus(status: List<PrinterStatus>) {
+        runOnUiThread {
+            Toast.makeText(this, status.joinToString { it.message }, Toast.LENGTH_SHORT).show()
+            println("WHAT THE FUCK")
+        }
+    }
+
+    override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+        runOnUiThread {
+            Toast.makeText(this, errorStatus.message, Toast.LENGTH_SHORT).show()
+            println("POOP SAUCE")
+            println(exception.stackTrace.joinToString("\n") { it.toString() })
+        }
+    }
 
     private var dialogOpen = false
 
@@ -54,7 +77,8 @@ class MainActivity : AppCompatActivity() {
 
 
         order_button.setOnClickListener {
-            
+            val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
+            ReceiptDispatch(configuration.kitchenPrinterConnStr, this, WorkOrderWriter).dispatchPrint(*orders.toTypedArray())
         }
     }
 
