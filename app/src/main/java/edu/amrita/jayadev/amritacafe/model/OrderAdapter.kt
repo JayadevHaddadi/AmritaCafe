@@ -101,7 +101,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
                 comment_ET.setText(orderItem.comment)
                 comment_ET.visibility =
                     if (orderItem.comment.isNotBlank()) View.VISIBLE
-                    else View.INVISIBLE
+                    else View.GONE
             }
         }
     }
