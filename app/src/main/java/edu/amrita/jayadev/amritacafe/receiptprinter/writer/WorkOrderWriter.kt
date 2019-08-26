@@ -36,8 +36,8 @@ class WorkOrderWriter(vararg val orders: Order) {
             WorkOrderWriter(*orders).writeTo(printer)
         }
 
-        private const val TITLE_SIZE = 3
-        private const val TEXT_SIZE = 2
-        private const val LINE_FEED = 1
+        private const val TITLE_SIZE = 1
+        private const val TEXT_SIZE = 1
+        private const val LINE_FEED = 0
     }
 }

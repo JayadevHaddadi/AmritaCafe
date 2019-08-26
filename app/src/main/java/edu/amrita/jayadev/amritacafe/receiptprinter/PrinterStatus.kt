@@ -19,7 +19,7 @@ enum class PrinterStatus(val message: String, val selector: (PrinterStatusInfo) 
         { it.paper == Printer.PAPER_EMPTY} ),
     PaperFeed("Paper is being fed manually.", {it.paperFeed == Printer.TRUE}),
     PanelSwitch("A panel switch is being used", {it.panelSwitch == Printer.TRUE}),
-    RecoverableError("Check printer and try again", {it.autoRecoverError != Printer.NO_ERR}),
+    RecoverableError("Check printer and try again", {false && it.autoRecoverError != Printer.NO_ERR}),
     UnrecoverableError("Check and reboot printer.", {it.errorStatus != Printer.NO_ERR});
 
     companion object {

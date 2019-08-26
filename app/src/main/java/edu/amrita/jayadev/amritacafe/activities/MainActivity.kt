@@ -26,6 +26,12 @@ import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity(), PrintStatusListener {
+    override fun busy() {
+        runOnUiThread {
+            Toast.makeText(this, "Printer Busy", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun printComplete(status: PrintDispatchResponse) {
         runOnUiThread {
             Toast.makeText(this, "That was awesome", Toast.LENGTH_SHORT).show()
@@ -33,10 +39,12 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
     }
 
     override fun notifyPrinterStatus(status: List<PrinterStatus>) {
-        runOnUiThread {
-            Toast.makeText(this, status.joinToString { it.message }, Toast.LENGTH_SHORT).show()
-            println("WHAT THE FUCK")
+        if (status.first() != PrinterStatus.Ok) {
+            runOnUiThread {
+                Toast.makeText(this, status.joinToString { it.message }, Toast.LENGTH_SHORT).show()
+            }
         }
+        println("WHAT THE FUCK")
     }
 
     override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
