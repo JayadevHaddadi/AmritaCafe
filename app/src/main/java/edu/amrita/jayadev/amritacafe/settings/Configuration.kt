@@ -13,6 +13,9 @@ import android.text.format.DateUtils
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import edu.amrita.jayadev.amritacafe.menu.Availability
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -33,9 +36,8 @@ val List<MenuItem>.lunchDinnerMenu get() = this.filter { it.availability != Avai
  * Defaults to the defaultConfiguration for testing.
  *
  */
-data class Configuration (
-    private val preferences: SharedPreferences
-) {
+data class Configuration (private val preferences: SharedPreferences) {
+
     private val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true))
     private fun buildMenu() = json.parse(
         MenuItem.serializer().list,
@@ -48,18 +50,12 @@ data class Configuration (
         mealChangedListeners.add(block)
     }
 
-    private val poopSauce = SharedPreferences.OnSharedPreferenceChangeListener {pref: SharedPreferences, name: String ->
+    private val poopSauce = SharedPreferences.OnSharedPreferenceChangeListener { _: SharedPreferences, name: String ->
         println("$name value changed")
         if (name == MEAL) {
-            mealChangedListeners.forEach { it() }
-        }
-    }
-
-    private fun preferencesChangeListener(pref: SharedPreferences, name: String) {
-        println("$name value changed")
-        if (name == MEAL) {
-            println("Dorth")
-            mealChangedListeners.forEach { it() }
+            GlobalScope.launch {
+                mealChangedListeners.forEach { fn -> fn() }
+            }
         }
     }
 

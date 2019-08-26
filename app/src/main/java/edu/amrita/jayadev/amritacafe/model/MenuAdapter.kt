@@ -73,7 +73,8 @@ class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
                 name.setBackgroundColor(colorMap.getValue(menuItem))
             }
             is MenuItem -> {
-                name.text = menuItem.code
+                name.text = menuItem.name
+
                 name.setTypeface(null, Typeface.NORMAL)
                 name.setBackgroundColor(colorMap.getValue(menuItem.category))
             }

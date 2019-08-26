@@ -12,9 +12,13 @@ import androidx.preference.PreferenceManager
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
+import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
+import edu.amrita.jayadev.amritacafe.receiptprinter.OrderNumberService
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import android.view.MenuItem as ViewMenuItem
 
 
@@ -25,10 +29,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
+    private lateinit var orderNumberService: OrderNumberService
+    private var currentOrderNumber = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        configuration = Configuration(PreferenceManager.getDefaultSharedPreferences(this))
+        PreferenceManager.getDefaultSharedPreferences(this).let { pref ->
+            configuration = Configuration(pref)
+            orderNumberService = OrderNumberService(pref)
+        }
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -45,53 +54,7 @@ class MainActivity : AppCompatActivity() {
 
 
         order_button.setOnClickListener {
-            dialogOpen = true
-
-            val mDialogView =
-                LayoutInflater.from(this).inflate(edu.amrita.jayadev.amritacafe.R.layout.response_dialog, null)
-            //AlertDialogBuilder
-            val mBuilder = AlertDialog.Builder(this)
-                .setView(mDialogView)
-
-            val mAlertDialog = mBuilder.show()
-            mAlertDialog.setCanceledOnTouchOutside(false)
-
-            mAlertDialog.setOnKeyListener { _, _, _ ->
-                println("key")
-                true
-            }
-            //show dialog
-            //login button click of custom layout
-//            currentReceiptTV = mDialogView.receipt_TV
-
-
-//            mDialogView.kitchen_button.setOnClickListener {
-//                startAPrintJob(
-//                    Configuration.current.kitchenPrinterIP, mDialogView.kitchen_TV2, mDialogView.kitchen_progress2,
-//                    finalOrder,
-//                    finalOrderNumber,
-//                    finalTotalToPay
-//                )
-//            }
-//            mDialogView.receipt_button.setOnClickListener {
-//                startAPrintJob(
-//                    Configuration.current.receiptPrinterIP, mDialogView.receipt_TV, mDialogView.receipt_progress,
-//                    finalOrder,
-//                    finalOrderNumber,
-//                    finalTotalToPay
-//                )
-//            }
-//            //cancel button click of custom layout
-//            mDialogView.next_button.setOnClickListener {
-//                dialogOpen = false
-//                currentOrderNumber++
-//                updateOrderNumber()
-//
-//                orderAdapter.clear()
-//                totalToPay = 0
-//                updateOrderList(0)
-//                mAlertDialog.dismiss()
-//            }
+            
         }
     }
 
@@ -101,13 +64,20 @@ class MainActivity : AppCompatActivity() {
             finish()
     }
 
-    fun startNewOrder() {
+    private fun startNewOrder() {
         orderAdapter.clear()
+        GlobalScope.launch {
+            currentOrderNumber = orderNumberService.next()
+            runOnUiThread {
+                order_number_TV.text = currentOrderNumber.toString()
+            }
+        }
     }
-
 
     override fun onStart() {
         super.onStart()
+        startNewOrder()
+
         menuAdapter = MenuAdapter(applicationContext, configuration.currentMenu)
         gridView.adapter = menuAdapter
 

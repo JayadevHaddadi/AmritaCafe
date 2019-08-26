@@ -12,7 +12,7 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Choco Spread", "CHOC", 15, Availability.All, Location.Sides, Category.Side),
     MenuItem("Peanut Butter", "PB", 10, Availability.All, Location.Sides, Category.Side),
     MenuItem("Patty", "PATTY", 20, Availability.All, Location.Sides, Category.Side),
-    MenuItem("Cucumber", "CUKE", 10, Availability.All, Location.Sides, Category.Side),
+    MenuItem("Cuke", "CUKE", 10, Availability.All, Location.Sides, Category.Side),
     MenuItem("Pesto", "PSTO", 25, Availability.All, Location.Sides, Category.Side),
     MenuItem("Raw Egg", "RAW EGG", 10, Availability.All, Location.Sides, Category.Side),
     MenuItem("Gomasio", "GOMAZ", 10, Availability.All, Location.Sides, Category.Side),
@@ -30,8 +30,8 @@ val defaultMenu : List<MenuItem> = listOf(
 
     MenuItem("Small Fries", "SMFF", 30, Availability.LunchDinner, Location.Fries, Category.Fries),
     MenuItem("Large Fries", "LGFF", 60, Availability.LunchDinner, Location.Fries, Category.Fries),
-    MenuItem("Sm Fries SSalt", "SMSAFF", 35, Availability.LunchDinner, Location.Fries, Category.Fries),
-    MenuItem("Lg Fries SSalt", "LGSAFF", 70, Availability.LunchDinner, Location.Fries, Category.Fries),
+    MenuItem("Sm Fries Salt", "SMSAFF", 35, Availability.LunchDinner, Location.Fries, Category.Fries),
+    MenuItem("Lg Fries Salt", "LGSAFF", 70, Availability.LunchDinner, Location.Fries, Category.Fries),
 
     MenuItem("Grilled Cheese", "GC", 40, Availability.All, Location.Grill, Category.Sandwich),
     MenuItem("Egg Cheese Sand", "ECS", 55, Availability.All, Location.Grill, Category.Sandwich),
@@ -87,7 +87,7 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Peanut Butter", "PB", 10, Availability.All, Location.Sides, Category.Topping),
     MenuItem("Butter", "BUTT", 10, Availability.All, Location.Sides, Category.Topping),
     MenuItem("Honey", "HON", 10, Availability.All, Location.Sides, Category.Topping),
-    MenuItem("Chocolate Spread", "CHOC", 15, Availability.All, Location.Sides, Category.Topping),
+    MenuItem("Choco Spread", "CHOC", 15, Availability.All, Location.Sides, Category.Topping),
 
     MenuItem("Plain Pasta", "PL PSTA", 30, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),
     MenuItem("Pasta Tomato Sauce", "PSTA TOM", 60, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),

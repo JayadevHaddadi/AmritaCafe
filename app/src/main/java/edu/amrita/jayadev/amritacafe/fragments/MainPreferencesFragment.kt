@@ -55,7 +55,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(Configuration.MENU_RESET)?.run {
             setOnPreferenceClickListener {
                 preference.edit {
-                    putString(MENU_JSON, Json(JsonConfiguration.Stable)
+                    putString(MENU_JSON, Json(JsonConfiguration.Stable.copy(prettyPrint = true))
                         .stringify(MenuItem.serializer().list, defaultMenu))
                     apply()
                 }

@@ -20,7 +20,7 @@ data class Order(val orderNumber: Int, val orderItems: List<OrderItem>) {
     } else {
         listOf(this)
     }
-    
+
     private val hasPizzaAndGrillItems get() = orderItems.map {
         it.menuItem.location
     }.containsAll(pizzaAndGrill)
