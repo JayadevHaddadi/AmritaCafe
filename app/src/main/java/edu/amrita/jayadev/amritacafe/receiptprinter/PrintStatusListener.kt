@@ -6,7 +6,7 @@ import java.util.EventListener
 
 interface PrintStatusListener : EventListener {
     fun printComplete(status: PrintDispatchResponse)
-    fun notifyPrinterStatus(status: List<PrinterStatus>)
+    fun notifyPrinterStatus(status: List<PrinterStatus>) {}
     fun error(errorStatus: ErrorStatus, exception: Epos2Exception)
-    fun busy()
+    fun busy() {}
 }

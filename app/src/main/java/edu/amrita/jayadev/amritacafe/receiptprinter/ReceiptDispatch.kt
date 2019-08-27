@@ -1,6 +1,5 @@
 package edu.amrita.jayadev.amritacafe.receiptprinter
 
-import android.content.Context
 import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
@@ -9,15 +8,15 @@ import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriter
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
-class ReceiptDispatch(private val connectionString: String,
-                      private val listener: PrintStatusListener,
-                      private val receiptWriter: ReceiptWriter,
-                      private val configuration: Configuration) {
+class ReceiptDispatch(
+    private val connectionString: String,
+    private val receiptWriter: ReceiptWriter,
+    private val configuration: Configuration,
+    private val listener: PrintStatusListener
+) {
 
     private data class CallbackData(val code: Int, val status: PrinterStatusInfo?)
     companion object {
@@ -54,7 +53,7 @@ class ReceiptDispatch(private val connectionString: String,
         }
     }
 
-    fun dispatchPrint(orders: List<Order>) = GlobalScope.launch(Dispatchers.IO) {
+    fun dispatchPrint(orders: List<Order>): Job = GlobalScope.launch(Dispatchers.IO) {
         print(orders)
     }
 
@@ -69,24 +68,25 @@ class ReceiptDispatch(private val connectionString: String,
                 println("Begin Transaction")
                 printer.beginTransaction()
                 println("Write that shit")
+                printer.addTextSmooth(Printer.TRUE)
 
                 receiptWriter.writeToPrinter(orders, printer, configuration)
 
-                try {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        withTimeout(2000) {
+                GlobalScope.launch(Dispatchers.IO) {
+                    withTimeout(2000) {
 
-                            println("Send Data")
-                            printer.sendData(5000)
-                            println("Sent.")
+                        println("Send Data")
+                        printer.sendData(5000)
+                        println("Sent.")
 
-                        }
                     }
-                } catch (poop : Exception) {
-                    println("Caught exception")
-                    println(poop)
-                    continuation.cancel(poop)
                 }
+//                try {
+//                } catch (poop : Exception) {
+//                    println("Caught exception")
+//                    println(poop)
+//                    continuation.cancel(poop)
+//                }
             }}
         } catch (boop : Exception) {
             println("That is $boop")

@@ -3,11 +3,9 @@ package edu.amrita.jayadev.amritacafe.activities
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.widget.AdapterView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
@@ -26,35 +24,7 @@ import kotlinx.coroutines.launch
 import android.view.MenuItem as ViewMenuItem
 
 
-class MainActivity : AppCompatActivity(), PrintStatusListener {
-    override fun busy() {
-        runOnUiThread {
-            Toast.makeText(this, "Printer Busy", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun printComplete(status: PrintDispatchResponse) {
-        runOnUiThread {
-            Toast.makeText(this, "That was awesome", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun notifyPrinterStatus(status: List<PrinterStatus>) {
-        if (status.first() != PrinterStatus.Ok) {
-            runOnUiThread {
-                Toast.makeText(this, status.joinToString { it.message }, Toast.LENGTH_SHORT).show()
-            }
-        }
-        println("received printer status")
-    }
-
-    override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
-        runOnUiThread {
-            Toast.makeText(this, errorStatus.message, Toast.LENGTH_SHORT).show()
-            println("Printing ended in error.")
-            println(exception.stackTrace.joinToString("\n") { it.toString() })
-        }
-    }
+class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
 
     private var dialogOpen = false
 
@@ -81,14 +51,16 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
 
         order_ListView.adapter = orderAdapter
 
-        order_ListView.onItemClickListener =
-            AdapterView.OnItemClickListener { _, _, _, _ -> }
-
+        button_cancel.setOnClickListener {
+            orderAdapter.clear()
+        }
 
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
-            ReceiptDispatch(configuration.receiptPrinterConnStr, this, ReceiptWriterImpl, configuration).dispatchPrint(orders)
-            ReceiptDispatch(configuration.kitchenPrinterConnStr, this, WorkOrderWriter, configuration).dispatchPrint(orders)
+            val printService = PrintService(orders, this, configuration)
+            printService.print()
+            println("Started Print Job")
+
         }
     }
 
@@ -99,10 +71,10 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
     }
 
     private fun startNewOrder() {
-        orderAdapter.clear()
         GlobalScope.launch {
             currentOrderNumber = orderNumberService.next()
             runOnUiThread {
+                orderAdapter.clear()
                 order_number_TV.text = currentOrderNumber.toString()
             }
         }
@@ -149,6 +121,27 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+    override fun kitchenPrinterFinished() {
+    }
+
+    override fun receiptPrinterFinished() {
+    }
+
+    override fun receiptPrinterError(response: PrintFailed) {
+    }
+
+    override fun receiptPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception) {
+    }
+
+    override fun kitchenPrinterError(response: PrintFailed) {
+    }
+
+    override fun kitchenPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception) {
+    }
+
+    override fun printingComplete() {
+        startNewOrder()
     }
 }
 
