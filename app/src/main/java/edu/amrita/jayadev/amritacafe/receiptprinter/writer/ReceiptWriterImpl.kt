@@ -3,10 +3,13 @@ package edu.amrita.jayadev.amritacafe.receiptprinter.writer
 import com.epson.epos2.printer.Printer
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
+import kotlinx.coroutines.sync.Mutex
 
 class ReceiptWriterImpl(private vararg val orders: Order) {
 
     companion object : ReceiptWriter {
+        override val mutex: Mutex = Mutex()
+
         override fun writeToPrinter(vararg orders: Order, printer: Printer) {
             ReceiptWriterImpl(*orders).writeToPrinter(printer)
         }

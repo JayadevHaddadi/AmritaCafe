@@ -19,10 +19,6 @@ class ReceiptDispatch(private val connectionString: String,
                       private val listener: PrintStatusListener,
                       private val receiptWriter: ReceiptWriter) {
 
-    companion object {
-        private val mutex = Mutex()
-    }
-
     private data class CallbackData(val code: Int, val status: PrinterStatusInfo?)
 
     /***
@@ -34,11 +30,12 @@ class ReceiptDispatch(private val connectionString: String,
      *    * If an error is caught, clean up and resume the continuation, with feedback.
      *  * Make calls to *listener* object, to give feedback to the app.
      */
+    @Synchronized
     suspend fun print(vararg orders: Order) {
-        if (mutex.isLocked) {
+        if (receiptWriter.mutex.isLocked) {
             listener.busy()
         } else {
-            mutex.withLock {
+            receiptWriter.mutex.withLock {
                 try {
                     println("Wanna print")
                     val (code, status) = executePrintJob(*orders)
@@ -63,7 +60,7 @@ class ReceiptDispatch(private val connectionString: String,
 
     private suspend fun executePrintJob(vararg orders: Order) = buildPrinter().let { printer ->
         try {
-            println("POOPFUCKFACE")
+            println("executePrintJob")
             printer.connect(connectionString, 1000)
 
             return@let withTimeout(5000) { suspendCancellableCoroutine<CallbackData> { continuation ->

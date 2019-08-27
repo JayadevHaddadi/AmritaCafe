@@ -17,6 +17,7 @@ import edu.amrita.jayadev.amritacafe.model.MenuAdapter
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.receiptprinter.*
+import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriterImpl
 import edu.amrita.jayadev.amritacafe.receiptprinter.writer.WorkOrderWriter
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
                 Toast.makeText(this, status.joinToString { it.message }, Toast.LENGTH_SHORT).show()
             }
         }
-        println("WHAT THE FUCK")
+        println("received printer status")
     }
 
     override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
@@ -87,6 +88,7 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
             ReceiptDispatch(configuration.kitchenPrinterConnStr, this, WorkOrderWriter).dispatchPrint(*orders.toTypedArray())
+            ReceiptDispatch(configuration.receiptPrinterConnStr, this, ReceiptWriterImpl).dispatchPrint(*orders.toTypedArray())
         }
     }
 
