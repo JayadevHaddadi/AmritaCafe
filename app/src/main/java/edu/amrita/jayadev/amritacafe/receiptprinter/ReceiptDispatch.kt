@@ -7,20 +7,26 @@ import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriter
+import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.TimeoutException
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class ReceiptDispatch(private val connectionString: String,
                       private val listener: PrintStatusListener,
-                      private val receiptWriter: ReceiptWriter) {
+                      private val receiptWriter: ReceiptWriter,
+                      private val configuration: Configuration) {
 
     private data class CallbackData(val code: Int, val status: PrinterStatusInfo?)
-
+    companion object {
+        private val locks = mutableMapOf<String, Any>()
+        private val locksLock = Any()
+        private fun getLock(connectionString: String) = synchronized(locksLock) {
+            locks.getOrPut(connectionString, { Any() })
+        }
+    }
     /***
      *  Print algorithm:
      *
@@ -30,38 +36,32 @@ class ReceiptDispatch(private val connectionString: String,
      *    * If an error is caught, clean up and resume the continuation, with feedback.
      *  * Make calls to *listener* object, to give feedback to the app.
      */
-    @Synchronized
-    suspend fun print(vararg orders: Order) {
-        if (receiptWriter.mutex.isLocked) {
-            listener.busy()
-        } else {
-            receiptWriter.mutex.withLock {
-                try {
-                    println("Wanna print")
-                    val (code, status) = executePrintJob(*orders)
-                    println("Printed shit")
+    private suspend fun print(orders: List<Order>) = synchronized(getLock(connectionString)) {
+        try {
 
-                    val response = PrintDispatchResponse.fromPrinterCallback(code, status)
-                    println("Notify")
-                    listener.printComplete(response)
-                    listener.notifyPrinterStatus(response.printerStatus)
-                    println("Did notify")
-                } catch (exception: Epos2Exception) {
-                    println("Erorr")
-                    listener.error(ErrorStatus.fromCode(exception.errorStatus), exception)
-                }
-            }
+            println("Will execute.")
+            val (code, status) = runBlocking { executePrintJob(orders) }
+            println("Executed.")
+
+            val response = PrintDispatchResponse.fromPrinterCallback(code, status)
+            println("Notify")
+            listener.printComplete(response)
+            listener.notifyPrinterStatus(response.printerStatus)
+            println("Did notify")
+        } catch (exception: Epos2Exception) {
+            println("Caught error ${ErrorStatus.fromCode(exception.errorStatus)}")
+            listener.error(ErrorStatus.fromCode(exception.errorStatus), exception)
         }
     }
 
-    fun dispatchPrint(vararg orders: Order) = GlobalScope.launch(Dispatchers.IO) {
-        print(*orders)
+    fun dispatchPrint(orders: List<Order>) = GlobalScope.launch(Dispatchers.IO) {
+        print(orders)
     }
 
-    private suspend fun executePrintJob(vararg orders: Order) = buildPrinter().let { printer ->
+    private suspend fun executePrintJob(orders: List<Order>) = buildPrinter().let { printer ->
         try {
             println("executePrintJob")
-            printer.connect(connectionString, 1000)
+            printer.connect(connectionString, Printer.PARAM_DEFAULT)
 
             return@let withTimeout(5000) { suspendCancellableCoroutine<CallbackData> { continuation ->
                 println("inside coroutine")
@@ -70,7 +70,7 @@ class ReceiptDispatch(private val connectionString: String,
                 printer.beginTransaction()
                 println("Write that shit")
 
-                receiptWriter.writeToPrinter(*orders, printer = printer)
+                receiptWriter.writeToPrinter(orders, printer, configuration)
 
                 try {
                     GlobalScope.launch(Dispatchers.IO) {
@@ -89,17 +89,15 @@ class ReceiptDispatch(private val connectionString: String,
                 }
             }}
         } catch (boop : Exception) {
-            println("That is fucking stupid $boop")
+            println("That is $boop")
             throw boop
         } finally {
             println("Will disconnect")
             try {
-                withTimeout(1000) {
-                    printer.endTransaction()
-                    println("Wrote.  End Transaction.")
-                    printer.disconnect()
-                    println("Disconnected")
-                }
+                printer.endTransaction()
+                println("Wrote.  End Transaction.")
+                printer.disconnect()
+                println("Disconnected")
             } catch(e : Exception) {
                 println("Timeout disconnecting.")
             }

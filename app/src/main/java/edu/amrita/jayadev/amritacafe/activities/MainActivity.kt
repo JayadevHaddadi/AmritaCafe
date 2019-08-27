@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
     override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
         runOnUiThread {
             Toast.makeText(this, errorStatus.message, Toast.LENGTH_SHORT).show()
-            println("POOP SAUCE")
+            println("Printing ended in error.")
             println(exception.stackTrace.joinToString("\n") { it.toString() })
         }
     }
@@ -87,8 +87,8 @@ class MainActivity : AppCompatActivity(), PrintStatusListener {
 
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
-            ReceiptDispatch(configuration.kitchenPrinterConnStr, this, WorkOrderWriter).dispatchPrint(*orders.toTypedArray())
-            ReceiptDispatch(configuration.receiptPrinterConnStr, this, ReceiptWriterImpl).dispatchPrint(*orders.toTypedArray())
+            ReceiptDispatch(configuration.receiptPrinterConnStr, this, ReceiptWriterImpl, configuration).dispatchPrint(orders)
+            ReceiptDispatch(configuration.kitchenPrinterConnStr, this, WorkOrderWriter, configuration).dispatchPrint(orders)
         }
     }
 

@@ -38,6 +38,16 @@ val List<MenuItem>.lunchDinnerMenu get() = this.filter { it.availability != Avai
  */
 data class Configuration (private val preferences: SharedPreferences) {
 
+    data class TextConfig(val titleSize : Int, val textSize : Int, val lineFeed : Int)
+
+
+    val testing get() = preferences.getBoolean(TESTING, false)
+    val textConfig get() = if (testing) {
+        TextConfig(1, 1, 0)
+    } else {
+        TextConfig(3, 2, 1)
+    }
+
     private val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true))
     private fun buildMenu() = json.parse(
         MenuItem.serializer().list,
@@ -91,7 +101,7 @@ data class Configuration (private val preferences: SharedPreferences) {
         get() = "TCP:" + preferences.getString(IP_KITCEN_PRINTER, "")!!
 
     init {
-        preferences.registerOnSharedPreferenceChangeListener { preferences, string ->
+        preferences.registerOnSharedPreferenceChangeListener { _, string ->
             if (string == MENU_JSON) {
                 fullMenu = buildMenu()
             }
@@ -107,6 +117,7 @@ data class Configuration (private val preferences: SharedPreferences) {
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
         const val MEAL = "meal"
         const val ORDER_NUMBER_RANGE = "order_number_range"
+        const val TESTING = "testing"
     }
 }
 

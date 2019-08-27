@@ -3,34 +3,32 @@ package edu.amrita.jayadev.amritacafe.receiptprinter.writer
 import com.epson.epos2.printer.Printer
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
-import kotlinx.coroutines.sync.Mutex
+import edu.amrita.jayadev.amritacafe.settings.Configuration
 
-class ReceiptWriterImpl(private vararg val orders: Order) {
+class ReceiptWriterImpl(private val orders: List<Order>, private val configuration: Configuration) {
+
 
     companion object : ReceiptWriter {
-        override val mutex: Mutex = Mutex()
-
-        override fun writeToPrinter(vararg orders: Order, printer: Printer) {
-            ReceiptWriterImpl(*orders).writeToPrinter(printer)
+        override fun writeToPrinter(orders: List<Order>, printer: Printer, configuration: Configuration) {
+            ReceiptWriterImpl(orders, configuration).writeToPrinter(printer)
         }
-        private const val TITLE_SIZE = 3
-        private const val TEXT_SIZE = 2
-        private const val LINE_FEED = 1
     }
 
     private fun writeToPrinter(printer: Printer) {
+        val (titleSize, textSize, lineFeed) = configuration.textConfig
+
         orders.forEach { (orderNumber, orderItems) ->
             val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
 
-            printer.addTextSize(TITLE_SIZE, TITLE_SIZE)
+            printer.addTextSize(titleSize, titleSize)
             printer.addText("ORDER: $orderNumber")
 
-            printer.addTextSize(TEXT_SIZE, TEXT_SIZE)
-            printer.addFeedLine(LINE_FEED)
+            printer.addTextSize(textSize, textSize)
+            printer.addFeedLine(lineFeed)
             printer.addText(orderItemsText(orderItems))
-            printer.addFeedLine(LINE_FEED)
+            printer.addFeedLine(lineFeed)
             printer.addText("TOTAL" + orderTotalText.padStart(15))
-            printer.addFeedLine(LINE_FEED)
+            printer.addFeedLine(lineFeed)
             printer.addCut(Printer.CUT_FEED)
         }
     }
