@@ -3,9 +3,11 @@ package edu.amrita.jayadev.amritacafe.activities
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
@@ -58,9 +60,9 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
             val printService = PrintService(orders, this, configuration)
+            openDialog()
             printService.print()
             println("Started Print Job")
-
         }
     }
 
@@ -143,5 +145,45 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
     override fun printingComplete() {
         startNewOrder()
     }
+
+    fun openDialog() {
+        val dialog = AlertDialog.Builder(this)
+            .setView(
+                LayoutInflater.from(this).inflate(R.layout.response_dialog, null)
+            ).setTitle("Printing")
+            .setCancelable(true)
+            .setPositiveButton("SHUTUP", {_, _ ->})
+            .setNegativeButton("FUCKIT", {int, poop -> int.dismiss()})
+            .setIcon(R.drawable.ic_print_black_24dp)
+            .show()
+        dialog.setCanceledOnTouchOutside(false)
+
+    }
+//    83     ┆   ┆   val mDialogView =
+//        84     ┆   ┆   ┆   LayoutInflater.from(this).inflate(edu.amrita.jayadev.amritacafe.R.layout.response_dialog, null)
+//    85     ┆   ┆   //AlertDialogBuilder
+//    86     ┆   ┆   val mBuilder = AlertDialog.Builder(this)
+//    87     ┆   ┆   ┆   .setView(mDialogView)
+//    88
+//    89     ┆   ┆   val mAlertDialog = mBuilder.show()
+//    90     ┆   ┆   mAlertDialog.setCanceledOnTouchOutside(false)
+//    91 //            mAlertDialog.onBackPressed {
+//    92 //
+//    93 //            }
+//    94 //            mAlertDialog.setOnDismissListener {
+//    95 //                println("dismiss1")
+//    96 //            }
+//    97 //            mAlertDialog.setOnCancelListener {
+//    98 //                println("cancel")
+//    99 //            }
+//    100     ┆   ┆   mAlertDialog.setOnKeyListener { dialogInterface, i, keyEvent ->
+//        101     ┆   ┆   ┆   println("key")
+//        102     ┆   ┆   ┆   true
+//        103     ┆   ┆   }
+//    104     ┆   ┆   //show dialog
+//    105     ┆   ┆   //login button click of custom layout
+//    106     ┆   ┆   currentReceiptTV = mDialogView.receipt_TV
+//    107
+//
 }
 
