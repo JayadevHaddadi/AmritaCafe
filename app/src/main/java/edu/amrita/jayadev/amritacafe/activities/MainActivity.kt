@@ -59,8 +59,41 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
 
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
-            val printService = PrintService(orders, this, configuration)
-            openDialog()
+            val dialog = openDialog()
+            val printService = PrintService(orders, configuration = configuration,
+                listener = object : PrintService.PrintServiceListener {
+                    override fun kitchenPrinterFinished() {
+                    }
+
+                    override fun receiptPrinterFinished() {
+                    }
+
+                    override fun receiptPrinterError(response: PrintFailed) {
+                    }
+
+                    override fun receiptPrinterError(
+                        errorStatus: ErrorStatus,
+                        exception: Epos2Exception
+                    ) {
+                    }
+
+                    override fun kitchenPrinterError(response: PrintFailed) {
+                    }
+
+                    override fun kitchenPrinterError(
+                        errorStatus: ErrorStatus,
+                        exception: Epos2Exception
+                    ) {
+                    }
+
+                    override fun printingComplete() {
+                        runOnUiThread {
+                            dialog.dismiss()
+                        }
+                        startNewOrder()
+                    }
+
+                })
             printService.print()
             println("Started Print Job")
         }
@@ -146,19 +179,18 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
         startNewOrder()
     }
 
-    fun openDialog() {
-        val dialog = AlertDialog.Builder(this)
+    fun openDialog() = AlertDialog.Builder(this)
             .setView(
                 LayoutInflater.from(this).inflate(R.layout.response_dialog, null)
             ).setTitle("Printing")
             .setCancelable(true)
-            .setPositiveButton("SHUTUP", {_, _ ->})
-            .setNegativeButton("FUCKIT", {int, poop -> int.dismiss()})
+//            .setPositiveButton("SHUTUP", {_, _ ->})
+//            .setNegativeButton("FUCKIT", {int, poop -> int.dismiss()})
             .setIcon(R.drawable.ic_print_black_24dp)
             .show()
-        dialog.setCanceledOnTouchOutside(false)
-
-    }
+            .apply {
+                setCanceledOnTouchOutside(false)
+            }
 //    83     ┆   ┆   val mDialogView =
 //        84     ┆   ┆   ┆   LayoutInflater.from(this).inflate(edu.amrita.jayadev.amritacafe.R.layout.response_dialog, null)
 //    85     ┆   ┆   //AlertDialogBuilder
