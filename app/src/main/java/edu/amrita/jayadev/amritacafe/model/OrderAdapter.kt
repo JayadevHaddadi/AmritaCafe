@@ -10,7 +10,9 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
-import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.RegularOrderItem
+import edu.amrita.jayadev.amritacafe.menu.Topping
 import kotlinx.android.synthetic.main.order_item.view.*
 
 
@@ -25,6 +27,8 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
     var orderChanged : () -> Unit = {}
 
+    fun isNotEmpty() = count > 0
+
     override fun getCount(): Int {
         return orderList.size
     }
@@ -37,10 +41,25 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         return position.toLong()
     }
 
-    fun add(item: MenuItem) {
-        orderList.add(OrderItem(item, 1))
+    fun remove(item: OrderItem) {
+        orderList.removeAll { it == item || (it is Topping && it.toppingFor == item) }
         notifyDataSetChanged()
         orderChanged()
+    }
+
+    fun add(item: MenuItem) {
+        orderList.add(RegularOrderItem(item))
+        notifyDataSetChanged()
+        orderChanged()
+    }
+
+    fun addTopping(menuItem: MenuItem): Boolean {
+        val lastAddedOrderItem = orderItems.findLast { it is RegularOrderItem }
+        return lastAddedOrderItem is RegularOrderItem && true.apply {
+            orderList.add(Topping(menuItem, toppingFor = lastAddedOrderItem))
+            notifyDataSetChanged()
+            orderChanged()
+        }
     }
 
     fun clear() {
@@ -73,9 +92,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             }
 
             cancel_button.setOnClickListener {
-                orderList.removeAt(tag as Int)
-                notifyDataSetChanged()
-                orderChanged()
+                remove(orderList[tag as Int])
             }
 
             comment_ET.addTextChangedListener(object : TextWatcher {
@@ -85,7 +102,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
                 override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                     val position = orderItemView.tag as Int
-                    orderList[position] = orderItems[position].copy(comment = p0.toString().trim())
+                    orderList[position] = orderItems[position].editComment(p0.toString())
                 }
             })
         }
@@ -105,4 +122,5 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             }
         }
     }
+
 }

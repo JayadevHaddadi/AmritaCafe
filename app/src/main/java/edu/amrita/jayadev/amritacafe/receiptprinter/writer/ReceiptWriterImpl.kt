@@ -2,7 +2,9 @@ package edu.amrita.jayadev.amritacafe.receiptprinter.writer
 
 import com.epson.epos2.printer.Printer
 import edu.amrita.jayadev.amritacafe.model.Order
-import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.RegularOrderItem
+import edu.amrita.jayadev.amritacafe.menu.Topping
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 
 class ReceiptWriterImpl(private val orders: List<Order>, private val configuration: Configuration) {
@@ -17,15 +19,25 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
     private fun writeToPrinter(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
 
-        orders.forEach { (orderNumber, orderItems) ->
+        orders.forEach { (orderNumber, orderItems, time) ->
+            val myOrderItems = orderItems.map {
+                listOf(it) +
+                        if (it is RegularOrderItem) {
+                            it.toppings
+                        } else {
+                            emptyList()
+                        }
+            }.flatten()
             val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
 
+            val orderNumStr = orderNumber.toString().padStart(3, '0')
+
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("ORDER  $orderNumber")
+            printer.addText("$orderNumStr         $time")
 
             printer.addTextSize(textSize, textSize)
             printer.addFeedLine(lineFeed)
-            printer.addText(orderItemsText(orderItems))
+            printer.addText(orderItemsText(myOrderItems))
             printer.addFeedLine(lineFeed)
             printer.addTextStyle(Printer.PARAM_DEFAULT, Printer.PARAM_DEFAULT, Printer.TRUE, Printer.PARAM_DEFAULT)
             printer.addText("TOTAL" + orderTotalText.padStart(15))
@@ -37,7 +49,7 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
 
     private fun orderItemsText(orderItems : List<OrderItem>) =
         orderItems.joinToString("\n") {
-            "${it.quantity} ${it.menuItem.code}".padEnd(17) +
+            "${it.quantity} ${if (it is Topping) " with" else ""} ${it.menuItem.code}".padEnd(17) +
                     it.totalPrice.toString().padStart(3) +
                     if (it.comment.isBlank()) ""
                     else "\n * ${it.comment}"

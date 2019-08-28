@@ -9,48 +9,23 @@
             android:id="@+id/textView7"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginLeft="28dp"
+            android:layout_marginTop="16dp"
             android:text="Kitchen Printer:"
             app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="40dp" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
             android:id="@+id/textView8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginLeft="28dp"
+            android:layout_marginTop="32dp"
             android:text="Receipt Printer:"
             app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="128dp" />
-
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/receipt_TV"
-            android:clickable="false"
-            app:layout_constraintStart_toEndOf="@+id/textView8"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintTop_toTopOf="@+id/textView8"
-            android:text="waiting..."
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="@+id/textView8"/>
-
-    <TextView
-            android:id="@+id/kitchen_TV2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginLeft="4dp"
-            android:clickable="false"
-            android:text="waiting..."
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="@+id/textView7"
-            app:layout_constraintStart_toEndOf="@+id/textView7"
-            app:layout_constraintTop_toTopOf="@+id/textView7"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
     <ProgressBar
             style="?android:attr/progressBarStyle"
@@ -68,10 +43,78 @@
             style="?android:attr/progressBarStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/kitchen_progress2"
+            android:id="@+id/kitchen_progress"
             app:layout_constraintTop_toTopOf="@+id/textView7"
             app:layout_constraintBottom_toBottomOf="@+id/textView7"
             app:layout_constraintStart_toEndOf="@+id/textView7"
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"/>
+
+    <Button
+            android:id="@+id/button_retry_kitchen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:text="Retry"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView7"
+            app:layout_constraintStart_toEndOf="@+id/kitchen_progress"
+            app:layout_constraintTop_toTopOf="@+id/textView7" />
+
+    <Button
+            android:id="@+id/button_retry_receipt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="72dp"
+            android:layout_marginLeft="72dp"
+            android:text="Retry"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView8"
+            app:layout_constraintStart_toEndOf="@+id/textView8"
+            app:layout_constraintTop_toTopOf="@+id/textView8"
+            app:layout_constraintVertical_bias="0.526" />
+
+    <ImageView
+            android:id="@+id/image_kitchen_done"
+            android:layout_width="50dp"
+            android:layout_height="45dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView7"
+            app:layout_constraintStart_toStartOf="@+id/kitchen_progress"
+            app:layout_constraintTop_toTopOf="@+id/textView7"
+            app:srcCompat="@drawable/ic_done_black_24dp" />
+
+    <ImageView
+            android:id="@+id/image_receipt_done"
+            android:layout_width="50dp"
+            android:layout_height="46dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView8"
+            app:layout_constraintStart_toStartOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/textView8"
+            app:layout_constraintVertical_bias="0.538"
+            app:srcCompat="@drawable/ic_done_black_24dp" />
+
+    <ImageView
+            android:id="@+id/image_kitchen_error"
+            android:layout_width="48dp"
+            android:layout_height="46dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView7"
+            app:layout_constraintStart_toStartOf="@+id/image_kitchen_done"
+            app:layout_constraintTop_toTopOf="@+id/textView7"
+            app:srcCompat="@drawable/ic_error_black_24dp" />
+
+    <ImageView
+            android:id="@+id/image_receipt_error"
+            android:layout_width="48dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/textView8"
+            app:layout_constraintStart_toEndOf="@+id/textView8"
+            app:layout_constraintTop_toTopOf="@+id/textView8"
+            app:srcCompat="@drawable/ic_error_black_24dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,6 +8,13 @@
                 app:defaultValue="LunchDinner"
                 app:title="Toggle Meal" />
 
+        <SwitchPreferenceCompat
+            app:key="show_names"
+            app:defaultValue="false"
+            app:title="Show Full Menu Item Names"
+            app:summaryOn="Yes"
+            app:summaryOff="No" />
+
         <EditTextPreference
                 app:defaultValue="192.168.1.11"
                 app:key="kitchen_printer_ip"

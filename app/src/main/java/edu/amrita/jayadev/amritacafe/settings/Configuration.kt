@@ -2,27 +2,15 @@
 package edu.amrita.jayadev.amritacafe.settings
 
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.coroutines.awaitObjectResponseResult
-import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
-import kotlinx.serialization.Serializable
-import android.content.Context
 import android.content.SharedPreferences
-import android.text.format.DateUtils
 import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import edu.amrita.jayadev.amritacafe.menu.Availability
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.list
-import kotlinx.serialization.parse
-import java.io.File
 
 val List<MenuItem>.breakfastMenu get() = this.filter { it.availability != Availability.LunchDinner }
 val List<MenuItem>.lunchDinnerMenu get() = this.filter { it.availability != Availability.Breakfast }
@@ -54,17 +42,17 @@ data class Configuration (private val preferences: SharedPreferences) {
         preferences.getString(MENU_JSON, "[]")!!
     )
 
-    private var mealChangedListeners = mutableListOf<() -> Unit>()
+    private var menuChangedListeners = mutableListOf<() -> Unit>()
 
-    fun registerMealChangedListener(block : () -> Unit) {
-        mealChangedListeners.add(block)
+    fun registerMenuChangedListener(block : () -> Unit) {
+        menuChangedListeners.add(block)
     }
 
     private val poopSauce = SharedPreferences.OnSharedPreferenceChangeListener { _: SharedPreferences, name: String ->
         println("$name value changed")
-        if (name == MEAL) {
+        if (name in listOf(MEAL, MENU_JSON, SHOW_FULL_NAMES)) {
             GlobalScope.launch {
-                mealChangedListeners.forEach { fn -> fn() }
+                menuChangedListeners.forEach { fn -> fn() }
             }
         }
     }
@@ -94,6 +82,8 @@ data class Configuration (private val preferences: SharedPreferences) {
         it.availability in listOf(Availability.All, currentMeal)
     }
 
+    val showMenuItemNames get() = preferences.getBoolean(SHOW_FULL_NAMES, false)
+
     val receiptPrinterConnStr
         get() = "TCP:" + preferences.getString(IP_RECEIPT_PRINTER, "")!!
 
@@ -109,6 +99,7 @@ data class Configuration (private val preferences: SharedPreferences) {
     }
 
     companion object {
+        const val SHOW_FULL_NAMES = "show_names"
         const val MENU_RESET = "menu_reset"
         const val MENU_JSON = "menu_json"
         const val UPDATE_NOW = "update_now"

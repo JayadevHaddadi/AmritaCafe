@@ -2,36 +2,45 @@ package edu.amrita.jayadev.amritacafe.receiptprinter.writer
 
 import com.epson.epos2.printer.Printer
 import edu.amrita.jayadev.amritacafe.model.Order
-import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.RegularOrderItem
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 
-class WorkOrderWriter(val orders: List<Order>, private val configuration: Configuration) {
+class WorkOrderWriter(private val orders: List<Order>, private val configuration: Configuration) {
 
     init {
-        if (orders.isEmpty())
-            throw IllegalArgumentException("An order needs at least one order item.")
+        require(orders.isNotEmpty()) { "An order needs at least one order item." }
     }
 
-    private fun writeLine(index: Int, orderItem: OrderItem) =
-        ( if (index == 0) orderItem.menuItem.location.code else "" ).padEnd(5) +
-                "${orderItem.quantity}x".padStart(3).padEnd(4) +
-                orderItem.menuItem.code + if (orderItem.comment.isNotBlank()) {
-            "\n" + "* ${orderItem.comment}".padEnd(12).padStart(20)
-        } else ""
+    private fun writeLine(orderItem: RegularOrderItem) =
+        if (orderItem.quantity == 1) {
+            "  "
+        } else {
+            orderItem.quantity.toString().padEnd(2)
+        } + orderItem.menuItem.code +
+                if (orderItem.comment.isBlank()) {""}
+                else {"\n  * ${orderItem.comment}"} +
+
+                if (orderItem.toppings.isNotEmpty()) {
+                    "\n" + orderItem.toppings.joinToString("\n") {
+                        if (it.quantity == 1) {"  "} else { it.quantity.toString().padEnd(2) } + "  " + it.menuItem.code
+                    }
+                } else {
+                    ""
+                }
 
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
-        orders.forEach { (orderNumber, itemList) ->
+        orders.forEach { (orderNumber, itemList, time) ->
             val itemsMap = itemList.groupBy { it.menuItem.location }.toSortedMap()
-            val startingLocation = itemsMap.firstKey()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             val orderItemsText = itemsMap.map { (_, orderItems) ->
-                orderItems.mapIndexed(::writeLine)
+                orderItems.map {it as RegularOrderItem}.map(::writeLine)
             }.flatten().joinToString("\n")
 
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("ORDER  $orderNumStr     ${startingLocation.code}")
+            printer.addText("$orderNumStr         $time")
             printer.addFeedLine(lineFeed)
             printer.addHLine(1, 2400, Printer.LINE_THICK_DOUBLE)
 

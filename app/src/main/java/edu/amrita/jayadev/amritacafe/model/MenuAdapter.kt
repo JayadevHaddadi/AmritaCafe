@@ -2,10 +2,12 @@ package edu.amrita.jayadev.amritacafe.model
 
 
 import android.content.Context
+
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.Typeface.BOLD
+import android.graphics.Typeface.*
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,19 +15,35 @@ import android.widget.BaseAdapter
 import edu.amrita.jayadev.amritacafe.R
 import edu.amrita.jayadev.amritacafe.menu.Category
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
+import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.menu_item.view.*
-import java.util.*
 import kotlin.Comparator
 
-class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
+class MenuAdapter(private val configuration: Configuration, private val context: Context, private val onChanged: () -> Unit) :
     BaseAdapter() {
 
+    private var menuItemDisplayNameHandler: (MenuItem) -> String = {""}
+    private var showItemNames : Boolean = configuration.showMenuItemNames
+        set(value) {
+        field = value
+        menuItemDisplayNameHandler =
+            if (value) { { it.name } }
+            else {{ it.code }}
+    }
+
     init {
-        setTheItems(menu)
+        setTheItems(configuration.currentMenu)
+        showItemNames = configuration.showMenuItemNames
+
+        configuration.registerMenuChangedListener {
+            println("I swear I can change.")
+            showItemNames = configuration.showMenuItemNames
+            setTheItems(configuration.currentMenu)
+            onChanged()
+        }
     }
 
     private fun setTheItems(items: List<MenuItem>) {
-
         items.groupBy {
             it.category
         }.toSortedMap(
@@ -36,9 +54,9 @@ class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
                 listOf(category) + items + Array((10 - (items.size + 1) % 10) % 10) {Unit}
             }.flatten()
 
-            val colors: TypedArray = mContext.resources.obtainTypedArray(R.array.colors)
+            val colors: TypedArray = context.resources.obtainTypedArray(R.array.colors)
             colorMap = menuByCategory.keys.mapIndexed { idx, cat ->
-                cat to colors.getColor(idx, 0)
+                cat to colors.getColor(idx+3, 0)
             }.toMap()
             colors.recycle()
         }
@@ -68,14 +86,16 @@ class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
 
         when (menuItem) {
             is Category -> {
-                name.setTypeface(null, BOLD)
-                name.text = menuItem.name
+                name.setTypeface(SANS_SERIF, BOLD)
+                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+                name.text = menuItem.displayName
                 name.setBackgroundColor(colorMap.getValue(menuItem))
             }
             is MenuItem -> {
-                name.text = menuItem.name
+                name.text = menuItemDisplayNameHandler(menuItem)
+                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
 
-                name.setTypeface(null, Typeface.NORMAL)
+                name.setTypeface(SERIF, NORMAL)
                 name.setBackgroundColor(colorMap.getValue(menuItem.category))
             }
             is Unit -> {
@@ -87,12 +107,7 @@ class MenuAdapter(private val mContext: Context, menu: List<MenuItem>) :
     }
 
     private fun convertOrInflate(view: View?, parent: ViewGroup) =
-        view ?: mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE).let {
+        view ?: context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).let {
         (it as LayoutInflater).inflate(R.layout.menu_item, parent, false)
-    }
-
-    fun setMenu(menuList: List<MenuItem>) {
-        setTheItems(menuList)
-        notifyDataSetChanged()
     }
 }

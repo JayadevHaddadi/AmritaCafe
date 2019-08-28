@@ -1,11 +1,32 @@
 package edu.amrita.jayadev.amritacafe.model
 
 import edu.amrita.jayadev.amritacafe.menu.Location
-import edu.amrita.jayadev.amritacafe.receiptprinter.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.OrderItem
+import edu.amrita.jayadev.amritacafe.menu.RegularOrderItem
+import edu.amrita.jayadev.amritacafe.menu.Topping
 import edu.amrita.jayadev.amritacafe.receiptprinter.OrderNumberService
 import kotlinx.coroutines.runBlocking
+import java.util.*
 
-data class Order(val orderNumber: Int, val orderItems: List<OrderItem>) {
+data class Order(val orderNumber: Int, val orderItems: List<OrderItem>, val orderTime : String = Calendar.getInstance(TimeZone.getDefault()).time.run {
+    "${hours}:${minutes}"
+}) {
+    private fun List<OrderItem>.collectToppings() : List<RegularOrderItem> {
+        return filterIsInstance<RegularOrderItem>().map { orderItem ->
+            orderItem.addToppings(
+                filter {
+                    it is Topping && it.toppingFor == orderItem
+                }.map {
+                    it as Topping
+                }
+            )
+        }
+    }
+
+
+
+    fun collectToppings() = copy(orderItems = orderItems.collectToppings())
+
     fun split(orderNumberService: OrderNumberService) = if (hasPizzaAndGrillItems) {
         listOf(
             Order(

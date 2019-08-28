@@ -1,6 +1,7 @@
 package edu.amrita.jayadev.amritacafe.fragments
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.core.content.edit
 import androidx.preference.*
 import com.github.kittinunf.fuel.Fuel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.list
+import java.lang.Exception
 
 class MainPreferencesFragment : PreferenceFragmentCompat() {
     private val mutex = Mutex()
@@ -35,7 +37,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.main_preferences, rootKey)
 
-        val updateUrlPref = findPreference<EditTextPreference>("update_url")?.apply {
+        findPreference<EditTextPreference>("update_url")?.apply {
             summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
         }
 
@@ -63,6 +65,18 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
             }
         }
 
+        findPreference<EditTextPreference>(MENU_JSON)?.run {
+            setOnPreferenceChangeListener { _, newValue ->
+                try {
+                    Json(JsonConfiguration.Stable).parse(MenuItem.serializer().list, newValue.toString())
+                    true
+                } catch (_: Exception) {
+                    Toast.makeText(this.context, "Invalid format. Changes were rejected.", Toast.LENGTH_LONG)
+                    false
+                }
+            }
+        }
+
         findPreference<Preference>(Configuration.UPDATE_NOW)?.run {
             summaryProvider = Preference.SummaryProvider<Preference> {
                 "Updated: ${preference.getLong(Configuration.UPDATE_NOW, 0)}"
@@ -73,7 +87,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
                 if (!mutex.isLocked) {
                     GlobalScope.launch(Dispatchers.IO) {
                         mutex.withLock {
-                            val (request, response, result) = Fuel.get(url)
+                            val (_, response, result) = Fuel.get(url)
                                 .awaitObjectResponseResult(kotlinxDeserializerOf(loader = MenuItem.serializer().list))
                             println(response.responseMessage)
                             result.fold(

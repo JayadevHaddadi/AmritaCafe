@@ -5,28 +5,28 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.View
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
 import edu.amrita.jayadev.amritacafe.R
+import edu.amrita.jayadev.amritacafe.menu.Category
 import edu.amrita.jayadev.amritacafe.menu.MenuItem
 import edu.amrita.jayadev.amritacafe.model.MenuAdapter
 import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.model.OrderAdapter
 import edu.amrita.jayadev.amritacafe.receiptprinter.*
-import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriterImpl
-import edu.amrita.jayadev.amritacafe.receiptprinter.writer.WorkOrderWriter
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.response_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import android.view.MenuItem as ViewMenuItem
 
 
-class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
+class MainActivity : AppCompatActivity() {
 
     private var dialogOpen = false
 
@@ -58,32 +58,67 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
         }
 
         order_button.setOnClickListener {
-            val orders = Order(currentOrderNumber, orderAdapter.orderItems).split(orderNumberService)
-            val dialog = openDialog()
+            val orders = Order(currentOrderNumber, orderAdapter.orderItems)
+                .collectToppings().split(orderNumberService)
+
+            val (dialog, view) = openDialog()
+
             val printService = PrintService(orders, configuration = configuration,
                 listener = object : PrintService.PrintServiceListener {
-                    override fun kitchenPrinterFinished() {
+                    override fun kitchenPrinterFinished() = runOnUiThread {
+                        view.run {
+                            kitchen_progress.visibility = View.INVISIBLE
+                            image_kitchen_error.visibility = View.INVISIBLE
+                            image_kitchen_done.visibility = View.VISIBLE
+                            button_retry_kitchen.visibility = View.INVISIBLE
+                        }
                     }
 
-                    override fun receiptPrinterFinished() {
+                    override fun receiptPrinterFinished() = runOnUiThread {
+                        view.run {
+                            receipt_progress.visibility = View.INVISIBLE
+                            image_receipt_error.visibility = View.INVISIBLE
+                            image_receipt_done.visibility = View.VISIBLE
+                            button_retry_receipt.visibility = View.INVISIBLE
+                        }
                     }
 
-                    override fun receiptPrinterError(response: PrintFailed) {
+                    override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
+                        view.run {
+                            receipt_progress.visibility = View.INVISIBLE
+                            image_receipt_error.visibility = View.VISIBLE
+                            button_retry_receipt.visibility = View.VISIBLE
+                        }
                     }
 
                     override fun receiptPrinterError(
                         errorStatus: ErrorStatus,
                         exception: Epos2Exception
-                    ) {
+                    ) = runOnUiThread {
+                        view.run {
+                            receipt_progress.visibility = View.INVISIBLE
+                            image_receipt_error.visibility = View.VISIBLE
+                            button_retry_receipt.visibility = View.VISIBLE
+                        }
                     }
 
-                    override fun kitchenPrinterError(response: PrintFailed) {
+                    override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
+                        view.run {
+                            kitchen_progress.visibility = View.INVISIBLE
+                            image_kitchen_error.visibility = View.VISIBLE
+                            button_retry_kitchen.visibility = View.VISIBLE
+                        }
                     }
 
                     override fun kitchenPrinterError(
                         errorStatus: ErrorStatus,
                         exception: Epos2Exception
-                    ) {
+                    ) = runOnUiThread {
+                        view.run {
+                            kitchen_progress.visibility = View.INVISIBLE
+                            image_kitchen_error.visibility = View.VISIBLE
+                            button_retry_kitchen.visibility = View.VISIBLE
+                        }
                     }
 
                     override fun printingComplete() {
@@ -95,6 +130,21 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
 
                 })
             printService.print()
+
+            view.button_retry_kitchen.setOnClickListener {
+                printService.retry()
+                it.visibility = View.INVISIBLE
+                view.image_kitchen_error.visibility = View.INVISIBLE
+                view.kitchen_progress.visibility = View.VISIBLE
+            }
+
+            view.button_retry_receipt.setOnClickListener {
+                printService.retry()
+                it.visibility = View.INVISIBLE
+                view.image_receipt_error.visibility = View.INVISIBLE
+                view.receipt_progress.visibility = View.VISIBLE
+            }
+
             println("Started Print Job")
         }
     }
@@ -119,18 +169,26 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
         super.onStart()
         startNewOrder()
 
-        menuAdapter = MenuAdapter(applicationContext, configuration.currentMenu)
-        gridView.adapter = menuAdapter
-
-        configuration.registerMealChangedListener {
-            menuAdapter.setMenu(configuration.currentMenu)
+        menuAdapter = MenuAdapter(configuration, applicationContext) {
+            runOnUiThread { menuAdapter.notifyDataSetChanged() }
         }
+        gridView.adapter = menuAdapter
 
         gridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
                 is MenuItem -> {
                     orderAdapter.add( menuItem )
                 }
+            }
+        }
+        gridView.onItemLongClickListener = AdapterView.OnItemLongClickListener {_, view, _, _ ->
+            val menuItem = view.tag
+            menuItem is MenuItem
+                    && menuItem.category == Category.Topping
+                    && orderAdapter.isNotEmpty()
+                    && orderAdapter.addTopping(menuItem).let {
+                println("I added it.")
+                true
             }
         }
     }
@@ -157,40 +215,21 @@ class MainActivity : AppCompatActivity(), PrintService.PrintServiceListener {
             else -> super.onOptionsItemSelected(item)
         }
     }
-    override fun kitchenPrinterFinished() {
-    }
 
-    override fun receiptPrinterFinished() {
-    }
-
-    override fun receiptPrinterError(response: PrintFailed) {
-    }
-
-    override fun receiptPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception) {
-    }
-
-    override fun kitchenPrinterError(response: PrintFailed) {
-    }
-
-    override fun kitchenPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception) {
-    }
-
-    override fun printingComplete() {
-        startNewOrder()
-    }
-
-    fun openDialog() = AlertDialog.Builder(this)
-            .setView(
-                LayoutInflater.from(this).inflate(R.layout.response_dialog, null)
-            ).setTitle("Printing")
+    /**
+     * Returns a tuple containing the dialog, and the view.
+     */
+    private fun openDialog() = LayoutInflater.from(this).inflate(R.layout.response_dialog, null).let { view ->
+        AlertDialog.Builder(this)
+            .setView(view).setTitle("Printing")
             .setCancelable(true)
-//            .setPositiveButton("SHUTUP", {_, _ ->})
-//            .setNegativeButton("FUCKIT", {int, poop -> int.dismiss()})
             .setIcon(R.drawable.ic_print_black_24dp)
             .show()
             .apply {
                 setCanceledOnTouchOutside(false)
             }
+            .let { it.to(view) }
+    }
 //    83     ┆   ┆   val mDialogView =
 //        84     ┆   ┆   ┆   LayoutInflater.from(this).inflate(edu.amrita.jayadev.amritacafe.R.layout.response_dialog, null)
 //    85     ┆   ┆   //AlertDialogBuilder
