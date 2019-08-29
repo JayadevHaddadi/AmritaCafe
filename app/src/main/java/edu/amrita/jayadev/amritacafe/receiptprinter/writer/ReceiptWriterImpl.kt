@@ -30,18 +30,23 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
             }.flatten()
             val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
 
+            val itemCount = orderItems.map { it as RegularOrderItem }.map { 1 + it.toppings.size }.sum()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("$orderNumStr         $time")
+            printer.addText("$orderNumStr        $time")
 
+            printer.addFeedLine(lineFeed)
             printer.addTextSize(textSize, textSize)
             printer.addFeedLine(lineFeed)
             printer.addText(orderItemsText(myOrderItems))
             printer.addFeedLine(lineFeed)
             printer.addTextStyle(Printer.PARAM_DEFAULT, Printer.PARAM_DEFAULT, Printer.TRUE, Printer.PARAM_DEFAULT)
+
+            printer.addFeedLine(lineFeed)
             printer.addText("TOTAL" + orderTotalText.padStart(15))
             printer.addFeedLine(lineFeed)
+            printer.addFeedLine( (4 - itemCount).let { if (it < 0) 0 else it } )
             printer.addFeedLine(lineFeed)
             printer.addCut(Printer.CUT_FEED)
         }

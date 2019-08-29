@@ -72,6 +72,7 @@ class MainPreferencesFragment : PreferenceFragmentCompat() {
                     true
                 } catch (_: Exception) {
                     Toast.makeText(this.context, "Invalid format. Changes were rejected.", Toast.LENGTH_LONG)
+                        .show()
                     false
                 }
             }

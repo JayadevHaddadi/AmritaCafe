@@ -9,13 +9,13 @@ import kotlinx.coroutines.runBlocking
 import java.util.*
 
 data class Order(val orderNumber: Int, val orderItems: List<OrderItem>, val orderTime : String = Calendar.getInstance(TimeZone.getDefault()).time.run {
-    "${hours}:${minutes}"
+    hours.toString().padStart(2) + ":" + minutes.toString().padStart(2, '0')
 }) {
     private fun List<OrderItem>.collectToppings() : List<RegularOrderItem> {
         return filterIsInstance<RegularOrderItem>().map { orderItem ->
             orderItem.addToppings(
                 filter {
-                    it is Topping && it.toppingFor == orderItem
+                    it is Topping && it.toppingFor.id == orderItem.id
                 }.map {
                     it as Topping
                 }

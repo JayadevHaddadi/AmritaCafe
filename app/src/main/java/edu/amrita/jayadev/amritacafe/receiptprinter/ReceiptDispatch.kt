@@ -8,6 +8,7 @@ import edu.amrita.jayadev.amritacafe.model.Order
 import edu.amrita.jayadev.amritacafe.receiptprinter.writer.ReceiptWriter
 import edu.amrita.jayadev.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
+import java.util.logging.Logger
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -18,6 +19,7 @@ class ReceiptDispatch(
     private val listener: PrintStatusListener
 ) {
 
+    private val logger = Logger.getLogger("ReceiptDispatch")
     private data class CallbackData(val code: Int, val status: PrinterStatusInfo?)
     companion object {
         private val locks = mutableMapOf<String, Any>()
@@ -38,17 +40,16 @@ class ReceiptDispatch(
     private suspend fun print(orders: List<Order>) = synchronized(getLock(connectionString)) {
         try {
 
-            println("Will execute.")
             val (code, status) = runBlocking { executePrintJob(orders) }
-            println("Executed.")
+            logger.fine("Executed.")
 
             val response = PrintDispatchResponse.fromPrinterCallback(code, status)
-            println("Notify")
+            logger.fine("Notify")
             listener.printComplete(response)
             listener.notifyPrinterStatus(response.printerStatus)
-            println("Did notify")
+            ("Did notify")
         } catch (exception: Epos2Exception) {
-            println("Caught error ${ErrorStatus.fromCode(exception.errorStatus)}")
+            logger.warning("Caught error ${ErrorStatus.fromCode(exception.errorStatus)}")
             listener.error(ErrorStatus.fromCode(exception.errorStatus), exception)
         }
     }
@@ -59,15 +60,15 @@ class ReceiptDispatch(
 
     private suspend fun executePrintJob(orders: List<Order>) = buildPrinter().let { printer ->
         try {
-            println("executePrintJob")
+            logger.fine("executePrintJob")
             printer.connect(connectionString, Printer.PARAM_DEFAULT)
 
             return@let withTimeout(5000) { suspendCancellableCoroutine<CallbackData> { continuation ->
-                println("inside coroutine")
+                logger.fine("inside coroutine")
                 printer.setReceiveEventListener(buildListener(continuation))
-                println("Begin Transaction")
+                logger.fine("Begin Transaction")
                 printer.beginTransaction()
-                println("Write that shit")
+                logger.fine("Transaction open.")
                 printer.addTextSmooth(Printer.TRUE)
 
                 receiptWriter.writeToPrinter(orders, printer, configuration)
@@ -75,36 +76,30 @@ class ReceiptDispatch(
                 GlobalScope.launch(Dispatchers.IO) {
                     withTimeout(2000) {
 
-                        println("Send Data")
+                        logger.fine("Send Data")
                         printer.sendData(5000)
-                        println("Sent.")
+                        logger.fine("Sent.")
 
                     }
                 }
-//                try {
-//                } catch (poop : Exception) {
-//                    println("Caught exception")
-//                    println(poop)
-//                    continuation.cancel(poop)
-//                }
             }}
-        } catch (boop : Exception) {
-            println("That is $boop")
-            throw boop
+        } catch (exception : Exception) {
+            logger.fine("Exception is $exception")
+            throw exception
         } finally {
-            println("Will disconnect")
+            logger.fine("Will disconnect")
             try {
                 printer.endTransaction()
-                println("Wrote.  End Transaction.")
+                logger.fine("Wrote.  End Transaction.")
                 printer.disconnect()
-                println("Disconnected")
+                logger.fine("Disconnected")
             } catch(e : Exception) {
-                println("Timeout disconnecting.")
+                logger.fine("Timeout disconnecting.")
             }
-            println("Clear Command Buffer")
+            logger.warning("Clear Command Buffer")
             printer.clearCommandBuffer()
             printer.setReceiveEventListener(null)
-            println("Cleared")
+            logger.fine("Cleared")
         }
     }
 
@@ -116,9 +111,9 @@ class ReceiptDispatch(
      */
     private fun buildListener(continuation: Continuation<CallbackData>)
         = ReceiveListener { _, p1, p2, _ ->
-        println("Inside Receive Listener")
+        logger.fine("Inside Receive Listener")
         continuation.resume(CallbackData(p1, p2))
-        println("Resumed continuation.")
+        logger.fine("Resumed continuation.")
     }
 
     /**

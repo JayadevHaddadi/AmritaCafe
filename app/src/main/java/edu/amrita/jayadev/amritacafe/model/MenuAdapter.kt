@@ -50,15 +50,15 @@ class MenuAdapter(private val configuration: Configuration, private val context:
             Comparator { left, right ->
                 left.ordinal.compareTo(right.ordinal) }
         ).let { menuByCategory ->
-            menuItems = menuByCategory.map { (category, items) ->
-                listOf(category) + items + Array((10 - (items.size + 1) % 10) % 10) {Unit}
-            }.flatten()
-
             val colors: TypedArray = context.resources.obtainTypedArray(R.array.colors)
             colorMap = menuByCategory.keys.mapIndexed { idx, cat ->
                 cat to colors.getColor(idx+3, 0)
             }.toMap()
+
             colors.recycle()
+            menuItems = menuByCategory.map { (category, items) ->
+                listOf(category) + items.sortedBy(menuItemDisplayNameHandler) + Array((10 - (items.size + 1) % 10) % 10) {Unit}
+            }.flatten()
         }
     }
 
@@ -87,13 +87,13 @@ class MenuAdapter(private val configuration: Configuration, private val context:
         when (menuItem) {
             is Category -> {
                 name.setTypeface(SANS_SERIF, BOLD)
-                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
                 name.text = menuItem.displayName
                 name.setBackgroundColor(colorMap.getValue(menuItem))
             }
             is MenuItem -> {
                 name.text = menuItemDisplayNameHandler(menuItem)
-                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
 
                 name.setTypeface(SERIF, NORMAL)
                 name.setBackgroundColor(colorMap.getValue(menuItem.category))

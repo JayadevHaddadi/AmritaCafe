@@ -23,7 +23,7 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
 
                 if (orderItem.toppings.isNotEmpty()) {
                     "\n" + orderItem.toppings.joinToString("\n") {
-                        if (it.quantity == 1) {"  "} else { it.quantity.toString().padEnd(2) } + "  " + it.menuItem.code
+                        if (it.quantity == 1) {"  "} else { it.quantity.toString().padEnd(2) } + "+ " + it.menuItem.code
                     }
                 } else {
                     ""
@@ -38,9 +38,10 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
             val orderItemsText = itemsMap.map { (_, orderItems) ->
                 orderItems.map {it as RegularOrderItem}.map(::writeLine)
             }.flatten().joinToString("\n")
+            val itemCount = itemList.map { it as RegularOrderItem }.map { 1 + it.toppings.size }.sum()
 
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("$orderNumStr         $time")
+            printer.addText("$orderNumStr        $time")
             printer.addFeedLine(lineFeed)
             printer.addHLine(1, 2400, Printer.LINE_THICK_DOUBLE)
 
@@ -50,6 +51,7 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
             printer.addText(orderItemsText)
             printer.addFeedLine(lineFeed)
             printer.addFeedLine(lineFeed)
+            printer.addFeedLine( (6 - itemCount).let { if (it < 0) 0 else it } )
             printer.addCut(Printer.CUT_FEED)
         }
     }
