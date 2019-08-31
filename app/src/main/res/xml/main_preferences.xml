@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="Main" >
+        <Preference
+                app:key="meal"
+                app:defaultValue="LunchDinner"
+                app:title="Toggle Meal" />
+
+        <SwitchPreferenceCompat
+            app:key="show_names"
+            app:defaultValue="false"
+            app:title="Show Full Menu Item Names"
+            app:summaryOn="Yes"
+            app:summaryOff="No" />
+
+        <EditTextPreference
+                app:defaultValue="192.168.1.11"
+                app:key="kitchen_printer_ip"
+                app:title="Kitchen Printer IP"
+                app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+                app:defaultValue="192.168.1.17"
+                app:key="receipt_printer_ip"
+                app:title="Receipt Printer IP"
+                app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Menu" >
+        <EditTextPreference
+                app:defaultValue="https://bit.ly/2MBGU46"
+                app:key="update_url"
+                app:title="Menu Update URL" />
+
+        <Preference
+                app:title="Update On Web"
+                app:key="update_now" />
+
+        <Preference
+            app:title="Reset to default"
+            app:key="menu_reset" />
+
+        <EditTextPreference
+                app:defaultValue="[]"
+                app:key="menu_json"
+                app:title="Menu Config" />
+
+    </PreferenceCategory>
+    <PreferenceCategory app:title="Order Numbers">
+        <EditTextPreference
+           app:key="order_number_range"
+           app:defaultValue="100"
+           app:title="Range"
+           app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+    <PreferenceCategory app:title="Advanced">
+        <SwitchPreferenceCompat app:key="testing"
+            app:defaultValue="false"
+            app:title="Testing (Short receipts)"
+            app:summaryOn="Yes"
+            app:summaryOff="No" />
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

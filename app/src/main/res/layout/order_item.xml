@@ -7,78 +7,73 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="@+id/label"
-            android:id="@+id/amount_TV"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:text="2"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            app:layout_constraintBottom_toBottomOf="@+id/label"/>
 
     <TextView
-            android:text="x"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/textView4"
-            app:layout_constraintStart_toEndOf="@+id/amount_TV"
-            app:layout_constraintTop_toTopOf="@+id/label"
+            android:id="@+id/amount_TV"
+            android:layout_width="38dp"
+            android:layout_height="32dp"
+            android:background="#FF9800"
+            android:paddingLeft="12dp"
+            android:paddingRight="8dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            tools:ignore="HardcodedText"
             app:layout_constraintBottom_toBottomOf="@+id/label"
-            />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/label"
+            app:layout_constraintVertical_bias="0.0"
+            tools:text="2" />
 
     <TextView
             android:id="@+id/label"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            tools:text="Item 1"
-            app:layout_constraintTop_toTopOf="@+id/cancel_button"
-            app:layout_constraintStart_toEndOf="@+id/textView4"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            app:layout_constraintBottom_toBottomOf="@+id/cancel_button"
-            app:layout_constraintEnd_toStartOf="@+id/price_TV"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp">
-    </TextView>
-
-
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/price_TV"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/cancel_button"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            tools:text="100"
-            app:layout_constraintBottom_toBottomOf="@+id/cancel_button"/>
-
-    <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            app:srcCompat="@android:drawable/ic_delete"
-            android:id="@+id/cancel_button"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
-    <EditText
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:ems="10"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:id="@+id/comment_ET"
+            android:layout_width="179dp"
+            android:layout_height="32dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginTop="16dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            app:layout_constraintStart_toEndOf="@+id/amount_TV"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Item 1" />
+
+    <TextView
+            android:id="@+id/price_TV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            app:layout_constraintBottom_toBottomOf="@+id/label"
+            app:layout_constraintEnd_toStartOf="@+id/cancel_button"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/label"
+            app:layout_constraintTop_toTopOf="@+id/label"
+            app:layout_constraintVertical_bias="0.0"
+            tools:text="100" />
+
+    <ImageView
+            android:id="@+id/cancel_button"
+            android:layout_width="34dp"
+            android:layout_height="32dp"
+            app:layout_constraintBottom_toBottomOf="@+id/label"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/label"
+            app:srcCompat="@android:drawable/ic_delete" />
+
+    <EditText
+            android:id="@+id/comment_ET"
+            android:layout_width="304dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:imeOptions="actionDone"
+            android:textSize="24sp"
             android:visibility="gone"
-            tools:visibility="visible"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toTopOf="@+id/price_TV"
-            android:textSize="24sp"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/label"
+            tools:visibility="visible" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
