@@ -1,15 +1,6 @@
 # AmritaCafe
 
-## Use Case
-
-1. **Waiter**
-    1. Changes the settings
-        1. Items
-        1. IP
-        1. Ranges
-    1. Order menu
-        1. Add item
-            1. Optionally add topping
-        1. Remove item
-        1. Comment Item
-        1. Print order 
+This is a simple cafe application specifically made to connect the HP 10 TABLET with the Eposon TM-m30.
+It might also work for other configurations.
+We made this app to be used in our ashram cafe in Amritapuri.
+It is currently being used daily and works very well.
