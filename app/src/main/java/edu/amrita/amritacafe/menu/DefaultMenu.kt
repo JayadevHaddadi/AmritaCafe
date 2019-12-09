@@ -35,22 +35,23 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Lg Fries Salt", "LGSAFF", 70, Availability.LunchDinner, Location.Fries, Category.Fries),
 
     MenuItem("Grilled Cheese", "GC", 40, Availability.All, Location.Grill, Category.Sandwich),
-    MenuItem("Egg Cheese Sand", "ECS", 55, Availability.All, Location.Grill, Category.Sandwich),
-    MenuItem("Omelet Sandwich", "OMS", 45, Availability.All, Location.Grill, Category.Sandwich),
+    MenuItem("Egg Cheese Sand", "ECS", 60, Availability.All, Location.Grill, Category.Sandwich),
+    MenuItem("Omelet Sandwich", "OMS", 50, Availability.All, Location.Grill, Category.Sandwich),
     MenuItem("Deluxe Grill CH", "DXL GC", 75, Availability.LunchDinner, Location.Grill, Category.Sandwich),
     MenuItem("Grilled Ch FRT", "GC FRT", 45, Availability.LunchDinner, Location.Grill, Category.Sandwich),
 
     MenuItem("Simple Salad", "SAL", 30, Availability.LunchDinner, Location.Salad, Category.Salad),
     MenuItem("Sprout Salad", "SPRSAL", 50, Availability.LunchDinner, Location.Salad, Category.Salad),
     MenuItem("Deluxe Salad", "DXL SAL", 90, Availability.LunchDinner, Location.Salad, Category.Salad),
-    MenuItem("Pesto Salad", "PSTO SAL", 75, Availability.LunchDinner, Location.Salad, Category.Salad),
+    MenuItem("Pesto Salad", "PSTO SAL", 80, Availability.LunchDinner, Location.Salad, Category.Salad),
+    MenuItem("Quinoa Salad", "QNA SAL", 150, Availability.LunchDinner, Location.Salad, Category.Salad),
 
-    MenuItem("French Toast", "FT", 30, Availability.Breakfast, Location.Grill, Category.Breakfast),
-    MenuItem("Ragi Pancake", "RAG PAN", 30, Availability.Breakfast, Location.Grill, Category.Breakfast),
-    MenuItem("Pancake", "PAN", 30, Availability.Breakfast, Location.Grill, Category.Breakfast),
+    MenuItem("French Toast", "FT", 40, Availability.Breakfast, Location.Grill, Category.Breakfast),
+    MenuItem("Ragi Pancake", "RAG PAN", 40, Availability.Breakfast, Location.Grill, Category.Breakfast),
+    MenuItem("Pancake", "PAN", 40, Availability.Breakfast, Location.Grill, Category.Breakfast),
     MenuItem("Hash Brown", "HASH", 20, Availability.Breakfast, Location.Grill, Category.Breakfast),
-    MenuItem("Oatmeal", "OAT", 25, Availability.Breakfast, Location.Kitcheri, Category.Breakfast),
-    MenuItem("Ragi Porridge", "POR", 25, Availability.Breakfast, Location.Kitcheri, Category.Breakfast),
+    MenuItem("Oatmeal", "OAT", 30, Availability.Breakfast, Location.Kitcheri, Category.Breakfast),
+    MenuItem("Ragi Porridge", "POR", 30, Availability.Breakfast, Location.Kitcheri, Category.Breakfast),
     MenuItem("Vegan Omelet", "VN OM", 40, Availability.Breakfast, Location.Grill, Category.Breakfast),
 
     MenuItem("Cheese Pizza", "CH PZA", 100, Availability.LunchDinner, Location.Pizza, Category.Pizza),
@@ -58,8 +59,8 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Veg Pizza", "VEG PZA", 125, Availability.LunchDinner, Location.Pizza, Category.Pizza),
     MenuItem("Vegan Veg Pizza", "VN VEG PZA", 100, Availability.LunchDinner, Location.Pizza, Category.Pizza),
     MenuItem("Gourmet Pizza", "GM PZA", 150, Availability.LunchDinner, Location.Pizza, Category.Pizza),
-    MenuItem("Vegan Gourmet PZA", "VN GM PZA", 100, Availability.LunchDinner, Location.Pizza, Category.Pizza),
-    MenuItem("Pesto Pizza", "PSTO PZA", 100, Availability.LunchDinner, Location.Pizza, Category.Pizza),
+    MenuItem("Vegan Gourmet PZA", "VN GM PZA", 125, Availability.LunchDinner, Location.Pizza, Category.Pizza),
+    MenuItem("Pesto Pizza", "PSTO PZA", 125, Availability.LunchDinner, Location.Pizza, Category.Pizza),
     MenuItem("Paneer Pizza", "PAN PZA", 150, Availability.LunchDinner, Location.Pizza, Category.Pizza),
     MenuItem("Mediter. Pizza", "MED PZA", 125, Availability.LunchDinner, Location.Pizza, Category.Pizza),
 
@@ -82,9 +83,12 @@ val defaultMenu : List<MenuItem> = listOf(
 
     MenuItem("Kitcheri", "KITCH", 30, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
     MenuItem("Steamed Veg", "ST VEG", 30, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
+    MenuItem("Quinoa", "QNA", 100, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
+    MenuItem("Steamed Broccoli", "ST BROC", 100, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
+    MenuItem("Hummus", "HUM", 30, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
 
-    MenuItem("Egg Sunny Side Up", "FE SSU", 15, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Fried Egg Overhard", "FE OH", 15, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Egg Sunny Side Up", "FE SSU", 20, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Fried Egg Overhard", "FE OH", 20, Availability.All, Location.Grill, Category.Eggs),
 
     MenuItem("Jam", "JAM", 10, Availability.Breakfast, Location.Sides, Category.Topping),
     MenuItem("Peanut Butter", "PB", 10, Availability.Breakfast, Location.Sides, Category.Topping),
@@ -100,14 +104,14 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Vegan Gourmet Pasta", "VN GM PAST", 100, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),
     MenuItem("Deluxe Pasta", "DLX PAST", 115, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),
 
-    MenuItem("Plain Omelet", "OM", 30, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Veggie Omelet", "VEG OM", 50, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Deluxe Omelet", "DXL OM", 105, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Cheese Omelet", "OM CH", 50, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Fresh Tomato Omelet", "OM FRT", 35, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Pesto Omelet", "PSTO OM", 55, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Olive Omelet", "OLV OM", 65, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Veggie Cheese Omelet", "VEG CH OM", 70, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Gourmet Omelet", "GM OM", 95, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Onion Omelet", "ON OM", 35, Availability.All, Location.Grill, Category.Eggs)
+    MenuItem("Plain Omelet", "OM", 40, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Veggie Omelet", "VEG OM", 60, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Deluxe Omelet", "DXL OM", 115, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Cheese Omelet", "OM CH", 60, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Fresh Tomato Omelet", "OM FRT", 45, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Pesto Omelet", "PSTO OM", 70, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Olive Omelet", "OLV OM", 75, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Veggie Cheese Omelet", "VEG CH OM", 80, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Gourmet Omelet", "GM OM", 110, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Onion Omelet", "ON OM", 45, Availability.All, Location.Grill, Category.Eggs)
 )

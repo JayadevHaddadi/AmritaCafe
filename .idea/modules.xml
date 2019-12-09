@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AmritaCafe.iml" filepath="$PROJECT_DIR$/AmritaCafe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Amrita Cafe.iml" filepath="$PROJECT_DIR$/Amrita Cafe.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

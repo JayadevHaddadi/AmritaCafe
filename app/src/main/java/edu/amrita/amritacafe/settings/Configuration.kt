@@ -82,6 +82,13 @@ data class Configuration (private val preferences: SharedPreferences) {
         it.availability in listOf(Availability.All, currentMeal)
     }
 
+    fun toggleName() {
+        preferences.edit {
+            putBoolean(SHOW_FULL_NAMES, !showMenuItemNames)
+            apply()
+        }
+    }
+
     val showMenuItemNames get() = preferences.getBoolean(SHOW_FULL_NAMES, false)
 
     val receiptPrinterConnStr

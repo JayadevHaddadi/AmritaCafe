@@ -3,6 +3,8 @@ package edu.amrita.amritacafe.activities
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -45,6 +47,8 @@ class MainActivity : AppCompatActivity() {
             configuration = Configuration(pref)
             orderNumberService = OrderNumberService(pref)
         }
+
+//        actionBar?.setBackgroundDrawable(ColorDrawable(Color.BLUE))
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -200,11 +204,23 @@ class MainActivity : AppCompatActivity() {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main_menu, menu)
         menu.findItem(R.id.switch_menu).title = configuration.currentMeal.name
+        menu.findItem(R.id.names_menu).title = getToggleNameString()
         return true
+    }
+
+    fun getToggleNameString(): String {
+        return if(configuration.showMenuItemNames) "Short name" else "Full name"
     }
 
     override fun onOptionsItemSelected(item: ViewMenuItem): Boolean {
         return when (item.itemId) {
+
+            R.id.names_menu -> {
+                configuration.toggleName()
+                item.title = getToggleNameString()
+                true
+            }
+
             R.id.switch_menu -> {
                 configuration.toggleMeal()
                 item.title = configuration.currentMeal.name
