@@ -122,5 +122,4 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             }
         }
     }
-
 }

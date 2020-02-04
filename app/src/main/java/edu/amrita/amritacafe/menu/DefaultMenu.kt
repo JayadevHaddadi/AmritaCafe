@@ -87,9 +87,6 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Steamed Broccoli", "ST BROC", 100, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
     MenuItem("Hummus", "HUM", 30, Availability.LunchDinner, Location.Kitcheri, Category.Kitcheri),
 
-    MenuItem("Egg Sunny Side Up", "FE SSU", 20, Availability.All, Location.Grill, Category.Eggs),
-    MenuItem("Fried Egg Overhard", "FE OH", 20, Availability.All, Location.Grill, Category.Eggs),
-
     MenuItem("Jam", "JAM", 10, Availability.Breakfast, Location.Sides, Category.Topping),
     MenuItem("Peanut Butter", "PB", 10, Availability.Breakfast, Location.Sides, Category.Topping),
     MenuItem("Butter", "BUTT", 10, Availability.Breakfast, Location.Sides, Category.Topping),
@@ -104,6 +101,8 @@ val defaultMenu : List<MenuItem> = listOf(
     MenuItem("Vegan Gourmet Pasta", "VN GM PAST", 100, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),
     MenuItem("Deluxe Pasta", "DLX PAST", 115, Availability.LunchDinner, Location.Kitcheri, Category.Pasta),
 
+    MenuItem("Egg Sunny Side Up", "FE SSU", 20, Availability.All, Location.Grill, Category.Eggs),
+    MenuItem("Fried Egg Overhard", "FE OH", 20, Availability.All, Location.Grill, Category.Eggs),
     MenuItem("Plain Omelet", "OM", 40, Availability.All, Location.Grill, Category.Eggs),
     MenuItem("Veggie Omelet", "VEG OM", 60, Availability.All, Location.Grill, Category.Eggs),
     MenuItem("Deluxe Omelet", "DXL OM", 115, Availability.All, Location.Grill, Category.Eggs),
