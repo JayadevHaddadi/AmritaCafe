@@ -62,7 +62,7 @@
             android:layout_marginEnd="4dp"
             android:layout_marginRight="4dp"
             android:background="#64B5F6"
-            android:text="PRINT"
+            android:text="ORDER"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="#1A237E"
             android:textSize="26sp"

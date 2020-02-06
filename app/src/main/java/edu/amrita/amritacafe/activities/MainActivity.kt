@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -25,24 +26,26 @@ import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.model.OrderAdapter
 import edu.amrita.amritacafe.receiptprinter.*
 import edu.amrita.amritacafe.settings.Configuration
-import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.finish_dialog.view.*
 import kotlinx.android.synthetic.main.response_dialog.view.*
+import kotlinx.android.synthetic.main.response_dialog.view.button_cancel
+import kotlinx.android.synthetic.main.response_dialog.view.button_finish
+import kotlinx.android.synthetic.main.response_dialog.view.email_TV
+import kotlinx.android.synthetic.main.response_dialog.view.email_progress
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
-import javax.mail.*
-import javax.mail.Session.*
-import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeMessage
 import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity() {
 
+    private var printMode = true
     private lateinit var file: File
     private var dialogOpen = false
 
@@ -62,13 +65,19 @@ class MainActivity : AppCompatActivity() {
             orderNumberService = OrderNumberService(pref)
         }
 
-        val path = getExternalFilesDir(null)
-        val letDirectory = File(path, "Amrita Cafe")
-        letDirectory.mkdirs()
-        file = File(letDirectory, "Records.txt")
-        println("Text in file : " + file.readText())
+        val root = File(Environment.getExternalStorageDirectory(), "AmritaCafe");
+        if (!root.exists()) {
+            root.mkdirs();
+        }
 
-//        actionBar?.setBackgroundDrawable(ColorDrawable(Color.BLUE))
+        val currentTime = Calendar.getInstance().getTime()
+        val DATE_FORMAT_2 = "dd-MMM-yyyy kk-mm EEEE"; // hh-mm a for pm/am
+        val dateFormat = SimpleDateFormat(DATE_FORMAT_2, Locale.US);
+        val fileDate = dateFormat.format(currentTime)
+        val user = "Jayadev"
+        val fileName = "${fileDate} - $user.txt"
+
+        file = File(root, fileName)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -76,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
             currentOrderSum = orderAdapter.orderItems.map { it.totalPrice }.sum()
-            total_cost_TV.text = currentOrderNumber.toString()
+            total_cost_TV.text = currentOrderSum.toString()
         }
 
         order_ListView.adapter = orderAdapter
@@ -85,7 +94,8 @@ class MainActivity : AppCompatActivity() {
             orderAdapter.clear()
         }
 
-        val printMode = false
+
+        printMode = false
 
         order_button.setOnClickListener {
             val orders = Order(currentOrderNumber, orderAdapter.orderItems)
@@ -101,24 +111,24 @@ class MainActivity : AppCompatActivity() {
                                 kitchen_progress.visibility = View.INVISIBLE
                                 image_kitchen_error.visibility = View.INVISIBLE
                                 image_kitchen_done.visibility = View.VISIBLE
-                                button_retry_kitchen.visibility = View.INVISIBLE
+                                button_finish.visibility = View.INVISIBLE
                             }
                         }
 
                         override fun receiptPrinterFinished() = runOnUiThread {
                             view.run {
-                                receipt_progress.visibility = View.INVISIBLE
+                                email_progress.visibility = View.INVISIBLE
                                 image_receipt_error.visibility = View.INVISIBLE
                                 image_receipt_done.visibility = View.VISIBLE
-                                button_retry_receipt.visibility = View.INVISIBLE
+                                button_cancel.visibility = View.INVISIBLE
                             }
                         }
 
                         override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
                             view.run {
-                                receipt_progress.visibility = View.INVISIBLE
+                                email_progress.visibility = View.INVISIBLE
                                 image_receipt_error.visibility = View.VISIBLE
-                                button_retry_receipt.visibility = View.VISIBLE
+                                button_cancel.visibility = View.VISIBLE
                             }
                         }
 
@@ -127,9 +137,9 @@ class MainActivity : AppCompatActivity() {
                             exception: Epos2Exception
                         ) = runOnUiThread {
                             view.run {
-                                receipt_progress.visibility = View.INVISIBLE
+                                email_progress.visibility = View.INVISIBLE
                                 image_receipt_error.visibility = View.VISIBLE
-                                button_retry_receipt.visibility = View.VISIBLE
+                                button_cancel.visibility = View.VISIBLE
                             }
                         }
 
@@ -137,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                             view.run {
                                 kitchen_progress.visibility = View.INVISIBLE
                                 image_kitchen_error.visibility = View.VISIBLE
-                                button_retry_kitchen.visibility = View.VISIBLE
+                                button_finish.visibility = View.VISIBLE
                             }
                         }
 
@@ -148,7 +158,7 @@ class MainActivity : AppCompatActivity() {
                             view.run {
                                 kitchen_progress.visibility = View.INVISIBLE
                                 image_kitchen_error.visibility = View.VISIBLE
-                                button_retry_kitchen.visibility = View.VISIBLE
+                                button_finish.visibility = View.VISIBLE
                             }
                         }
 
@@ -163,26 +173,21 @@ class MainActivity : AppCompatActivity() {
 
                 printService.print()
 
-                view.button_retry_kitchen.setOnClickListener {
+                view.button_finish.setOnClickListener {
                     printService.retry()
                     it.visibility = View.INVISIBLE
                     view.image_kitchen_error.visibility = View.INVISIBLE
                     view.kitchen_progress.visibility = View.VISIBLE
                 }
 
-                view.button_retry_receipt.setOnClickListener {
+                view.button_cancel.setOnClickListener {
                     printService.retry()
                     it.visibility = View.INVISIBLE
                     view.image_receipt_error.visibility = View.INVISIBLE
-                    view.receipt_progress.visibility = View.VISIBLE
+                    view.email_progress.visibility = View.VISIBLE
                 }
 
                 println("Started Print Job")
-
-//                runOnUiThread {
-//                    dialog.dismiss()
-//                }
-
             }
 
             file.appendText("Order: $currentOrderNumber\n")
@@ -204,7 +209,6 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun sendEmail() {
-        file.name
         Mailer.sendMail("jayadev.haddadi@gmail.com", file.name, file.readText())
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -216,8 +220,52 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         println("dialog open: $dialogOpen")
-        if (!dialogOpen)
-            finish()
+        if (!dialogOpen) {
+            if (!printMode) {
+                val (dialog, root) =
+                    LayoutInflater.from(this).inflate(R.layout.finish_dialog, null).let { view ->
+                        AlertDialog.Builder(this)
+                            .setView(view)
+//                            .setTitle("Finished session")
+//                            .setIcon(R.drawable.ic_done_black_24dp)
+                            .setCancelable(false)
+                            .show()
+                            .apply {
+                                setCanceledOnTouchOutside(false)
+                            }.to(view)
+                    }
+                root.button_finish.setOnClickListener {
+                    if (isOnline()) {
+                        root.email_progress.visibility = View.VISIBLE
+                        Mailer.sendMail("jayadev.haddadi@gmail.com", file.name, file.readText())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                {
+                                    root.email_TV.text = "Done!"
+                                    root.email_progress.visibility = View.GONE
+                                    root.button_cancel.visibility = View.GONE
+                                    root.button_finish.text = "FINISH"
+                                    root.button_finish.setOnClickListener { finish() }
+                                    Toast.makeText(this, "Mail send check e-mail", Toast.LENGTH_SHORT).show() },
+                                {
+                                    root.email_TV.text = "Error while sending!"
+                                    root.email_error_IV.visibility = View.VISIBLE
+                                    root.email_progress.visibility = View.GONE
+                                    root.button_finish.visibility = View.GONE
+                                    Log.e("BlackMailin", "error") }
+                            )
+                    } else {
+                        root.email_TV.text = "No internet connection!"
+                        root.button_finish.visibility = View.INVISIBLE
+                        root.email_error_IV.visibility = View.VISIBLE
+                        Toast.makeText(this, "No internet connection!!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                root.button_cancel.setOnClickListener { dialog.dismiss() }
+            } else
+                finish()
+        }
     }
 
     fun isOnline(): Boolean {
@@ -232,7 +280,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun startNewOrder() {
         GlobalScope.launch {
-            currentOrderNumber = orderNumberService.next()
+            if (printMode)
+                currentOrderNumber = orderNumberService.next()
+            else
+                currentOrderNumber++
 
             runOnUiThread {
                 orderAdapter.clear()
