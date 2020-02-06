@@ -85,6 +85,8 @@ class ReceiptDispatch(
             }}
         } catch (exception : Exception) {
             logger.fine("Exception is $exception")
+            exception.printStackTrace()
+            println("ERROR, NO CONNECTION TO PRINTER")
             throw exception
         } finally {
             logger.fine("Will disconnect")

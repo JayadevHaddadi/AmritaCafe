@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Amrita Cafe Jan</string>
-
+    <string name="app_name">US tour - Amrita Cafe</string>
 
     <string name="title_target">Target</string>
     <string name="title_printerseries">Printer Series</string>
@@ -35,5 +34,4 @@
     <string name="handlingmsg_err_wrong_paper">Please set correct roll paper.\n</string>
     <string name="handlingmsg_err_battery_real_end">Please connect AC adapter or change the battery.\nBattery of printer is almost empty.\n</string>
     <string name="handlingmsg_err_offline">Printer is offline.\n</string>
-
 </resources>

@@ -13,7 +13,7 @@
             android:layout_marginTop="28dp"
             android:layout_marginStart="28dp"
             android:layout_marginLeft="28dp"
-            android:text="Finished with current session?"
+            android:text="Finished with current session?\nEmail will be sent to:jaya"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -30,18 +30,15 @@
             app:layout_constraintStart_toEndOf="@+id/email_TV"
             app:layout_constraintTop_toTopOf="@+id/email_TV" />
 
-
     <Button
             android:id="@+id/button_finish"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginEnd="28dp"
-            android:text="Yes"
+            android:layout_marginBottom="24dp"
+            android:text="Finish"
             android:visibility="visible"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/kitchen_progress"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/email_progress"
             app:layout_constraintTop_toTopOf="@+id/button_cancel"
             tools:visibility="visible" />
 
@@ -49,14 +46,13 @@
             android:id="@+id/button_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="28dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="28dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
             android:text="Cancel"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/email_TV"
+            app:layout_constraintStart_toStartOf="@+id/email_TV"
+            app:layout_constraintTop_toBottomOf="@+id/final_comments_ET"
             tools:visibility="visible" />
 
     <ImageView
@@ -85,4 +81,16 @@
             app:layout_constraintStart_toEndOf="@+id/email_TV"
             app:layout_constraintTop_toTopOf="@+id/email_TV"
             app:srcCompat="@drawable/ic_error_black_24dp" />
+
+    <EditText
+            android:id="@+id/final_comments_ET"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="16dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:hint="Comments..."
+            app:layout_constraintEnd_toEndOf="@+id/email_progress"
+            app:layout_constraintStart_toStartOf="@+id/email_TV"
+            app:layout_constraintTop_toBottomOf="@+id/email_progress" />
 </androidx.constraintlayout.widget.ConstraintLayout>
