@@ -7,9 +7,9 @@ import javax.mail.*
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
-//object Config {
-//    val EMAIL = "your email@gmail.com"
-//    val PASSWORD = "your password"
+//object MyGmailAccountDetails {
+//    const val EMAIL = "your email@gmail.com"
+//    const val PASSWORD = "your password"
 //}
 
 object Mailer {
@@ -30,14 +30,14 @@ object Mailer {
             //Creating a session
             val session = Session.getDefaultInstance(props, object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {
-                    return PasswordAuthentication(Config.EMAIL, Config.PASSWORD)
+                    return PasswordAuthentication(MyGmailAccountDetails.EMAIL, MyGmailAccountDetails.PASSWORD)
                 }
             })
 
             try {
 
                 MimeMessage(session).let { mime ->
-                    mime.setFrom(InternetAddress(Config.EMAIL))
+                    mime.setFrom(InternetAddress(MyGmailAccountDetails.EMAIL))
                     //Adding receiver
                     mime.addRecipient(Message.RecipientType.TO, InternetAddress(email))
                     //Adding subject
