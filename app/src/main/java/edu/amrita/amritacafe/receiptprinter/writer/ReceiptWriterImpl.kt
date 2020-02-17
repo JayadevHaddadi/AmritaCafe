@@ -4,7 +4,6 @@ import com.epson.epos2.printer.Printer
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.menu.OrderItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
-import edu.amrita.amritacafe.menu.Topping
 import edu.amrita.amritacafe.settings.Configuration
 
 class ReceiptWriterImpl(private val orders: List<Order>, private val configuration: Configuration) {
@@ -21,16 +20,11 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
 
         orders.forEach { (orderNumber, orderItems, time) ->
             val myOrderItems = orderItems.map {
-                listOf(it) +
-                        if (it is RegularOrderItem) {
-                            it.toppings
-                        } else {
-                            emptyList()
-                        }
+                listOf(it)
             }.flatten()
             val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
 
-            val itemCount = orderItems.map { it as RegularOrderItem }.map { 1 + it.toppings.size }.sum()
+            val itemCount = orderItems.map { it as RegularOrderItem }.map { 1 }.sum()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             printer.addTextSize(titleSize, titleSize)
@@ -54,7 +48,7 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
 
     private fun orderItemsText(orderItems : List<OrderItem>) =
         orderItems.joinToString("\n") {
-            "${it.quantity} ${if (it is Topping) " with" else ""} ${it.menuItem.code}".padEnd(17) +
+            "${it.quantity} ${it.menuItem.code}".padEnd(17) +
                     it.totalPrice.toString().padStart(3) +
                     if (it.comment.isBlank()) ""
                     else "\n * ${it.comment}"

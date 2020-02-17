@@ -1,26 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-            android:title="Finish Session"
+            android:id="@+id/refund"
+            android:title="refund"
+            app:showAsAction="always" />
+
+    <item
+            android:id="@+id/discount_100"
+            android:title="Discount 100%"
+            app:showAsAction="always" />
+
+    <item
+            android:id="@+id/discount_50"
+            android:title="Discount 50%"
+            app:showAsAction="always" />
+
+    <item
+            android:id="@+id/discount_25"
+            android:title="Discount 25%"
+            app:showAsAction="always" />
+
+    <item
             android:id="@+id/finish_menu"
-            app:showAsAction="always"/>
+            android:title="Finish Session"
+            app:showAsAction="always" />
 
     <item
-            android:title="Fullname"
             android:id="@+id/names_menu"
-            app:showAsAction="always"/>
+            android:title="Fullname"
+            app:showAsAction="always" />
 
     <item
-            android:title="Lunch/Dinner"
             android:id="@+id/switch_menu"
-            app:showAsAction="always"/>
+            android:title="Lunch/Dinner"
+            app:showAsAction="always" />
 
     <item
-            android:title="SETTINGS"
-            android:icon="@drawable/ic_settings"
             android:id="@+id/settings"
-            app:showAsAction="ifRoom"
-            />
+            android:icon="@drawable/ic_settings"
+            android:title="SETTINGS"
+            app:showAsAction="ifRoom" />
 </menu>

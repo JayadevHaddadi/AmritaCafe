@@ -110,7 +110,6 @@ data class Configuration (private val preferences: SharedPreferences) {
         const val MENU_RESET = "menu_reset"
         const val MENU_JSON = "menu_json"
         const val UPDATE_NOW = "update_now"
-        const val UPDATE_URL = "update_url"
         const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
         const val MEAL = "meal"

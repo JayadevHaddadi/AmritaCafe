@@ -1,8 +1,8 @@
 package edu.amrita.amritacafe.receiptprinter.writer
 
 import com.epson.epos2.printer.Printer
-import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.menu.RegularOrderItem
+import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
 
 class WorkOrderWriter(private val orders: List<Order>, private val configuration: Configuration) {
@@ -21,31 +21,19 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
                     ""
                 } else {
                     "\n  * ${orderItem.comment}"
-                } +
-
-                if (orderItem.toppings.isNotEmpty()) {
-                    "\n" + orderItem.toppings.joinToString("\n") {
-                        if (it.quantity == 1) {
-                            "  "
-                        } else {
-                            it.quantity.toString().padEnd(2)
-                        } + "+ " + it.menuItem.code
-                    }
-                } else {
-                    ""
                 }
 
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         orders.forEach { (orderNumber, itemList, time) ->
-            val itemsMap = itemList.groupBy { it.menuItem.location }.toSortedMap()
+            val itemsMap = itemList.groupBy { it.menuItem.category }.toSortedMap()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             val orderItemsText = itemsMap.map { (_, orderItems) ->
                 orderItems.map { it as RegularOrderItem }.map(::writeLine)
             }.flatten().joinToString("\n")
             val itemCount =
-                itemList.map { it as RegularOrderItem }.map { 1 + it.toppings.size }.sum()
+                itemList.map { it as RegularOrderItem }.map { 1 }.sum()
 
             printer.addTextSize(titleSize, titleSize)
             printer.addText("$orderNumStr        $time")

@@ -12,22 +12,18 @@ import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.menu.OrderItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
-import edu.amrita.amritacafe.menu.Topping
 import kotlinx.android.synthetic.main.order_item.view.*
 
 
 class OrderAdapter(context: Context) : BaseAdapter() {
 
-
     private val inflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-    private val orderList: MutableList<OrderItem> = mutableListOf()
+    private val orderList: MutableList<RegularOrderItem> = mutableListOf()
 
-    val orderItems : List<OrderItem> = orderList
+    val orderItems: List<RegularOrderItem> = orderList
 
-    var orderChanged : () -> Unit = {}
-
-    fun isNotEmpty() = count > 0
+    var orderChanged: () -> Unit = {} // Replaced by correct callback in mainactivity
 
     override fun getCount(): Int {
         return orderList.size
@@ -42,28 +38,28 @@ class OrderAdapter(context: Context) : BaseAdapter() {
     }
 
     fun remove(item: OrderItem) {
-        orderList.removeAll { it == item || (it is Topping && it.toppingFor == item) }
-        notifyDataSetChanged()
-        orderChanged()
+        orderList.removeAll { it == item }
+        updateAll()
     }
 
     fun add(item: MenuItem) {
         orderList.add(RegularOrderItem(item))
-        notifyDataSetChanged()
-        orderChanged()
-    }
-
-    fun addTopping(menuItem: MenuItem): Boolean {
-        val lastAddedOrderItem = orderItems.findLast { it is RegularOrderItem }
-        return lastAddedOrderItem is RegularOrderItem && true.apply {
-            orderList.add(Topping(menuItem, toppingFor = lastAddedOrderItem))
-            notifyDataSetChanged()
-            orderChanged()
-        }
+        updateAll()
     }
 
     fun clear() {
         orderList.clear()
+        updateAll()
+    }
+
+    fun lastItemCostMultiplier(percentCost: Float) {
+        if(orderList.size>0) {
+            orderList.last().costMultiplier = percentCost
+            updateAll()
+        }
+    }
+
+    private fun updateAll() {
         notifyDataSetChanged()
         orderChanged()
     }

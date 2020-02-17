@@ -5,6 +5,7 @@ interface OrderItem {
     val quantity : Int
     val comment : String
     val totalPrice get() = menuItem.price * quantity
+    var costMultiplier: Float
     fun increment() : OrderItem
     fun editComment(newComment : String) : OrderItem
 }

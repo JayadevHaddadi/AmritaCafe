@@ -8,8 +8,8 @@
 
     <Spinner
             android:id="@+id/user_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -17,7 +17,7 @@
     <EditText
             android:id="@+id/password_ET"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:ems="10"
             android:hint="password"
             android:inputType="textPassword"
@@ -26,12 +26,14 @@
     <Button
             android:id="@+id/login_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
+            android:textSize="18sp"
             android:text="login Amma staff" />
 
     <Button
             android:id="@+id/cancel_login_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
+            android:textSize="18sp"
             android:text="amritapuri mode" />
 </LinearLayout>

@@ -30,6 +30,7 @@ object Mailer {
             //Creating a session
             val session = Session.getDefaultInstance(props, object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {
+                    // REPLACE WITH YOUR OWN EMAIL ABOVE
                     return PasswordAuthentication(MyGmailAccountDetails.EMAIL, MyGmailAccountDetails.PASSWORD)
                 }
             })

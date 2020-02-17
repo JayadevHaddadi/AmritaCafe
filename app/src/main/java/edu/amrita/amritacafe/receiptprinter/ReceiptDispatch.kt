@@ -117,11 +117,4 @@ class ReceiptDispatch(
         continuation.resume(CallbackData(p1, p2))
         logger.fine("Resumed continuation.")
     }
-
-    /**
-     * True if the printer is not marked as offline or unknown status.
-     */
-    private fun connected(printer: Printer) = printer.status.run {
-        connection != Printer.FALSE && online != Printer.FALSE
-    }
 }

@@ -20,9 +20,7 @@ import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.email.Mailer
-import edu.amrita.amritacafe.email.User
 import edu.amrita.amritacafe.email.allUsers
-import edu.amrita.amritacafe.menu.Category
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
@@ -34,7 +32,6 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.finish_dialog.view.*
 import kotlinx.android.synthetic.main.login_dialog.view.*
-import kotlinx.android.synthetic.main.order_item.view.*
 import kotlinx.android.synthetic.main.response_dialog.view.*
 import kotlinx.android.synthetic.main.response_dialog.view.button_cancel
 import kotlinx.android.synthetic.main.response_dialog.view.button_finish
@@ -50,6 +47,7 @@ import android.view.MenuItem as ViewMenuItem
 
 class MainActivity : AppCompatActivity() {
 
+    private var nextItemCostMultiplier = 100
     private lateinit var actionBarMenu: Menu
     private lateinit var userEmail: String
     private var modeAmritapuri = true
@@ -90,8 +88,7 @@ class MainActivity : AppCompatActivity() {
         openLoginDialog()
 
         order_button.setOnClickListener {
-            val orders = Order(currentOrderNumber, orderAdapter.orderItems)
-                .collectToppings().split(orderNumberService)
+            val orders = listOf(Order(currentOrderNumber, orderAdapter.orderItems))
 
             if (modeAmritapuri) {
                 val (dialog, view) = openDialog()
@@ -324,6 +321,7 @@ class MainActivity : AppCompatActivity() {
                             root.email_error_IV.visibility = View.VISIBLE
                             root.email_TV.text = "Error while sending!"
                             Log.e("BlackMailin", "error")
+                            it.printStackTrace()
                         }
                     )
             } else {
@@ -343,7 +341,6 @@ class MainActivity : AppCompatActivity() {
             true
         } else false
     }
-
 
     private fun startNewOrder() {
         GlobalScope.launch {
@@ -366,26 +363,15 @@ class MainActivity : AppCompatActivity() {
         menuAdapter = MenuAdapter(configuration, applicationContext) {
             runOnUiThread { menuAdapter.notifyDataSetChanged() }
         }
-        gridView.adapter = menuAdapter
+        menuGridView.adapter = menuAdapter
 
-        gridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
+        menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
                 is MenuItem -> {
                     orderAdapter.add(menuItem)
                 }
             }
         }
-        gridView.onItemLongClickListener =
-            AdapterView.OnItemLongClickListener { _, view, _, _ ->
-                val menuItem = view.tag
-                menuItem is MenuItem
-                        && menuItem.category == Category.Topping
-                        && orderAdapter.isNotEmpty()
-                        && orderAdapter.addTopping(menuItem).let {
-                    println("I added it.")
-                    true
-                }
-            }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -423,8 +409,29 @@ class MainActivity : AppCompatActivity() {
                 openExitDialog()
                 true
             }
+            R.id.discount_100 -> {
+                nextItemCostMultiplier(0f)
+                true
+            }
+            R.id.discount_50 -> {
+                nextItemCostMultiplier(0.5F)
+                true
+            }
+            R.id.discount_25 -> {
+                nextItemCostMultiplier(0.75f)
+                true
+            }
+            R.id.refund -> {
+                nextItemCostMultiplier(-1f)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun nextItemCostMultiplier(percentCost: Float) {
+        orderAdapter.lastItemCostMultiplier(percentCost)
+        Toast.makeText(this,"Last item reduced to ${percentCost*100}% of normal price",Toast.LENGTH_SHORT).show()
     }
 
     /**
