@@ -15,7 +15,7 @@ import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.Category
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.settings.Configuration
-import kotlinx.android.synthetic.main.menu_item.view.*
+import kotlinx.android.synthetic.main.item_menu.view.*
 import kotlin.Comparator
 
 class MenuAdapter(
@@ -115,6 +115,6 @@ class MenuAdapter(
 
     private fun convertOrInflate(view: View?, parent: ViewGroup) =
         view ?: context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).let {
-            (it as LayoutInflater).inflate(R.layout.menu_item, parent, false)
+            (it as LayoutInflater).inflate(R.layout.item_menu, parent, false)
         }
 }

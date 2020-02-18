@@ -12,7 +12,7 @@ import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.menu.OrderItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
-import kotlinx.android.synthetic.main.order_item.view.*
+import kotlinx.android.synthetic.main.item_order.view.*
 
 
 class OrderAdapter(context: Context) : BaseAdapter() {
@@ -65,7 +65,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
     }
 
     private fun reuseOrInflate(view: View?, parent: ViewGroup) =
-        view ?: inflater.inflate(R.layout.order_item, parent, false).apply {
+        view ?: inflater.inflate(R.layout.item_order, parent, false).apply {
 
             val orderItemView = this
             amount_TV.setOnClickListener {

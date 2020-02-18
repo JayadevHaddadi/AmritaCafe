@@ -30,13 +30,13 @@ import edu.amrita.amritacafe.settings.Configuration
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.finish_dialog.view.*
-import kotlinx.android.synthetic.main.login_dialog.view.*
-import kotlinx.android.synthetic.main.response_dialog.view.*
-import kotlinx.android.synthetic.main.response_dialog.view.button_cancel
-import kotlinx.android.synthetic.main.response_dialog.view.button_finish
-import kotlinx.android.synthetic.main.response_dialog.view.email_TV
-import kotlinx.android.synthetic.main.response_dialog.view.email_progress
+import kotlinx.android.synthetic.main.dialog_finish.view.*
+import kotlinx.android.synthetic.main.dialog_login.view.*
+import kotlinx.android.synthetic.main.dialog_print.view.*
+import kotlinx.android.synthetic.main.dialog_print.view.button_cancel
+import kotlinx.android.synthetic.main.dialog_print.view.button_finish
+import kotlinx.android.synthetic.main.dialog_print.view.email_TV
+import kotlinx.android.synthetic.main.dialog_print.view.email_progress
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -91,92 +91,9 @@ class MainActivity : AppCompatActivity() {
             val orders = listOf(Order(currentOrderNumber, orderAdapter.orderItems))
 
             if (modeAmritapuri) {
-                val (dialog, view) = openDialog()
-
-                val printService = PrintService(orders, configuration = configuration,
-                    listener = object : PrintService.PrintServiceListener {
-                        override fun kitchenPrinterFinished() = runOnUiThread {
-                            view.run {
-                                kitchen_progress.visibility = View.INVISIBLE
-                                image_kitchen_error.visibility = View.INVISIBLE
-                                image_kitchen_done.visibility = View.VISIBLE
-                                button_finish.visibility = View.INVISIBLE
-                            }
-                        }
-
-                        override fun receiptPrinterFinished() = runOnUiThread {
-                            view.run {
-                                email_progress.visibility = View.INVISIBLE
-                                image_receipt_error.visibility = View.INVISIBLE
-                                image_receipt_done.visibility = View.VISIBLE
-                                button_cancel.visibility = View.INVISIBLE
-                            }
-                        }
-
-                        override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
-                            view.run {
-                                email_progress.visibility = View.INVISIBLE
-                                image_receipt_error.visibility = View.VISIBLE
-                                button_cancel.visibility = View.VISIBLE
-                            }
-                        }
-
-                        override fun receiptPrinterError(
-                            errorStatus: ErrorStatus,
-                            exception: Epos2Exception
-                        ) = runOnUiThread {
-                            view.run {
-                                email_progress.visibility = View.INVISIBLE
-                                image_receipt_error.visibility = View.VISIBLE
-                                button_cancel.visibility = View.VISIBLE
-                            }
-                        }
-
-                        override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
-                            view.run {
-                                kitchen_progress.visibility = View.INVISIBLE
-                                image_kitchen_error.visibility = View.VISIBLE
-                                button_finish.visibility = View.VISIBLE
-                            }
-                        }
-
-                        override fun kitchenPrinterError(
-                            errorStatus: ErrorStatus,
-                            exception: Epos2Exception
-                        ) = runOnUiThread {
-                            view.run {
-                                kitchen_progress.visibility = View.INVISIBLE
-                                image_kitchen_error.visibility = View.VISIBLE
-                                button_finish.visibility = View.VISIBLE
-                            }
-                        }
-
-                        override fun printingComplete() {
-                            runOnUiThread {
-                                dialog.dismiss()
-                            }
-                            startNewOrder()
-                        }
-
-                    })
-
-                printService.print()
-
-                view.button_finish.setOnClickListener {
-                    printService.retry()
-                    it.visibility = View.INVISIBLE
-                    view.image_kitchen_error.visibility = View.INVISIBLE
-                    view.kitchen_progress.visibility = View.VISIBLE
-                }
-
-                view.button_cancel.setOnClickListener {
-                    printService.retry()
-                    it.visibility = View.INVISIBLE
-                    view.image_receipt_error.visibility = View.INVISIBLE
-                    view.email_progress.visibility = View.VISIBLE
-                }
-
-                println("Started Print Job")
+                printOrder(orders)
+            } else {
+                openPaymentDialog()
             }
 
             file.appendText("Order: $currentOrderNumber\n")
@@ -196,9 +113,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openLoginDialog() {
+    private fun openPaymentDialog() {
         val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.login_dialog, null).let { view ->
+            LayoutInflater.from(this).inflate(R.layout.dialog_login, null).let { view ->
                 AlertDialog.Builder(this)
                     .setView(view)
                     .setCancelable(true)
@@ -229,6 +146,51 @@ class MainActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
                 createHistoryFile(dialog, user.name)
+                order_button.text = "PAYMENT"
+            } else {
+                Toast.makeText(
+                    this,
+                    "Failed login, you have infinite attempts left",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun openLoginDialog() {
+        val (dialog, root) =
+            LayoutInflater.from(this).inflate(R.layout.dialog_login, null).let { view ->
+                AlertDialog.Builder(this)
+                    .setView(view)
+                    .setCancelable(true)
+                    .show()
+                    .to(view)
+            }
+
+        dialog.setOnCancelListener { createHistoryFile(dialog) }
+        val namesOnly = allUsers.map {
+            it.name
+        }
+        val aa = ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
+        // Set layout to use when the list of choices appear
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Set Adapter to Spinner
+        root.user_spinner.setAdapter(aa)
+        root.cancel_login_button.setOnClickListener {
+            createHistoryFile(dialog)
+        }
+        root.login_button.setOnClickListener {
+            val user = allUsers[root.user_spinner.selectedItemPosition]
+            if (root.password_ET.text.toString() == user.password) {
+                modeAmritapuri = false
+                userEmail = user.email
+                Toast.makeText(
+                    this,
+                    "Succesfully logged as ${user.name}\n${userEmail}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                createHistoryFile(dialog, user.name)
+                order_button.text = "PAYMENT"
             } else {
                 Toast.makeText(
                     this,
@@ -274,7 +236,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openExitDialog() {
         val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.finish_dialog, null).let { view ->
+            LayoutInflater.from(this).inflate(R.layout.dialog_finish, null).let { view ->
                 AlertDialog.Builder(this)
                     .setView(view)
 //                            .setTitle("Finished session")
@@ -434,12 +396,101 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this,"Last item reduced to ${percentCost*100}% of normal price",Toast.LENGTH_SHORT).show()
     }
 
+    private fun printOrder(orders: List<Order>) {
+        val (dialog, view) = openDialog()
+
+        val printService = PrintService(
+            orders, configuration = configuration,
+            listener = object : PrintService.PrintServiceListener {
+                override fun kitchenPrinterFinished() = runOnUiThread {
+                    view.run {
+                        kitchen_progress.visibility = View.INVISIBLE
+                        image_kitchen_error.visibility = View.INVISIBLE
+                        image_kitchen_done.visibility = View.VISIBLE
+                        button_finish.visibility = View.INVISIBLE
+                    }
+                }
+
+                override fun receiptPrinterFinished() = runOnUiThread {
+                    view.run {
+                        email_progress.visibility = View.INVISIBLE
+                        image_receipt_error.visibility = View.INVISIBLE
+                        image_receipt_done.visibility = View.VISIBLE
+                        button_cancel.visibility = View.INVISIBLE
+                    }
+                }
+
+                override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
+                    view.run {
+                        email_progress.visibility = View.INVISIBLE
+                        image_receipt_error.visibility = View.VISIBLE
+                        button_cancel.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun receiptPrinterError(
+                    errorStatus: ErrorStatus,
+                    exception: Epos2Exception
+                ) = runOnUiThread {
+                    view.run {
+                        email_progress.visibility = View.INVISIBLE
+                        image_receipt_error.visibility = View.VISIBLE
+                        button_cancel.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
+                    view.run {
+                        kitchen_progress.visibility = View.INVISIBLE
+                        image_kitchen_error.visibility = View.VISIBLE
+                        button_finish.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun kitchenPrinterError(
+                    errorStatus: ErrorStatus,
+                    exception: Epos2Exception
+                ) = runOnUiThread {
+                    view.run {
+                        kitchen_progress.visibility = View.INVISIBLE
+                        image_kitchen_error.visibility = View.VISIBLE
+                        button_finish.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun printingComplete() {
+                    runOnUiThread {
+                        dialog.dismiss()
+                    }
+                    startNewOrder()
+                }
+
+            })
+
+        printService.print()
+
+        view.button_finish.setOnClickListener {
+            printService.retry()
+            it.visibility = View.INVISIBLE
+            view.image_kitchen_error.visibility = View.INVISIBLE
+            view.kitchen_progress.visibility = View.VISIBLE
+        }
+
+        view.button_cancel.setOnClickListener {
+            printService.retry()
+            it.visibility = View.INVISIBLE
+            view.image_receipt_error.visibility = View.INVISIBLE
+            view.email_progress.visibility = View.VISIBLE
+        }
+
+        println("Started Print Job")
+    }
     /**
      * Returns a tuple containing the dialog, and the view.
      */
     @SuppressLint("InflateParams")
     private fun openDialog() =
-        LayoutInflater.from(this).inflate(R.layout.response_dialog, null).let { view ->
+        LayoutInflater.from(this).inflate(R.layout.dialog_print, null).let { view ->
             AlertDialog.Builder(this)
                 .setView(view).setTitle("Printing")
                 .setCancelable(true)
@@ -449,5 +500,6 @@ class MainActivity : AppCompatActivity() {
                     setCanceledOnTouchOutside(false)
                 }.to(view)
         }
+
 }
 

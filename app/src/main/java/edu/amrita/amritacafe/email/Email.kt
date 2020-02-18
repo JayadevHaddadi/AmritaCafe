@@ -7,11 +7,6 @@ import javax.mail.*
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
-//object MyGmailAccountDetails {
-//    const val EMAIL = "your email@gmail.com"
-//    const val PASSWORD = "your password"
-//}
-
 object Mailer {
     @SuppressLint("CheckResult")
     fun sendMail(email: String, subject: String, message: String): Completable {
