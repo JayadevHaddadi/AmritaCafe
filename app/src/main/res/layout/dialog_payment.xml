@@ -22,32 +22,32 @@
             app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-            android:id="@+id/button"
+            android:id="@+id/cash_received_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            android:text="Cash received"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/button6"
-            app:layout_constraintTop_toTopOf="@+id/textView5" />
-
-    <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="64dp"
+            android:layout_marginLeft="64dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"
+            android:text="Cash received"
+            app:layout_constraintBottom_toTopOf="@+id/view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/received_10_button"
+            app:layout_constraintTop_toTopOf="@+id/received_10_button" />
+
+    <Button
+            android:id="@+id/credit_received_button"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
             android:text="CREDIT RECEIVED"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/cash_received_button"
             app:layout_constraintTop_toBottomOf="@+id/view" />
 
     <TextView
@@ -57,27 +57,50 @@
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
-            android:text="Recieved:"
+            android:text="Cash recieved:"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view2" />
 
     <TextView
+            android:id="@+id/textView13"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="Total to pay:"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toStartOf="@+id/to_pay_TV"
+            app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+    <TextView
             android:id="@+id/textView8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Return:"
+            android:layout_marginTop="16dp"
+            android:text="Bills recieved:"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@+id/textView5"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+            app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
     <TextView
             android:id="@+id/textView6"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
+            android:layout_marginStart="100dp"
+            android:layout_marginLeft="100dp"
+            android:text="Cash to return:"
+            android:textSize="18sp"
+            app:layout_constraintStart_toEndOf="@+id/received_TV"
+            app:layout_constraintTop_toTopOf="@+id/received_TV" />
+
+    <TextView
+            android:id="@+id/received_TV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:text="0"
             android:textAlignment="textEnd"
             android:textSize="18sp"
@@ -85,28 +108,40 @@
             app:layout_constraintTop_toTopOf="@+id/textView5" />
 
     <TextView
-            android:id="@+id/textView9"
-            android:layout_width="50dp"
+            android:id="@+id/to_pay_TV"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
             android:textAlignment="textEnd"
             android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="@+id/textView6"
-            app:layout_constraintTop_toTopOf="@+id/textView8" />
+            app:layout_constraintStart_toStartOf="@+id/received_TV"
+            app:layout_constraintTop_toTopOf="@+id/textView13" />
+
+    <TextView
+            android:id="@+id/to_return_TV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="0"
+            android:textAlignment="textEnd"
+            android:textSize="18sp"
+            app:layout_constraintStart_toEndOf="@+id/textView6"
+            app:layout_constraintTop_toTopOf="@+id/textView6" />
 
     <Button
-            android:id="@+id/button3"
+            android:id="@+id/received_100_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:text="100$"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
     <Button
-            android:id="@+id/button7"
+            android:id="@+id/received_5_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -114,59 +149,70 @@
             android:layout_marginTop="16dp"
             android:text="5$"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button3" />
+            app:layout_constraintTop_toBottomOf="@+id/received_100_button" />
 
     <Button
-            android:id="@+id/button9"
+            android:id="@+id/received_1_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
             android:text="1$"
-            app:layout_constraintStart_toEndOf="@+id/button7"
-            app:layout_constraintTop_toBottomOf="@+id/button3" />
+            app:layout_constraintStart_toEndOf="@+id/received_5_button"
+            app:layout_constraintTop_toBottomOf="@+id/received_100_button" />
 
     <Button
-            android:id="@+id/button10"
+            android:id="@+id/received_25cent_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
             android:text=".25$"
-            app:layout_constraintStart_toEndOf="@+id/button9"
-            app:layout_constraintTop_toBottomOf="@+id/button3" />
+            app:layout_constraintStart_toEndOf="@+id/received_1_button"
+            app:layout_constraintTop_toBottomOf="@+id/received_100_button" />
 
     <Button
-            android:id="@+id/button4"
+            android:id="@+id/clear_received_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text="CLEAR"
+            app:layout_constraintStart_toEndOf="@+id/received_25cent_button"
+            app:layout_constraintTop_toBottomOf="@+id/received_100_button" />
+
+    <Button
+            android:id="@+id/received_50_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:text="50$"
-            app:layout_constraintStart_toEndOf="@+id/button3"
-            app:layout_constraintTop_toTopOf="@+id/button3" />
+            app:layout_constraintStart_toEndOf="@+id/received_100_button"
+            app:layout_constraintTop_toTopOf="@+id/received_100_button" />
 
     <Button
-            android:id="@+id/button5"
+            android:id="@+id/received_20_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:text="20$"
-            app:layout_constraintStart_toEndOf="@+id/button4"
-            app:layout_constraintTop_toTopOf="@+id/button4" />
+            app:layout_constraintStart_toEndOf="@+id/received_50_button"
+            app:layout_constraintTop_toTopOf="@+id/received_50_button" />
 
     <Button
-            android:id="@+id/button6"
+            android:id="@+id/received_10_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:text="10$"
-            app:layout_constraintStart_toEndOf="@+id/button5"
-            app:layout_constraintTop_toTopOf="@+id/button4" />
+            app:layout_constraintStart_toEndOf="@+id/received_20_button"
+            app:layout_constraintTop_toTopOf="@+id/received_50_button" />
 
     <View
             android:id="@+id/view"
@@ -176,7 +222,7 @@
             android:background="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button10" />
+            app:layout_constraintTop_toBottomOf="@+id/received_5_button" />
 
     <View
             android:id="@+id/view2"
@@ -186,5 +232,5 @@
             android:background="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView4" />
+            app:layout_constraintTop_toBottomOf="@+id/textView13" />
 </androidx.constraintlayout.widget.ConstraintLayout>

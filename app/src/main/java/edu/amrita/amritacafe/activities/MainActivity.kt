@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -25,13 +26,17 @@ import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.model.OrderAdapter
-import edu.amrita.amritacafe.receiptprinter.*
+import edu.amrita.amritacafe.receiptprinter.ErrorStatus
+import edu.amrita.amritacafe.receiptprinter.OrderNumberService
+import edu.amrita.amritacafe.receiptprinter.PrintFailed
+import edu.amrita.amritacafe.receiptprinter.PrintService
 import edu.amrita.amritacafe.settings.Configuration
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_finish.view.*
 import kotlinx.android.synthetic.main.dialog_login.view.*
+import kotlinx.android.synthetic.main.dialog_payment.view.*
 import kotlinx.android.synthetic.main.dialog_print.view.*
 import kotlinx.android.synthetic.main.dialog_print.view.button_cancel
 import kotlinx.android.synthetic.main.dialog_print.view.button_finish
@@ -46,8 +51,6 @@ import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity() {
-
-    private var nextItemCostMultiplier = 100
     private lateinit var actionBarMenu: Menu
     private lateinit var userEmail: String
     private var modeAmritapuri = true
@@ -59,7 +62,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
     private var currentOrderNumber = 0
-    private var totalIncomeThisSession = 0
+    private var cashIncomeThisSession = 0
+    private var creditIncomeThisSession = 0
     private var currentOrderSum = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,30 +96,40 @@ class MainActivity : AppCompatActivity() {
 
             if (modeAmritapuri) {
                 printOrder(orders)
+                finishOrder()
             } else {
                 openPaymentDialog()
             }
-
-            file.appendText("Order: $currentOrderNumber\n")
-            for (item in orderAdapter.orderItems) {
-                file.appendText(
-                    "Item:${item.menuItem.name} Quantity:${item.quantity} " +
-                            "Sum:${item.totalPrice} Comment:${item.comment} \n"
-                )
-            }
-            file.appendText("Order total:${currentOrderSum}\n")
-            totalIncomeThisSession += currentOrderSum
-            file.appendText("Session total:${totalIncomeThisSession}\n\n")
-
-            println("Text in file : \n" + file.readText())
-
-            startNewOrder()
         }
     }
 
+    private fun finishOrder(cash: Boolean = false) {
+        file.appendText("Order: $currentOrderNumber\n")
+        for (item in orderAdapter.orderItems) {
+            file.appendText(
+                "${item.quantity} ${item.menuItem.name}: ${item.totalPrice}$" +
+                        "${if (item.comment.length > 0) " (" + item.comment + ")" else ""}\n"
+            )
+        }
+//        val paymentString = cash ? "Cash"  "Credit"
+        file.appendText("Order   total: ${currentOrderSum}$ ${if (cash) "cash" else "credit"}\n")
+        if (cash)
+            cashIncomeThisSession += currentOrderSum
+        else
+            creditIncomeThisSession += currentOrderSum
+
+        file.appendText("Session total: ${cashIncomeThisSession}$ cash, ${creditIncomeThisSession}$ credit\n\n")
+
+        println("Text in file : \n" + file.readText())
+
+        startNewOrder()
+    }
+
+    var received = 0f
+    var currentTotalCost = 0
     private fun openPaymentDialog() {
         val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.dialog_login, null).let { view ->
+            LayoutInflater.from(this).inflate(R.layout.dialog_payment, null).let { view ->
                 AlertDialog.Builder(this)
                     .setView(view)
                     .setCancelable(true)
@@ -123,38 +137,41 @@ class MainActivity : AppCompatActivity() {
                     .to(view)
             }
 
-        dialog.setOnCancelListener { createHistoryFile(dialog) }
-        val namesOnly = allUsers.map {
-            it.name
+        root.credit_received_button.setOnClickListener {
+            finishOrder(true)
+            dialog.dismiss()
         }
-        val aa = ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
-        // Set layout to use when the list of choices appear
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        // Set Adapter to Spinner
-        root.user_spinner.setAdapter(aa)
-        root.cancel_login_button.setOnClickListener {
-            createHistoryFile(dialog)
+        root.cash_received_button.setOnClickListener {
+            finishOrder(false)
+            dialog.dismiss()
         }
-        root.login_button.setOnClickListener {
-            val user = allUsers[root.user_spinner.selectedItemPosition]
-            if (root.password_ET.text.toString() == user.password) {
-                modeAmritapuri = false
-                userEmail = user.email
-                Toast.makeText(
-                    this,
-                    "Succesfully logged as ${user.name}\n${userEmail}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                createHistoryFile(dialog, user.name)
-                order_button.text = "PAYMENT"
-            } else {
-                Toast.makeText(
-                    this,
-                    "Failed login, you have infinite attempts left",
-                    Toast.LENGTH_SHORT
-                ).show()
+
+        received = 0f
+        currentTotalCost = orderAdapter.orderItems.map { it.totalPrice }.sum()
+        root.to_pay_TV.text = currentTotalCost.toString()
+        val onClickRecivedListener = View.OnClickListener() { billButton ->
+            billButton as Button
+            when (billButton.text) {
+                "100$" -> received += 100
+                "50$" -> received += 50
+                "20$" -> received += 20
+                "10$" -> received += 10
+                "5$" -> received += 5
+                "1$" -> received += 1
+                ".25$" -> received += .25f
+                "CLEAR" -> received = 0f
             }
+            root.received_TV.text = received.toString()
+            root.to_return_TV.text = (received - currentTotalCost).toString()
         }
+        root.received_100_button.setOnClickListener(onClickRecivedListener)
+        root.received_50_button.setOnClickListener(onClickRecivedListener)
+        root.received_20_button.setOnClickListener(onClickRecivedListener)
+        root.received_10_button.setOnClickListener(onClickRecivedListener)
+        root.received_5_button.setOnClickListener(onClickRecivedListener)
+        root.received_1_button.setOnClickListener(onClickRecivedListener)
+        root.received_25cent_button.setOnClickListener(onClickRecivedListener)
+        root.clear_received_button.setOnClickListener(onClickRecivedListener)
     }
 
     private fun openLoginDialog() {
@@ -271,8 +288,12 @@ class MainActivity : AppCompatActivity() {
                             root.email_TV.text = "Mail successfully sent! Thank you!"
                             root.button_finish.text = "close"
                             root.button_finish.setOnClickListener { close() }
-                            if(!dialog.isShowing) {
-                                Toast.makeText(this, "Mail successfully sent! Thank you!", Toast.LENGTH_SHORT)
+                            if (!dialog.isShowing) {
+                                Toast.makeText(
+                                    this,
+                                    "Mail successfully sent! Thank you!",
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                                 close()
                             }
@@ -372,28 +393,32 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.discount_100 -> {
-                nextItemCostMultiplier(0f)
+                lastItemCostMultiplier(0f)
                 true
             }
             R.id.discount_50 -> {
-                nextItemCostMultiplier(0.5F)
+                lastItemCostMultiplier(0.5F)
                 true
             }
             R.id.discount_25 -> {
-                nextItemCostMultiplier(0.75f)
+                lastItemCostMultiplier(0.75f)
                 true
             }
             R.id.refund -> {
-                nextItemCostMultiplier(-1f)
+                lastItemCostMultiplier(-1f)
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun nextItemCostMultiplier(percentCost: Float) {
+    private fun lastItemCostMultiplier(percentCost: Float) {
         orderAdapter.lastItemCostMultiplier(percentCost)
-        Toast.makeText(this,"Last item reduced to ${percentCost*100}% of normal price",Toast.LENGTH_SHORT).show()
+//        Toast.makeText(
+//            this,
+//            "Discount ${Math.round(100-percentCost * 100)}% of normal price",
+//            Toast.LENGTH_SHORT
+//        ).show()
     }
 
     private fun printOrder(orders: List<Order>) {
@@ -485,6 +510,7 @@ class MainActivity : AppCompatActivity() {
 
         println("Started Print Job")
     }
+
     /**
      * Returns a tuple containing the dialog, and the view.
      */

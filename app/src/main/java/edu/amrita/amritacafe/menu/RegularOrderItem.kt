@@ -5,7 +5,7 @@ import java.util.*
 data class RegularOrderItem(
     override val menuItem: MenuItem,
     override val quantity: Int = 1,
-    override val comment: String = "",
+    override var comment: String = "",
     override var costMultiplier: Float = 1f,
     val id: UUID = UUID.randomUUID()
 ) : OrderItem {

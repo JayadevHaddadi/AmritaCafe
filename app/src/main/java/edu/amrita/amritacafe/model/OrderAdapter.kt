@@ -54,7 +54,9 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
     fun lastItemCostMultiplier(percentCost: Float) {
         if(orderList.size>0) {
-            orderList.last().costMultiplier = percentCost
+            val lastOrder = orderList.last()
+            lastOrder.comment = "Discount ${Math.round(100-percentCost * 100)}%"
+            lastOrder.costMultiplier = percentCost
             updateAll()
         }
     }
