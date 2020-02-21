@@ -21,6 +21,8 @@ import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.email.Mailer
+import edu.amrita.amritacafe.email.User
+import edu.amrita.amritacafe.email.admin
 import edu.amrita.amritacafe.email.allUsers
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.model.MenuAdapter
@@ -52,9 +54,9 @@ import android.view.MenuItem as ViewMenuItem
 
 class MainActivity : AppCompatActivity() {
     private lateinit var actionBarMenu: Menu
-    private lateinit var userEmail: String
+    private lateinit var currentUser: User
     private var modeAmritapuri = true
-    private lateinit var file: File
+    private lateinit var currentHistoryFile: File
     private var dialogOpen = false
 
     private lateinit var menuAdapter: MenuAdapter
@@ -104,23 +106,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun finishOrder(cash: Boolean = false) {
-        file.appendText("Order: $currentOrderNumber\n")
+        currentHistoryFile.appendText("Order: $currentOrderNumber\n")
         for (item in orderAdapter.orderItems) {
-            file.appendText(
+            currentHistoryFile.appendText(
                 "${item.quantity} ${item.menuItem.name}: ${item.totalPrice}$" +
                         "${if (item.comment.length > 0) " (" + item.comment + ")" else ""}\n"
             )
         }
 //        val paymentString = cash ? "Cash"  "Credit"
-        file.appendText("Order   total: ${currentOrderSum}$ ${if (cash) "cash" else "credit"}\n")
+        currentHistoryFile.appendText("Order   total: ${currentOrderSum}$ ${if (cash) "cash" else "credit"}\n")
         if (cash)
             cashIncomeThisSession += currentOrderSum
         else
             creditIncomeThisSession += currentOrderSum
 
-        file.appendText("Session total: ${cashIncomeThisSession}$ cash, ${creditIncomeThisSession}$ credit\n\n")
+        currentHistoryFile.appendText("Session total: ${cashIncomeThisSession}$ cash, ${creditIncomeThisSession}$ credit\n\n")
 
-        println("Text in file : \n" + file.readText())
+        println("Text in file : \n" + currentHistoryFile.readText())
 
         startNewOrder()
     }
@@ -136,13 +138,12 @@ class MainActivity : AppCompatActivity() {
                     .show()
                     .to(view)
             }
-
         root.credit_received_button.setOnClickListener {
-            finishOrder(true)
+            finishOrder(false)
             dialog.dismiss()
         }
         root.cash_received_button.setOnClickListener {
-            finishOrder(false)
+            finishOrder(true)
             dialog.dismiss()
         }
 
@@ -197,16 +198,15 @@ class MainActivity : AppCompatActivity() {
             createHistoryFile(dialog)
         }
         root.login_button.setOnClickListener {
-            val user = allUsers[root.user_spinner.selectedItemPosition]
-            if (root.password_ET.text.toString() == user.password) {
+            currentUser = allUsers[root.user_spinner.selectedItemPosition]
+            if (root.password_ET.text.toString() == currentUser.password) {
                 modeAmritapuri = false
-                userEmail = user.email
                 Toast.makeText(
                     this,
-                    "Succesfully logged as ${user.name}\n${userEmail}",
+                    "Succesfully logged as ${currentUser.name}\n${currentUser.email}",
                     Toast.LENGTH_SHORT
                 ).show()
-                createHistoryFile(dialog, user.name)
+                createHistoryFile(dialog, currentUser.name)
                 order_button.text = "PAYMENT"
             } else {
                 Toast.makeText(
@@ -236,8 +236,8 @@ class MainActivity : AppCompatActivity() {
         val fileDate = dateFormat.format(currentTime)
         val fileName = "${fileDate} - $user.txt"
 
-        file = File(root, fileName)
-        file.appendText("")
+        currentHistoryFile = File(root, fileName)
+        currentHistoryFile.appendText("")
         dialog?.dismiss()
     }
 
@@ -256,23 +256,26 @@ class MainActivity : AppCompatActivity() {
             LayoutInflater.from(this).inflate(R.layout.dialog_finish, null).let { view ->
                 AlertDialog.Builder(this)
                     .setView(view)
-//                            .setTitle("Finished session")
-//                            .setIcon(R.drawable.ic_done_black_24dp)
                     .setCancelable(false)
                     .show()
                     .apply {
                         setCanceledOnTouchOutside(false)
                     }.to(view)
             }
-        root.email_TV.text = "Finished with current session?\nEmail will be sent to: ${userEmail}"
+        root.email_TV.text =
+            "Finished with current session?\nEmail will be sent to: ${currentUser.email}"
         root.button_finish.setOnClickListener {
             root.final_comments_ET.visibility = View.GONE
             root.email_progress.visibility = View.VISIBLE
             root.button_finish.visibility = View.GONE
             if (isOnline()) {
-                root.email_TV.text = "Sending email to $userEmail..."
-                val emailBody = "${file.readText()}Final Comments:\n${root.final_comments_ET.text}"
-                Mailer.sendMail(userEmail, file.name, emailBody)
+                root.email_TV.text = "Sending email to ${currentUser.email}..."
+                val emailBody =
+                    "${currentHistoryFile.readText()}Final Comments:\n${root.final_comments_ET.text}"
+                val subject =
+                    "${currentUser.name} - Cash: $cashIncomeThisSession, Credit: $creditIncomeThisSession"
+                println("Sending first mail")
+                Mailer.sendMail(currentUser.email, subject, emailBody)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
@@ -282,20 +285,20 @@ class MainActivity : AppCompatActivity() {
                                 println("finishing")
                                 finish()
                             }
-                            root.email_progress.visibility = View.GONE
-                            root.button_cancel.visibility = View.GONE
-                            root.button_finish.visibility = View.VISIBLE
-                            root.email_TV.text = "Mail successfully sent! Thank you!"
-                            root.button_finish.text = "close"
-                            root.button_finish.setOnClickListener { close() }
                             if (!dialog.isShowing) {
                                 Toast.makeText(
                                     this,
                                     "Mail successfully sent! Thank you!",
                                     Toast.LENGTH_SHORT
-                                )
-                                    .show()
+                                ).show()
                                 close()
+                            } else {
+                                root.email_progress.visibility = View.GONE
+                                root.button_cancel.visibility = View.GONE
+                                root.button_finish.visibility = View.VISIBLE
+                                root.email_TV.text = "Mail successfully sent! Thank you!"
+                                root.button_finish.text = "close"
+                                root.button_finish.setOnClickListener { close() }
                             }
 
                         },
@@ -304,6 +307,23 @@ class MainActivity : AppCompatActivity() {
                             root.email_error_IV.visibility = View.VISIBLE
                             root.email_TV.text = "Error while sending!"
                             Log.e("BlackMailin", "error")
+                            it.printStackTrace()
+                        }
+                    )
+                println("Sending second mail")
+                Mailer.sendMail(
+                    //TODO replace with your own admin email
+                    admin,
+                    subject,
+                    emailBody
+                ).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        {
+                            Toast.makeText(this, "success", Toast.LENGTH_SHORT).show()
+                        },
+                        {
+                            Toast.makeText(this, "failed", Toast.LENGTH_SHORT).show()
                             it.printStackTrace()
                         }
                     )
