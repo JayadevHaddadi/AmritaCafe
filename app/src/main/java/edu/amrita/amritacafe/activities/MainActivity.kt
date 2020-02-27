@@ -19,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
+import com.google.firebase.firestore.FirebaseFirestore
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.email.Mailer
 import edu.amrita.amritacafe.email.User
@@ -53,6 +54,7 @@ import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var db: FirebaseFirestore
     private lateinit var actionBarMenu: Menu
     private lateinit var currentUser: User
     private var modeAmritapuri = true
@@ -75,6 +77,8 @@ class MainActivity : AppCompatActivity() {
             configuration = Configuration(pref)
             orderNumberService = OrderNumberService(pref)
         }
+
+        db = FirebaseFirestore.getInstance()
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -138,12 +142,36 @@ class MainActivity : AppCompatActivity() {
                     .show()
                     .to(view)
             }
-        root.credit_received_button.setOnClickListener {
-            finishOrder(false)
+
+        fun allItemsToDatabase() {
+            orderAdapter.orderItems.forEach {
+                val item = hashMapOf(
+                    "item_name" to it.menuItem.name,
+                    "quantity" to it.quantity,
+                    "department" to it.menuItem.category,
+                    "time" to Date()
+                )
+
+                // Add a new document with a generated ID
+                db.collection("sold_item")
+                    .add(item)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w("hhallo", "Error adding document", e)
+                    }
+            }
+        }
+
+        root.cash_received_button.setOnClickListener {
+            allItemsToDatabase()
+            finishOrder(true)
             dialog.dismiss()
         }
-        root.cash_received_button.setOnClickListener {
-            finishOrder(true)
+        root.credit_received_button.setOnClickListener {
+            allItemsToDatabase()
+            finishOrder(false)
             dialog.dismiss()
         }
 
