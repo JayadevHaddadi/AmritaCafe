@@ -2,7 +2,6 @@ package edu.amrita.amritacafe.receiptprinter.writer
 
 import com.epson.epos2.printer.Printer
 import edu.amrita.amritacafe.model.Order
-import edu.amrita.amritacafe.menu.OrderItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.settings.Configuration
 
@@ -46,7 +45,7 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
         }
     }
 
-    private fun orderItemsText(orderItems : List<OrderItem>) =
+    private fun orderItemsText(orderItems : List<RegularOrderItem>) =
         orderItems.joinToString("\n") {
             "${it.quantity} ${it.menuItem.code}".padEnd(17) +
                     it.totalPrice.toString().padStart(3) +

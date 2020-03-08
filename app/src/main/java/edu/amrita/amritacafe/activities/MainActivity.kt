@@ -25,7 +25,7 @@ import edu.amrita.amritacafe.email.Mailer
 import edu.amrita.amritacafe.email.User
 import edu.amrita.amritacafe.email.admin
 import edu.amrita.amritacafe.email.allUsers
-import edu.amrita.amritacafe.menu.MenuItem
+import edu.amrita.amritacafe.menu.MenuItemUS
 import edu.amrita.amritacafe.menu.readSheets
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
@@ -393,9 +393,11 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        readSheets(applicationContext) {
+        println("STARTED?")
+        readSheets(applicationContext) {menuList ->
+            println("CALLBACK BABYYY")
 
-            menuAdapter = MenuAdapter(configuration, applicationContext) {
+            menuAdapter = MenuAdapter(menuList, applicationContext) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
 
@@ -405,7 +407,7 @@ class MainActivity : AppCompatActivity() {
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
-                is MenuItem -> {
+                is MenuItemUS -> {
                     orderAdapter.add(menuItem)
                 }
             }

@@ -3,15 +3,15 @@ package edu.amrita.amritacafe.menu
 import java.util.*
 
 data class RegularOrderItem(
-    override val menuItem: MenuItem,
-    override val quantity: Int = 1,
-    override var comment: String = "",
-    override var costMultiplier: Float = 1f,
+    val menuItem: MenuItemUS,
+    val quantity: Int = 1,
+    var comment: String = "",
+    var costMultiplier: Float = 1f,
     val id: UUID = UUID.randomUUID()
-) : OrderItem {
-    override val totalPrice: Float
+) {
+    val totalPrice: Float
         get() = quantity * menuItem.price * costMultiplier
-    override fun editComment(newComment: String) = copy(comment = newComment)
-    override fun increment() = copy(quantity = quantity + 1)
+    fun editComment(newComment: String) = copy(comment = newComment)
+    fun increment() = copy(quantity = quantity + 1)
 }
 

@@ -9,8 +9,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.MenuItem
-import edu.amrita.amritacafe.menu.OrderItem
+import edu.amrita.amritacafe.menu.MenuItemUS
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import kotlinx.android.synthetic.main.item_order.view.*
 
@@ -37,12 +36,12 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         return position.toLong()
     }
 
-    fun remove(item: OrderItem) {
+    fun remove(item: RegularOrderItem) {
         orderList.removeAll { it == item }
         updateAll()
     }
 
-    fun add(item: MenuItem) {
+    fun add(item: MenuItemUS) {
         orderList.add(RegularOrderItem(item))
         updateAll()
     }
@@ -71,7 +70,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
             val orderItemView = this
             amount_TV.setOnClickListener {
-
+                println("increasing amount of bla bla")
                 val position = tag as Int
 
                 orderList[position] = orderList[position].increment()
