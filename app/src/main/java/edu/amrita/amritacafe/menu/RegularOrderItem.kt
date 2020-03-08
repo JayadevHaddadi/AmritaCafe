@@ -9,8 +9,8 @@ data class RegularOrderItem(
     override var costMultiplier: Float = 1f,
     val id: UUID = UUID.randomUUID()
 ) : OrderItem {
-    override val totalPrice: Int
-        get() = Math.round(quantity * menuItem.price * costMultiplier)
+    override val totalPrice: Float
+        get() = quantity * menuItem.price * costMultiplier
     override fun editComment(newComment: String) = copy(comment = newComment)
     override fun increment() = copy(quantity = quantity + 1)
 }

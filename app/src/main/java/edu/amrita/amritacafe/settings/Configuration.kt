@@ -117,4 +117,3 @@ data class Configuration (private val preferences: SharedPreferences) {
         const val TESTING = "testing"
     }
 }
-

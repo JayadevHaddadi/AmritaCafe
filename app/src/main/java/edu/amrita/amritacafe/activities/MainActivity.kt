@@ -19,13 +19,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
-import com.google.firebase.firestore.FirebaseFirestore
+//import com.google.firebase.firestore.FirebaseFirestore
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.email.Mailer
 import edu.amrita.amritacafe.email.User
 import edu.amrita.amritacafe.email.admin
 import edu.amrita.amritacafe.email.allUsers
 import edu.amrita.amritacafe.menu.MenuItem
+import edu.amrita.amritacafe.menu.readSheets
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.model.OrderAdapter
@@ -54,7 +55,7 @@ import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var db: FirebaseFirestore
+//    private lateinit var db: FirebaseFirestore
     private lateinit var actionBarMenu: Menu
     private lateinit var currentUser: User
     private var modeAmritapuri = true
@@ -66,10 +67,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
     private var currentOrderNumber = 0
-    private var cashIncomeThisSession = 0
-    private var creditIncomeThisSession = 0
-    private var currentOrderSum = 0
+    private var cashIncomeThisSession = 0f
+    private var creditIncomeThisSession = 0f
+    private var currentOrderSum = 0f
+    var received = 0f
+    var currentTotalCost = 0f
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -78,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             orderNumberService = OrderNumberService(pref)
         }
 
-        db = FirebaseFirestore.getInstance()
+//        db = FirebaseFirestore.getInstance()
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -131,8 +135,6 @@ class MainActivity : AppCompatActivity() {
         startNewOrder()
     }
 
-    var received = 0f
-    var currentTotalCost = 0
     private fun openPaymentDialog() {
         val (dialog, root) =
             LayoutInflater.from(this).inflate(R.layout.dialog_payment, null).let { view ->
@@ -153,14 +155,14 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 // Add a new document with a generated ID
-                db.collection("sold_item")
-                    .add(item)
-                    .addOnSuccessListener { documentReference ->
-                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w("hhallo", "Error adding document", e)
-                    }
+//                db.collection("sold_item")
+//                    .add(item)
+//                    .addOnSuccessListener { documentReference ->
+//                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
+//                    }
+//                    .addOnFailureListener { e ->
+//                        Log.w("hhallo", "Error adding document", e)
+//                    }
             }
         }
 
@@ -391,10 +393,15 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        menuAdapter = MenuAdapter(configuration, applicationContext) {
-            runOnUiThread { menuAdapter.notifyDataSetChanged() }
+        readSheets(applicationContext) {
+
+            menuAdapter = MenuAdapter(configuration, applicationContext) {
+                runOnUiThread { menuAdapter.notifyDataSetChanged() }
+            }
+
+            menuGridView.adapter = menuAdapter
         }
-        menuGridView.adapter = menuAdapter
+
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
@@ -403,6 +410,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -576,4 +584,3 @@ class MainActivity : AppCompatActivity() {
         }
 
 }
-

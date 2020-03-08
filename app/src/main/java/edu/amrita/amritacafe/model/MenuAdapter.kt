@@ -2,7 +2,6 @@ package edu.amrita.amritacafe.model
 
 
 import android.content.Context
-
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Typeface.*
@@ -16,14 +15,12 @@ import edu.amrita.amritacafe.menu.Category
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.item_menu.view.*
-import kotlin.Comparator
 
 class MenuAdapter(
     private val configuration: Configuration,
     private val context: Context,
     private val onChanged: () -> Unit
-) :
-    BaseAdapter() {
+) : BaseAdapter() {
 
     private var menuItemDisplayNameHandler: (MenuItem) -> String = { "" }
     private var showItemNames: Boolean = configuration.showMenuItemNames
