@@ -19,13 +19,15 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.epson.epos2.Epos2Exception
-//import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestore
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.email.Mailer
 import edu.amrita.amritacafe.email.User
 import edu.amrita.amritacafe.email.admin
 import edu.amrita.amritacafe.email.allUsers
 import edu.amrita.amritacafe.menu.MenuItemUS
+import edu.amrita.amritacafe.menu.loadLastMenu
+import edu.amrita.amritacafe.menu.loadLastUsers
 import edu.amrita.amritacafe.menu.readSheets
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
@@ -55,7 +57,7 @@ import android.view.MenuItem as ViewMenuItem
 
 
 class MainActivity : AppCompatActivity() {
-//    private lateinit var db: FirebaseFirestore
+    private lateinit var db: FirebaseFirestore
     private lateinit var actionBarMenu: Menu
     private lateinit var currentUser: User
     private var modeAmritapuri = true
@@ -77,12 +79,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        PreferenceManager.getDefaultSharedPreferences(this).let { pref ->
+        val pref = PreferenceManager.getDefaultSharedPreferences(this)
+        pref.let { pref ->
             configuration = Configuration(pref)
             orderNumberService = OrderNumberService(pref)
         }
 
-//        db = FirebaseFirestore.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_main)
@@ -99,8 +102,6 @@ class MainActivity : AppCompatActivity() {
             orderAdapter.clear()
         }
 
-        openLoginDialog()
-
         order_button.setOnClickListener {
             val orders = listOf(Order(currentOrderNumber, orderAdapter.orderItems))
 
@@ -111,6 +112,53 @@ class MainActivity : AppCompatActivity() {
                 openPaymentDialog()
             }
         }
+
+        val latestMenu = loadLastMenu(pref)
+
+        menuAdapter = MenuAdapter(latestMenu, applicationContext) {
+            runOnUiThread { menuAdapter.notifyDataSetChanged() }
+        }
+
+        menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
+            when (val menuItem = view.tag) {
+                is MenuItemUS -> {
+                    orderAdapter.add(menuItem)
+                }
+            }
+        }
+
+        val latestUsers = loadLastUsers(pref)
+        allUsers = latestUsers
+
+        println("STARTED?")
+        readSheets(pref) { menuList, users ->
+            println("CALLBACK BABYYY")
+
+            menuAdapter = MenuAdapter(menuList, applicationContext) {
+                runOnUiThread { menuAdapter.notifyDataSetChanged() }
+            }
+
+            runOnUiThread { menuGridView.adapter = menuAdapter }
+
+            loginDialog
+
+            allUsers = users
+            runOnUiThread {
+                dialogRoot.let { root ->
+                    val namesOnly = allUsers.map {
+                        it.name
+                    }
+                    val userNameAdapter =
+                        ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
+                    // Set layout to use when the list of choices appear
+                    userNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    // Set Adapter to Spinner
+                    dialogRoot!!.user_spinner.setAdapter(userNameAdapter)
+                }
+            }
+        }
+
+        openLoginDialog()
     }
 
     private fun finishOrder(cash: Boolean = false) {
@@ -155,14 +203,14 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 // Add a new document with a generated ID
-//                db.collection("sold_item")
-//                    .add(item)
-//                    .addOnSuccessListener { documentReference ->
-//                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
-//                    }
-//                    .addOnFailureListener { e ->
-//                        Log.w("hhallo", "Error adding document", e)
-//                    }
+                db.collection("sold_item")
+                    .add(item)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w("hhallo", "Error adding document", e)
+                    }
             }
         }
 
@@ -205,6 +253,9 @@ class MainActivity : AppCompatActivity() {
         root.clear_received_button.setOnClickListener(onClickRecivedListener)
     }
 
+    var loginDialog: AlertDialog? = null
+    var userNameAdapter: ArrayAdapter<String>? = null
+    var dialogRoot: View? = null
     private fun openLoginDialog() {
         val (dialog, root) =
             LayoutInflater.from(this).inflate(R.layout.dialog_login, null).let { view ->
@@ -214,18 +265,31 @@ class MainActivity : AppCompatActivity() {
                     .show()
                     .to(view)
             }
+//        loginDialog = dialog
+//        loginView
+//        val b = MutableLiveData<ArrayList<String>>()
+//        b.value = ArrayList<String>()
+//        b.observe(this, androidx.lifecycle.Observer {
+//
+//        })
+        dialogRoot = root
 
-        dialog.setOnCancelListener { createHistoryFile(dialog) }
+
+        dialog.setOnCancelListener {
+            createHistoryFile(dialog)
+            dialogRoot = null
+        }
         val namesOnly = allUsers.map {
             it.name
         }
-        val aa = ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
+        val userNameAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
         // Set layout to use when the list of choices appear
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        userNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // Set Adapter to Spinner
-        root.user_spinner.setAdapter(aa)
+        root.user_spinner.setAdapter(userNameAdapter)
         root.cancel_login_button.setOnClickListener {
             createHistoryFile(dialog)
+            dialogRoot = null
         }
         root.login_button.setOnClickListener {
             currentUser = allUsers[root.user_spinner.selectedItemPosition]
@@ -245,6 +309,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+            dialogRoot = null
         }
     }
 
@@ -342,11 +407,11 @@ class MainActivity : AppCompatActivity() {
                     )
                 println("Sending second mail")
                 Mailer.sendMail(
-                    //TODO replace with your own admin email
-                    admin,
-                    subject,
-                    emailBody
-                ).subscribeOn(Schedulers.io())
+                        //TODO replace with your own admin email
+                        admin,
+                        subject,
+                        emailBody
+                    ).subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                         {
@@ -393,25 +458,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        println("STARTED?")
-        readSheets(applicationContext) {menuList ->
-            println("CALLBACK BABYYY")
-
-            menuAdapter = MenuAdapter(menuList, applicationContext) {
-                runOnUiThread { menuAdapter.notifyDataSetChanged() }
-            }
-
-            menuGridView.adapter = menuAdapter
-        }
-
-
-        menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
-            when (val menuItem = view.tag) {
-                is MenuItemUS -> {
-                    orderAdapter.add(menuItem)
-                }
-            }
-        }
 
     }
 

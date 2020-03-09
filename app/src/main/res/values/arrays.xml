@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="colors">
-        <item>#80FF0000</item>
-        <item>#8000FF00</item>
-        <item>#800000FF</item>
         <item>#FFF59D</item>
         <item>#CE93D8</item>
         <item>#FFE082</item>
@@ -12,9 +9,6 @@
         <item>#9FA8DA</item>
         <item>#F48FB1</item>
         <item>#A5D6A7</item>
-        <item>#80FF0000</item>
-        <item>#8000FF00</item>
-        <item>#800000FF</item>
         <item>#FFF59D</item>
         <item>#CE93D8</item>
         <item>#FFE082</item>

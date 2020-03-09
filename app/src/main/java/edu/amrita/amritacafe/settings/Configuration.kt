@@ -106,6 +106,8 @@ data class Configuration (private val preferences: SharedPreferences) {
     }
 
     companion object {
+        const val MENU_US_KEY = "menu_us_key"
+        const val USERS_KEY = "users_json"
         const val SHOW_FULL_NAMES = "show_names"
         const val MENU_RESET = "menu_reset"
         const val MENU_JSON = "menu_json"
