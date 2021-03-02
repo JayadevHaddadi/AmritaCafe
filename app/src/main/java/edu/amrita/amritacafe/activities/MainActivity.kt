@@ -571,8 +571,11 @@ class MainActivity : AppCompatActivity() {
         orderAdapter.lastItemCostMultiplier(percentCost)
     }
 
+    private lateinit var currentDialog: AlertDialog
+
     private fun printOrder(orders: List<Order>) {
         val (dialog, view) = printerDialog()
+        currentDialog = dialog
 
         val printService = PrintService(
             orders, configuration = configuration,
@@ -711,6 +714,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun nextOrder(view: View) {
+        runOnUiThread {
+            currentDialog.dismiss()
+        }
         startNewOrder()
     }
 }
