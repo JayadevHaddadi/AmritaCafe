@@ -3,21 +3,16 @@ package edu.amrita.amritacafe.activities
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doOnTextChanged
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
@@ -32,16 +27,10 @@ import edu.amrita.amritacafe.printer.OrderNumberService
 import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
 import edu.amrita.amritacafe.settings.Configuration
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_finish.view.*
 import kotlinx.android.synthetic.main.dialog_finish.view.receipt_progress
 import kotlinx.android.synthetic.main.dialog_finish.view.receipt_retry_button
-import kotlinx.android.synthetic.main.dialog_finish.view.receipt_text_TV
 import kotlinx.android.synthetic.main.dialog_history.view.*
-import kotlinx.android.synthetic.main.dialog_login.view.*
-import kotlinx.android.synthetic.main.dialog_payment.view.*
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -54,12 +43,10 @@ fun String.capitalizeWords(): String =
     split(" ").map { it.toLowerCase().capitalize() }.joinToString(" ")
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var sheetsMenu: ArrayList<MenuItemUS>
     private var myToast: Toast? = null
     private lateinit var tabletName: String
     private var modeAmritapuri: Boolean = false
     private lateinit var currentHistoryFile: File
-    private var dialogOpen = false
 
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
@@ -71,8 +58,6 @@ class MainActivity : AppCompatActivity() {
     private var sessionRefund = 0f
     private var sessionDiscount = 0f
     private var currentOrderSum = 0f
-    var received = 0f
-    var currentTotalCost = 0f
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +78,6 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-//        Security.insertProviderAt(Conscrypt.newProvider(), 1)
         val androidId =
             Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         println("Unique device: $androidId")
@@ -266,10 +250,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun lastItemCostMultiplier(percentCost: Float) {
-        orderAdapter.lastItemCostMultiplier(percentCost)
-    }
-
     private lateinit var currentDialog: AlertDialog
 
     private fun printOrder(orders: List<Order>) {
@@ -404,7 +384,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         root.history_RV.layoutManager = LinearLayoutManager(this)
-        val historyAdapter = HistoryAdapter(orderHistory)
+        val historyAdapter = HistoryAdapter(orderHistory,configuration)
         root.history_RV.adapter = historyAdapter
     }
 
