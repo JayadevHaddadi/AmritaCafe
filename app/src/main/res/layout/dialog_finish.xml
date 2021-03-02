@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_login_buttons">
+
+    <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="400dp"
+            android:layout_height="330dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/amma_face"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+            android:id="@+id/receipt_text_TV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/white"
+            android:text="Finished with current session?\nEmail will be sent to: Jayadev"
+            android:textSize="18sp"
+            app:layout_constraintStart_toEndOf="@+id/imageView2"
+            app:layout_constraintTop_toBottomOf="@+id/email_TV3" />
+
+    <TextView
+            android:id="@+id/email_TV3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text="Finish Session"
+            android:textSize="24sp"
+            app:layout_constraintStart_toEndOf="@+id/imageView2"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+            android:id="@+id/email_TV2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/white"
+            android:text="Email will be sent to: Admin"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="@+id/receipt_text_TV"
+            app:layout_constraintTop_toBottomOf="@+id/receipt_text_TV" />
+
+    <ProgressBar
+            android:id="@+id/receipt_progress"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/receipt_text_TV"
+            app:layout_constraintStart_toEndOf="@+id/receipt_text_TV"
+            app:layout_constraintTop_toTopOf="@+id/receipt_text_TV" />
+
+    <Button
+            android:id="@+id/finish_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/background_login_buttons"
+            android:text="Finish"
+
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/receipt_retry_button"
+            app:layout_constraintEnd_toEndOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/receipt_retry_button"
+            tools:visibility="visible" />
+
+    <Button
+            android:id="@+id/receipt_retry_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/background_login_buttons"
+            android:text="Cancel"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/receipt_text_TV"
+            app:layout_constraintTop_toBottomOf="@+id/final_comments_ET"
+            tools:visibility="visible" />
+
+    <ImageView
+            android:id="@+id/email_success_IV"
+            android:layout_width="50dp"
+            android:layout_height="46dp"
+            android:layout_marginRight="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/receipt_text_TV"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/receipt_text_TV"
+            app:layout_constraintVertical_bias="0.538"
+            app:srcCompat="@drawable/ic_done_black_24dp"
+            tools:visibility="visible" />
+
+    <ImageView
+            android:id="@+id/email_error_IV"
+            android:layout_width="48dp"
+            android:layout_height="46dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/receipt_text_TV"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/receipt_text_TV"
+            app:layout_constraintTop_toTopOf="@+id/receipt_text_TV"
+            app:srcCompat="@drawable/ic_error_black_24dp"
+            tools:visibility="visible" />
+
+    <ImageView
+            android:id="@+id/email_error_IV2"
+            android:layout_width="48dp"
+            android:layout_height="46dp"
+            android:layout_marginRight="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/email_TV2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/email_TV2"
+            app:srcCompat="@drawable/ic_error_black_24dp"
+            tools:visibility="invisible" />
+
+    <ImageView
+            android:id="@+id/email_success_IV2"
+            android:layout_width="48dp"
+            android:layout_height="46dp"
+            android:layout_marginRight="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/email_TV2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/email_TV2"
+            app:srcCompat="@drawable/ic_done_black_24dp"
+            tools:visibility="visible" />
+
+    <ProgressBar
+            android:id="@+id/email_progress2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/email_TV2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/receipt_progress"
+            app:layout_constraintTop_toTopOf="@+id/email_TV2" />
+
+    <EditText
+            android:id="@+id/final_comments_ET"
+            android:layout_width="0dp"
+            android:textColor="@color/white"
+            android:layout_height="100dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginRight="24dp"
+            android:ems="10"
+            android:hint="Comments..."
+            android:inputType="textPersonName"
+            app:layout_constraintEnd_toEndOf="@+id/receipt_progress"
+            app:layout_constraintStart_toStartOf="@+id/receipt_text_TV"
+            app:layout_constraintTop_toBottomOf="@+id/email_error_IV2" />
+</androidx.constraintlayout.widget.ConstraintLayout>

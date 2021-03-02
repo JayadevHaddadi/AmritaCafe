@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="splash_quotes">
+        <item>\"Technology is a good servant but a dangerous master. We should use machines and love people.\"</item>
+        <item>\"Let us colour our lips with words of truth. Let us trace our eyes with lines of compassion.\"</item>
+        <item>\"A flower has such a short life span, and yet it offers itself wholeheartedly to others.\"</item>
+        <item>\"The Cosmic power inside each one of us is God.\"</item>
+        <item>\"When thoughts decrease we begin to understand our oneness with the entire universe.\"</item>
+        <item>\"Where there is true love, the attitude of sacrifice comes automatically.\"</item>
+        <item>\"We should gain control over our mind as we do to a TV using the remote control.\"</item>
+
+        <!--        first addition-->
+        <item>\"May all beings be happy and free. May the thoughts, words, and actions of my life contribute in some way to that happiness and to that freedom for all.\”</item>
+        <item>\"The art of relaxation brings out the power that exists within you; through relaxation you can experience your infinite capabilities.\" </item>
+        <item>\"Just as a toddler falls before he or she learns to walk with firm steps, our own failures are the beginning of the ascent towards the ultimate victory.\"</item>
+        <item>\"God is standing at the door of your heart. Call Him. He is waiting to come in.\"</item>
+        <item>\"Let us try to reach a state in which we are able to see all beings on earth as part of our own Self.\"</item>
+        <item>\"A seed has to go down in the soil for its potential form as a plant to emerge. Only through modesty and humility can we grow.\"</item>
+        <item>\“Laughter is the music of the soul.\”</item>
+        <item>\"The tears of true devotion are more powerful than meditation.\"</item>
+        <item>\"Contentment and happiness depend solely on the mind. Both heaven and hell are created by the mind.\"</item>
+        <item>\"Life should be like wholehearted, natural laughter. This is spirituality, this is real prayer.\"</item>
+        <item>\"Let prayer and remembrance of God become part of your daily life.\"</item>
+        <item>\"When the present is so beautiful and full, why worry about the future? Let the future unfold by itself from the present.\"</item>
+        <item>\"We call and God responds. The nature of the response depends on the call.\"</item>
+        <item>\"Even if you lose a million dollars it can be recovered. But if you lose a second you can never get it back.\"</item>
+        <item>\"Feeling life’s oneness broadens our minds, expands our hearts and spreads love to all of creation.\"</item>
+        <item>\"My children, to develop selfless love is the greatest progress we can make.\"</item>
+        <item>\"Love is not complex. It is our essential nature: simple and spontaneous.\" </item>
+        <item>\"If you have true faith, then automatically you will ‘fall’ from the head into the heart.\"</item>
+        <item>\"The opportunity to love and serve others should be considered a rare gift, a blessing from God.\"</item>
+        <item>\"Pray: O Lord, both in happiness and in sorrow, grant me the boon to remember You without fail.\"</item>
+        <item>\"Whatever is associated with the mind is bound to change. The Truth is that which is changeless. It is the Self.\"</item>
+
+        <!--        new ones from Ammas facebook page-->
+        <item>\"Pick just one quality/virtue and follow it with utmost faith and optimism; other qualities will follow automatically.\"</item>
+        <item>\"If we keep holding on to God, there is nothing to fear.\"</item>
+        <item>\"A contemplative and meditative life gives us the capacity to go deeper into the various experiences of life.\"</item>
+        <item>\"Our attitude should be: Whatever happens I will remain strong, courageous and happy.\"</item>
+        <item>\"If we sincerely look into the mirror of our conscience, we won\'t have much problem overcoming our weaknesses and limitations.\"</item>
+        <item>\"Open your heart and pray: May all beings in the universe attain peace and happiness.\"</item>
+        <item>\"Nature is God made visible.\"</item>
+        <item>\"Through living a good life we can rewrite our destiny.\"</item>
+        <item>\"The real source of grace is within you.\"</item>
+        <item>\"First, the human mind should be harmonized, then harmony of Nature will spontaneously take place.\"</item>
+        <item>\"It is not what we receive but what we are able to give that determines the value of our life.\"</item>
+        <item>\"Mother Earth is serving us. The sun, the moon and the stars all serve us. What can we do in return for their selfless service?\"</item>
+        <item>\"Earth is our mother; nature is our mother. We should not forget our duty towards them.\"</item>
+        <item>\"Nature can take back what She has given to use. If we understand this, we will be humble towards nature.\"</item>
+        <item>\"We are the light of the Divine, and bliss is our birthright. We are the eternally free, infinite Atman.\"</item>
+        <item>\"Life is filled with God’s light, but only through optimism will you experience that light.\"</item>
+        <item>\"There is a child within everyone. The innocence and playfulness of a child exists in all human beings.\"</item>
+        <item>\"The transformation of our limited love into Divine Love is the goal of spirituality."\"</item>
+        <item>\"Spirituality is the science that teaches us how to live happily in the material world.\"</item>
+        <item>\"Everything is God, there is nothing else but God.\"</item>
+        <item>\"Pure, innocent love makes everything possible.\"</item>
+        <item>\"We will never find fulfillment unless we direct our energy towards the supreme goal of life.\"</item>
+        <item>\"Every situation created by the master is a gift of grace, meant to remove the ego.\"</item>
+        <item>\"Grow without allowing your innocence to fade away.\"</item>
+        <item>\"To succeed in spiritual life persistent enthusiasm and sustained efforts are needed.\"</item>
+        <item>\"Take a vow for a life of service to others.\"</item>
+        <item>\"All our actions should be done with the attitude that this moment alone is ours; the next moment is not in our hands.\"</item>
+        <item>\"Try to spend at least a little time thinking about what you could do for others today.\"</item>
+        <item>\"While carrying responsibilities never forget to smile.\"</item>
+
+        <!--        new ones from '108'-books:-->
+        <item>\"There are no mistakes in God’s creation. every creature and every object that has been created by God is so utterly special.\"</item>
+        <item>\"Enjoy the beauty of nature with the awareness that this is all an expression of the Divine.\"</item>
+        <item>\"When we live harmoniously with nature in love and unity, we will have the strength to overcome any crisis.\"</item>
+        <item>\"Humanity is dependent on nature for its very existence. In truth, we are not protecting nature; it is nature who protects us.\"</item>
+        <item>\"Nature sacrifices herself for humans whereas we not only exploit her, but destroy her. Yet nature serves us.\"</item>
+        <item>\"Mother earth is serving us; the sun, the moon and the stars all serve us. What can we do in return for their selfless service?\"</item>
+        <item>\"Look at the beauty of nature. Living harmoniously with nature will in itself bring happiness and contentment.\"</item>
+        <item>\"Only through love and respect of nature will we become spiritually awakened. Our goal is to feel life everywhere.\"</item>
+        <item>\"When you bow down before all of existence, in utter humility, the universe bows down to you and serves you.\"</item>
+        <item>\"Always remember that when dusk arrives, it already has dawn in its womb.\"</item>
+        <item>\"Making the mind one-pointed is the essence of all spiritual disciplines. One of the best methods for this is meditation.\"</item>
+        <item>\"Meditation is the technique that allows you to shut the doors and windows of the senses, so that you can look within and see your True Self.\"</item>
+        <item>\"Our mind becomes impure by the many different thoughts that constantly arise. Meditation directs all those thoughts toward one point of focus.\"</item>
+        <item>\"Darling children, always remember in your heart that God is Love. By meditating on the embodiment of Love, you yourselves will become this Love.\"</item>
+        <item>\"Meditation helps us to see everything as a delightful play so that even the moment of death becomes a blissful experience.\"</item>
+        <item>\"Crying for God for five minutes is equal to one hour of meditation.\"</item>
+        <item>\"In meditation you become silent, and remain at rest in your own True Self.\"</item>
+        <item>\"Smiling is one of the highest forms of meditation.\"</item>
+        <item>\"You can change or transform your fate through the self-effort of meditation and sincere prayer.\"</item>
+        <item>\"Even when you meditate on the name or form of a God, Goddess or Amma, you are, in fact, meditating on your own Self; not on some external object.\"</item>
+        <item>\"Meditation and other spiritual practices give us the power and courage to smile at death.\"</item>
+        <item>\"Meditate with the conviction that your beloved Deity resides in your own heart.\"</item>
+        <item>\"My children, never fail to practice your daily routine. No matter how tired or sick you are, you should try to sit and meditate for some time.\"</item>
+        <item>\"Genuine prayer is meditation. It is communion with God that takes place in the quiet stillness of our heart.\"</item>
+        <item>\"Those who pray to God and meditate on God sincerely will not experience a shortage of anything essential.\"</item>
+        <item>\"It is good to meditate in dim light. External light can be a disturbance when we are trying to illuminate our interior.\"</item>
+        <item>\"Love and beauty are within you. Try to express them through your actions, and you will definitely touch the very source of bliss.\"</item>
+        <item>\"The powers of unshakable faith and innocent love can penetrate into realms where intellect and logic cannot enter.\"</item>
+        <item>\"The intellect and the heart should come together as one; then Divine grace will flow into us and bestow contentment in our lives.\"</item>
+        <item>\"One who is able to love everyone equally is the one who truly loves Amma.\"</item>
+        <item>\"The love that you experience is proportional to the love that you give.\"</item>
+        <item>\"Untainted, selfless and pure love is the bridge towards God.\"</item>
+        <item>\"Spirituality has nothing to do with blind faith; it is the principle of awareness that dispels darkness.\"</item>
+        <item>\"Real faith is faith in one’s own self. Even if we believe in an external God, in actuality this God is inside of us; it is our own true self.\"</item>
+        <item>\"Whatever religion we follow, as long as we understand spiritual principles, we can attain the ultimate goal: the realization of one’s true nature.\"</item>
+        <item>\"The real meaning of religion is to have faith in the existence of a supreme Power and to live according to spiritual values.\"</item>
+        <item>\"Love and compassion are the underlying principles of all genuine religions. These Divine qualities are the essence of all faiths.\"</item>
+        <item>\"If you have true faith, then you will automatically fall into the heart. To fall into the heart is actually rising up and soaring high.\"</item>
+        <item>\"All of life rests in faith. For each step forward we need faith. Faith creates a flow, which inundates the entire universe.\"</item>
+        <item>\"Focus on love, mutual trust and faith. When you have love and faith, alertness in all of your actions will automatically follow.\"</item>
+        <item>\"Without faith, we are full of fear. Fear cripples the body and mind, paralyzing us, whereas faith opens our hearts and leads us to love.\"</item>
+        <item>\"Mother does not say that you need to believe in Her or in God. It is enough to believe in yourself. Everything is within you.\"</item>
+        <item>\"Faith is not an intellectual process. The Master cannot be understood through the mind or intellect. Faith alone is the way.\"</item>
+        <item>\"If one has faith and obedience to the guru coupled with knowledge of spiritual principles, vasanas will be quickly destroyed.\"</item>
+        <item>\"For a sincere seeker, spirituality is not a minor aspect of life; it is as much a part of you as your own breath. Your faith becomes unshakable.\"</item>
+        <item>\"If you pray to mother with innocence and faith, she will definitely help you. She is always there for you. If you fall down, she will help you up.\"</item>
+        <item>\"With the faith and trust of a child, anything is possible. Your innocence and pure heart will save you.\"</item>
+        <item>\"We should develop faith in ourselves instead of leaning on others for solace. Only then will we find true comfort and satisfaction.\"</item>
+        <item>\"Receptivity is the power to believe, to have faith and to accept love. It is the power to prevent doubt from entering your mind.\"</item>
+        <item>\"Move forward with faith. One who has unconditional faith will never swerve from the path.\"</item>
+        <item>\"Have faith, my children. There is no need to be afraid. Know that Mother is always with you.\"</item>
+        <item>\"Whenever you feel inspired and have the time, sit in solitude and try to visualise everything as pure light and bliss consciousness.\"</item>
+        <item>\"Even if all the people in the world were to love us, even then, we would not get an infinitesimal amount of the bliss that we get from God’s love.\"</item>
+        <item>\"When you become sugar, then there is nothing but sweetness. Likewise, when we are in a state of true witnessing, there is only bliss.\"</item>
+        <item>\"Children, when innocence awakens in our heart, allowing us to see everything in its light, there is only bliss.\"</item>
+
+        <!--From amritapuri.org-->
+        <item>\"Only someone who has assimilated spiritual principles can confidently face the challenging situations of life without breaking down.\"</item>
+        <!--        AmmaMalaysia-->
+        <item>\"Attaching oneself to the transient nature of the world is the cause of all sorrows and sufferings.\"</item>
+        <item>\"Pray for a heart that rejoices in the happiness of others and empathizes in their sorrow.\"</item>
+        <item>\"Everything happens spontaneously when you distance yourself from your mind.\"</item>
+        <item>\"The entire creation hugs Amma. In Reality Amma and creation are in an eternal embrace.\"</item>
+        <!--        Sri Sri Mata Amritanandamayi-->
+        <item>\"Our ultimate dharma is Self-realization. Thoughts and actions that support our spiritual evolution are real dharma.\"</item>
+        <!--        Amrita.edu-->
+        <item>\"Only when human beings are able to perceive and acknowledge the Self in each other can there be real peace.\"</item>
+        <item>\"If we are able to develop the right attitude, we can drastically reduce the burden of our sorrows.\"</item>
+        <!--        amma.org-->
+        <item>\"A true relationship is possible only when one is able to let go of all one\'s preconceived ideas and prejudices, and when one stops being possessed by the past.\"</item>
+
+        <!--For 3.1.1-->
+        <item>\"Gratitude is an inner connection with us, God and the entire universe.\"</item>
+
+    </string-array>
+
+</resources>

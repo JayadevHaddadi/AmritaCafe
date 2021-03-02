@@ -9,25 +9,20 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.MenuItem
-import edu.amrita.amritacafe.menu.OrderItem
+import edu.amrita.amritacafe.menu.MenuItemUS
 import edu.amrita.amritacafe.menu.RegularOrderItem
-import edu.amrita.amritacafe.menu.Topping
-import kotlinx.android.synthetic.main.order_item.view.*
+import kotlinx.android.synthetic.main.item_order.view.*
 
 
 class OrderAdapter(context: Context) : BaseAdapter() {
 
-
     private val inflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-    private val orderList: MutableList<OrderItem> = mutableListOf()
+    private val orderList: MutableList<RegularOrderItem> = mutableListOf()
 
-    val orderItems : List<OrderItem> = orderList
+    val orderItems: List<RegularOrderItem> = orderList
 
-    var orderChanged : () -> Unit = {}
-
-    fun isNotEmpty() = count > 0
+    var orderChanged: () -> Unit = {} // Replaced by correct callback in mainactivity
 
     override fun getCount(): Int {
         return orderList.size
@@ -41,39 +36,56 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         return position.toLong()
     }
 
-    fun remove(item: OrderItem) {
-        orderList.removeAll { it == item || (it is Topping && it.toppingFor == item) }
-        notifyDataSetChanged()
-        orderChanged()
+    private fun remove(item: RegularOrderItem) {
+        orderList.removeAll { it == item }
+        updateAll()
     }
 
-    fun add(item: MenuItem) {
-        orderList.add(RegularOrderItem(item))
-        notifyDataSetChanged()
-        orderChanged()
-    }
-
-    fun addTopping(menuItem: MenuItem): Boolean {
-        val lastAddedOrderItem = orderItems.findLast { it is RegularOrderItem }
-        return lastAddedOrderItem is RegularOrderItem && true.apply {
-            orderList.add(Topping(menuItem, toppingFor = lastAddedOrderItem))
-            notifyDataSetChanged()
-            orderChanged()
+    fun add(addItem: MenuItemUS) {
+        var found = false
+        for (existingItem in orderList) {
+            if(addItem.name == existingItem.menuItem.name && existingItem.comment == "") {
+                existingItem.quantity++
+                println("increasing! ${existingItem.quantity}")
+                found = true
+                break
+            }
         }
+        if(!found)
+            orderList.add(RegularOrderItem(addItem))
+        else
+            orderList[0].increment()
+        updateAll()
     }
 
     fun clear() {
         orderList.clear()
+        updateAll()
+    }
+
+    fun lastItemCostMultiplier(percentCost: Float) {
+        if (orderList.size > 0) {
+            val lastOrder = orderList.last()
+            if (percentCost == -1f)
+                lastOrder.comment = "Refund"
+            else
+                lastOrder.comment = "Discount ${Math.round(100 - percentCost * 100)}%"
+            lastOrder.priceMultiplier = percentCost
+            updateAll()
+        }
+    }
+
+    private fun updateAll() {
         notifyDataSetChanged()
         orderChanged()
     }
 
     private fun reuseOrInflate(view: View?, parent: ViewGroup) =
-        view ?: inflater.inflate(R.layout.order_item, parent, false).apply {
+        view ?: inflater.inflate(R.layout.item_order, parent, false).apply {
 
             val orderItemView = this
             amount_TV.setOnClickListener {
-
+                println("increasing amount of bla bla")
                 val position = tag as Int
 
                 orderList[position] = orderList[position].increment()
@@ -114,7 +126,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             orderList[position].let { orderItem ->
                 label.text = orderItem.menuItem.code
                 amount_TV.text = orderItem.quantity.toString()
-                price_TV.text = orderItem.totalPrice.toString()
+                price_TV.text = orderItem.finalPrice.toString()
                 comment_ET.setText(orderItem.comment)
                 comment_ET.visibility =
                     if (orderItem.comment.isNotBlank()) View.VISIBLE
@@ -122,5 +134,4 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             }
         }
     }
-
 }

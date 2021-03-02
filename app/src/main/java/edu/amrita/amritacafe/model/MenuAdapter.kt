@@ -2,75 +2,55 @@ package edu.amrita.amritacafe.model
 
 
 import android.content.Context
-
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Typeface.*
+import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import androidx.annotation.ColorInt
+import androidx.core.graphics.ColorUtils
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.Category
-import edu.amrita.amritacafe.menu.MenuItem
-import edu.amrita.amritacafe.settings.Configuration
-import kotlinx.android.synthetic.main.menu_item.view.*
-import kotlin.Comparator
+import edu.amrita.amritacafe.menu.MenuItemUS
+import kotlinx.android.synthetic.main.item_menu.view.*
 
 class MenuAdapter(
-    private val configuration: Configuration,
+    menu: List<MenuItemUS>,
     private val context: Context,
+    showFullName: Boolean,
     private val onChanged: () -> Unit
-) :
-    BaseAdapter() {
+) : BaseAdapter() {
 
-    private var menuItemDisplayNameHandler: (MenuItem) -> String = { "" }
-    private var showItemNames: Boolean = configuration.showMenuItemNames
+    var showFullName: Boolean = showFullName
         set(value) {
             field = value
-            menuItemDisplayNameHandler =
-                if (value) {
-                    { it.name }
-                } else {
-                    { it.code }
-                }
+            notifyDataSetChanged()
         }
+
+    private var menuItems: List<Any>
+    private var colorMap: Map<String, Int>
+    private var menuItemDisplayNameHandler: (MenuItemUS) -> String = { "" }
 
     init {
-        setTheItems(configuration.currentMenu)
-        showItemNames = configuration.showMenuItemNames
-
-        configuration.registerMenuChangedListener {
-            println("I swear I can change.")
-            showItemNames = configuration.showMenuItemNames
-            setTheItems(configuration.currentMenu)
-            onChanged()
-        }
-    }
-
-    private fun setTheItems(items: List<MenuItem>) {
-        items.groupBy {
+        menu.groupBy {
             it.category
-        }.toSortedMap(
-            Comparator { left, right ->
-                left.ordinal.compareTo(right.ordinal)
-            }
-        ).let { menuByCategory ->
+        }.let { menuByCategory ->
             val colors: TypedArray = context.resources.obtainTypedArray(R.array.colors)
             colorMap = menuByCategory.keys.mapIndexed { idx, cat ->
                 cat to colors.getColor(idx + 3, 0)
             }.toMap()
 
             colors.recycle()
+            val columns = context.resources.getInteger(R.integer.columns)
             menuItems = menuByCategory.map { (category, items) ->
-                listOf(category) + items.sortedBy(menuItemDisplayNameHandler) + Array((10 - (items.size + 1) % 10) % 10) { Unit }
+                listOf(category) + items.sortedBy(menuItemDisplayNameHandler) +
+                        Array((columns - (items.size + 1) % columns) % columns) { Unit }
             }.flatten()
         }
     }
-
-    private lateinit var menuItems: List<Any>
-    private lateinit var colorMap: Map<Category, Int>
 
     override fun getCount(): Int {
         return menuItems.size
@@ -84,6 +64,14 @@ class MenuAdapter(
         return position.toLong()
     }
 
+    inline val @receiver:ColorInt Int.darken
+        @ColorInt
+        get() = ColorUtils.blendARGB(this, Color.BLACK, 0.2f)
+
+    inline val @receiver:ColorInt Int.lighten
+        @ColorInt
+        get() = ColorUtils.blendARGB(this, Color.WHITE, 0.3f)
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
         convertOrInflate(convertView, parent).apply {
 
@@ -92,21 +80,29 @@ class MenuAdapter(
             tag = menuItem
 
             when (menuItem) {
-                is Category -> {
-                    name.setTypeface(SANS_SERIF, BOLD)
-                    name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
-                    name.text = menuItem.displayName
-                    name.setBackgroundColor(colorMap.getValue(menuItem))
+                is String -> {
+                    val color = colorMap.getValue(menuItem)
+                    (background as GradientDrawable).setStroke(2, color)
+                    (background as GradientDrawable).setColor(color)
+                    name.setTypeface(SANS_SERIF, NORMAL)
+                    name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+                    name.text = menuItem
                 }
-                is MenuItem -> {
-                    name.text = menuItemDisplayNameHandler(menuItem)
+                is MenuItemUS -> {
+                    val color = colorMap.getValue(menuItem.category)
+                    val lighten = color.lighten
+                    (background as GradientDrawable).setStroke(3, color)
+                    (background as GradientDrawable).setColor(lighten)
+                    if (showFullName)
+                        name.text = menuItem.name
+                    else
+                        name.text = menuItem.code
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-
                     name.setTypeface(SERIF, NORMAL)
-                    name.setBackgroundColor(colorMap.getValue(menuItem.category))
                 }
                 is Unit -> {
-                    name.setBackgroundColor(Color.TRANSPARENT)
+                    (background as GradientDrawable).setStroke(0, Color.TRANSPARENT)
+                    (background as GradientDrawable).setColor(Color.TRANSPARENT)
                     name.text = ""
                 }
 
@@ -115,6 +111,6 @@ class MenuAdapter(
 
     private fun convertOrInflate(view: View?, parent: ViewGroup) =
         view ?: context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).let {
-            (it as LayoutInflater).inflate(R.layout.menu_item, parent, false)
+            (it as LayoutInflater).inflate(R.layout.item_menu, parent, false)
         }
 }

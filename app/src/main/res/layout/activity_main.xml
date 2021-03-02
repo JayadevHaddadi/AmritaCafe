@@ -1,145 +1,376 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimaryDark"
+        android:background="@drawable/amma_mysore_small"
         tools:context=".activities.MainActivity">
 
-    <!--<android.support.v7.widget.Toolbar-->
-            <!--android:id="@+id/toolbar"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="?attr/actionBarSize"-->
-            <!--android:background="@color/colorPrimary"-->
-            <!--android:theme="@style/ToolbarTheme"-->
-            <!--android:layout_marginTop="8dp"-->
-            <!--app:layout_constraintTop_toTopOf="parent"/>-->
+    <LinearLayout
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/background_white_text"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+            <TextView
+                    android:layout_width="220dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/amma_font"
+                    android:text="Amrita Cafe"
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/versionName"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    android:textStyle="italic" />
+
+        </LinearLayout>
+
+        <TextView
+                android:id="@+id/user_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="2dp"
+                android:text="Jayadev @ Amma"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    </LinearLayout>
+
+    <!--    <TextView-->
+    <!--            android:id="@+id/user_TV"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_marginStart="4dp"-->
+    <!--            android:layout_marginLeft="4dp"-->
+    <!--            android:layout_marginTop="2dp"-->
+    <!--            android:layout_marginEnd="4dp"-->
+    <!--            android:layout_marginRight="4dp"-->
+    <!--            android:background="@drawable/background_white_text"-->
+    <!--            android:text="Jayadev @ Amma"-->
+    <!--            android:textColor="@color/black"-->
+    <!--            android:textSize="20sp"-->
+    <!--            app:layout_constraintEnd_toStartOf="@+id/menuGridView"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintTop_toBottomOf="@+id/title" />-->
 
     <GridView
+            android:id="@+id/menuGridView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="1dp"
+            android:clipToPadding="false"
             android:gravity="center_horizontal|center_vertical"
-            android:numColumns="10"
-            android:verticalSpacing="4dp"
             android:horizontalSpacing="4dp"
-            android:id="@+id/gridView"
-            app:layout_constraintStart_toStartOf="@+id/guideline"
-            />
-
-    <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:text="Order"
-            android:textSize="30sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />
-
-    <ImageButton
-            android:id="@+id/button_cancel"
-            android:layout_width="68dp"
-
-            android:layout_height="79dp"
-            android:background="#C2C2C2"
-            app:srcCompat="@drawable/ic_delete_forever_black_24dp"
+            android:numColumns="@integer/columns"
+            android:paddingTop="4dp"
+            android:verticalSpacing="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-
-    <Button
-            android:id="@+id/order_button"
-            android:layout_width="202dp"
-            android:layout_height="79dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginRight="4dp"
-            android:background="#64B5F6"
-            android:text="PRINT"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="#1A237E"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/gridView"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toEndOf="@id/button_cancel" />
+            app:layout_constraintStart_toStartOf="@+id/guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/item_menu">
+
+    </GridView>
+
+    <!--    <ImageButton-->
+    <!--            android:id="@+id/button_cancel"-->
+    <!--            android:layout_marginLeft="4dp"-->
+    <!--            android:layout_width="68dp"-->
+    <!--            android:layout_height="79dp"-->
+    <!--            android:background="#C2C2C2"-->
+    <!--            app:layout_constraintBottom_toBottomOf="@+id/order_button"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintTop_toTopOf="@+id/order_button"-->
+    <!--            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />-->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/background_white_text"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/short_long_toggle_button">
+
+        <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Order"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+                android:id="@+id/order_number_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
-            android:orientation="vertical"
+            android:id="@+id/guideline"
             android:layout_width="1dp"
             android:layout_height="0dp"
-            android:id="@+id/guideline"
-            android:background="#000000"
             android:layout_marginLeft="280dp"
-            app:layout_constraintBottom_toBottomOf="@+id/gridView"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
-
-    <TextView
-            android:id="@+id/order_number_TV"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="140dp"
-            android:layout_marginLeft="140dp"
-            android:text="108"
-            android:textSize="30sp"
-            app:layout_constraintStart_toEndOf="@+id/textView"
-            app:layout_constraintTop_toTopOf="@+id/textView" />
-
-    <TextView
-            android:text="Sum:"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/textView3"
-            app:layout_constraintBottom_toTopOf="@+id/order_button"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="@+id/menuGridView"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:textSize="30sp"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-            android:text="0"
-            android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout2"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/total_cost_TV"
+            android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/background_white_text"
             app:layout_constraintBottom_toTopOf="@+id/order_button"
-            app:layout_constraintEnd_toStartOf="@+id/gridView"
-            android:layout_marginRight="8dp"
-            android:layout_marginEnd="8dp"
-            android:textSize="30sp"/>
+            app:layout_constraintEnd_toStartOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sum"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+                android:id="@+id/total_cost_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ListView
             android:id="@+id/order_ListView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/total_cost_TV"
-            app:layout_constraintEnd_toStartOf="@+id/gridView"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/item_order" />
 
-    <TextView
-            android:text="AMRITA CAFE"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/textView2"
-            app:layout_constraintStart_toStartOf="@+id/textView"
-            app:layout_constraintTop_toTopOf="parent"
+
+    <Button
+            android:id="@+id/order_button"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/background_payment"
+            android:text="Order"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/history_button"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+            android:id="@+id/history_button"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="openHistoryDialog"
+            android:text="Order History"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/discount_25_button"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+            android:id="@+id/discount_25_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="lastItemCostMultiplier"
+            android:text="25%"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/discount_100_button"
+            app:layout_constraintEnd_toStartOf="@+id/discount_50_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+            android:id="@+id/discount_50_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="lastItemCostMultiplier"
+            android:text="50%"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/discount_100_button"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/discount_25_button" />
+
+    <Button
+            android:id="@+id/discount_100_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="2dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="lastItemCostMultiplier"
+            android:text="100%"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/discount_50_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+            android:id="@+id/refund_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="2dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="lastItemCostMultiplier"
+            android:text="Refund"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/discount_25_button" />
+
+    <Button
+            android:id="@+id/finish_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="finishSession"
+            android:text="Finish"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/settings_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <Button
+            android:id="@+id/settings_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="openSettings"
+            android:text="Settings"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/short_long_toggle_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/finish_button"
+            app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <Button
+            android:id="@+id/short_long_toggle_button"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_margin="4dp"
+            android:layout_marginRight="0dp"
+            android:background="@drawable/background_other_buttons"
+            android:onClick="toggleShortLongName"
+            android:text="Short Names"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:fontFamily="serif-monospace"
-            android:textSize="30sp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone"/>
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/settings_button"
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            android:layout_marginEnd="0dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

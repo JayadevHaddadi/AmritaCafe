@@ -2,18 +2,17 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory app:title="Main" >
+    <PreferenceCategory app:title="Main">
         <Preference
-                app:key="meal"
                 app:defaultValue="LunchDinner"
+                app:key="meal"
                 app:title="Toggle Meal" />
 
-        <SwitchPreferenceCompat
-            app:key="show_names"
-            app:defaultValue="false"
-            app:title="Show Full Menu Item Names"
-            app:summaryOn="Yes"
-            app:summaryOff="No" />
+        <EditTextPreference
+                app:defaultValue="100"
+                app:key="order_number_range"
+                app:title="Range"
+                app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
                 app:defaultValue="192.168.1.11"
@@ -29,19 +28,23 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="Menu" >
+    <PreferenceCategory app:title="Menu">
+        <PreferenceScreen
+                android:title="StartActivity"
+                android:summary="StartActivity2">
+            <Intent android:action=".activities.SettingsActivity">
+                <extra android:name="extra_name" android:value="my_value" />
+            </Intent>
+        </PreferenceScreen>
+
         <EditTextPreference
                 app:defaultValue="https://bit.ly/2MBGU46"
                 app:key="update_url"
                 app:title="Menu Update URL" />
 
         <Preference
-                app:title="Update On Web"
-                app:key="update_now" />
-
-        <Preference
-            app:title="Reset to default"
-            app:key="menu_reset" />
+                app:key="menu_reset"
+                app:title="Reset to default" />
 
         <EditTextPreference
                 app:defaultValue="[]"
@@ -49,20 +52,13 @@
                 app:title="Menu Config" />
 
     </PreferenceCategory>
-    <PreferenceCategory app:title="Order Numbers">
-        <EditTextPreference
-           app:key="order_number_range"
-           app:defaultValue="100"
-           app:title="Range"
-           app:useSimpleSummaryProvider="true" />
-
-    </PreferenceCategory>
     <PreferenceCategory app:title="Advanced">
-        <SwitchPreferenceCompat app:key="testing"
-            app:defaultValue="false"
-            app:title="Testing (Short receipts)"
-            app:summaryOn="Yes"
-            app:summaryOff="No" />
+        <SwitchPreferenceCompat
+                app:defaultValue="false"
+                app:key="testing"
+                app:summaryOff="No"
+                app:summaryOn="Yes"
+                app:title="Testing (Short receipts)" />
     </PreferenceCategory>
 
 

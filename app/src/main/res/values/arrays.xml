@@ -1,27 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="colors">
-        <item>#80FF0000</item>
-        <item>#8000FF00</item>
-        <item>#800000FF</item>
-        <item>#FFF59D</item>
-        <item>#CE93D8</item>
-        <item>#FFE082</item>
-        <item>#80DEEA</item>
-        <item>#FFAB91</item>
-        <item>#9FA8DA</item>
-        <item>#F48FB1</item>
-        <item>#A5D6A7</item>
-        <item>#80FF0000</item>
-        <item>#8000FF00</item>
-        <item>#800000FF</item>
-        <item>#FFF59D</item>
-        <item>#CE93D8</item>
-        <item>#FFE082</item>
-        <item>#80DEEA</item>
-        <item>#FFAB91</item>
-        <item>#9FA8DA</item>
-        <item>#F48FB1</item>
-        <item>#A5D6A7</item>
+<!--        <item>#CCFFF59D</item>-->
+<!--        <item>#CCCE93D8</item>-->
+<!--        <item>#CCFFE082</item>-->
+<!--        <item>#CC80DEEA</item>-->
+<!--        <item>#CCFFAB91</item>-->
+<!--        <item>#CC9FA8DA</item>-->
+<!--        <item>#CCF48FB1</item>-->
+<!--        <item>#CCA5D6A7</item>-->
+<!--        <item>#CCFFF59D</item>-->
+<!--        <item>#CCCE93D8</item>-->
+<!--        <item>#CCFFE082</item>-->
+
+        <item>#CC80DEEA</item>
+        <item>#CCFFAB91</item>
+        <item>#CC9FA8DA</item>
+
+        <item>#CC4F1E95</item>
+        <item>#CC2037B3</item>
+        <item>#CC1977A1</item>
+        <item>#CC2A852D</item>
+        <item>#CCB3A420</item>
+        <item>#CCAA6B0F</item>
+        <item>#CC9F3559</item>
+
+        <item>#CC4F1E95</item>
+        <item>#CC2037B3</item>
+        <item>#CC1977A1</item>
+        <item>#CC2A852D</item>
+        <item>#CCB3A420</item>
+        <item>#CCAA6B0F</item>
+        <item>#CC9F3559</item>
+        
+        <item>#CCAA6B0F</item>
+        <item>#CCB3A420</item>
+        <item>#CC2A852D</item>
+        <item>#CC1977A1</item>
+        <item>#CC2037B3</item>
+        <item>#CC4F1E95</item>
+
     </array>
 </resources>
