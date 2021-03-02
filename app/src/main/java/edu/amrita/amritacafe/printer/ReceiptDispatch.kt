@@ -64,7 +64,7 @@ class ReceiptDispatch(
             logger.fine("executePrintJob")
             logger.fine("connectionString: " + connectionString)
 //            printer.connect("TCP:192.168.0.102", Printer.PARAM_DEFAULT)
-            printer.connect("TCP:64:EB:8C:FE:23:62", Printer.PARAM_DEFAULT)
+            printer.connect(connectionString, Printer.PARAM_DEFAULT)
 
             return@let withTimeout(5000) { suspendCancellableCoroutine<CallbackData> { continuation ->
                 logger.fine("inside coroutine")

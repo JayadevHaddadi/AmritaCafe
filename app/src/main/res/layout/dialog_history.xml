@@ -22,6 +22,7 @@
             tool:listitem="@layout/item_history" />
 
     <TextView
+            android:visibility="gone"
             android:id="@+id/history_order_nr_TV"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

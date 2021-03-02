@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Amrita-Cafe-Private.iml" filepath="$PROJECT_DIR$/.idea/modules/Amrita-Cafe-Private.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Amrita-Cafe-Private.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Amrita-Cafe-Private.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AmritaCafe.iml" filepath="$PROJECT_DIR$/.idea/modules/AmritaCafe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.iml" />
     </modules>
   </component>
 </project>

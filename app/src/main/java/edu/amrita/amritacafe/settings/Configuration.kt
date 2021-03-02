@@ -36,7 +36,7 @@ data class Configuration(private val preferences: SharedPreferences) {
     val showMenuItemNames get() = preferences.getBoolean(SHOW_FULL_NAMES, false)
 
     var receiptPrinterConnStr
-        get() = "TCP:" + preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.116")!!
+        get() = "TCP:" + preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.102")!!
         set(value) {
             preferences.edit().putString(IP_RECEIPT_PRINTER, value)
         }

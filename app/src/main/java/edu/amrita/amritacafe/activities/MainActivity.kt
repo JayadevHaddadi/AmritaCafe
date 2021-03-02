@@ -709,4 +709,8 @@ class MainActivity : AppCompatActivity() {
         val historyAdapter = HistoryAdapter(orderHistory)
         root.history_RV.adapter = historyAdapter
     }
+
+    fun nextOrder(view: View) {
+        startNewOrder()
+    }
 }
