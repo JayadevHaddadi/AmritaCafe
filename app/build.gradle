@@ -23,6 +23,16 @@ android {
             abiFilters 'armeabi' //, 'x86', ' 'x86_64', 'arm64-v8a'//如果你设备其它架构，默认不添加，否则会出错
         }
     }
+
+    signingConfigs {
+        release {
+            storePassword 'amrita'
+            keyAlias 'amrita'
+            keyPassword 'amrita'
+            storeFile file('../AmritaCafeKeyStore')
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
