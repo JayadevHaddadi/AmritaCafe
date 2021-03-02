@@ -26,7 +26,7 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
         kitchenFinished = false
 
         receiptPrintDispatch.dispatchPrint(orders)
-//        kitchenPrintDispatch.dispatchPrint(orders)
+        kitchenPrintDispatch.dispatchPrint(orders)
     }
 
     fun retry() {

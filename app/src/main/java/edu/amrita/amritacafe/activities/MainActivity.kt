@@ -21,13 +21,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
-import com.google.firebase.firestore.FirebaseFirestore
 import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.email.Mailer
-import edu.amrita.amritacafe.email.User
-import edu.amrita.amritacafe.email.adminEmail
-import edu.amrita.amritacafe.email.allUsers
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.model.MenuAdapter
 import edu.amrita.amritacafe.model.Order
@@ -62,8 +57,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sheetsMenu: ArrayList<MenuItemUS>
     private var myToast: Toast? = null
     private lateinit var tabletName: String
-    private lateinit var db: FirebaseFirestore
-    private lateinit var currentUser: User
     private var modeAmritapuri: Boolean = false
     private lateinit var currentHistoryFile: File
     private var dialogOpen = false
@@ -114,9 +107,6 @@ class MainActivity : AppCompatActivity() {
         }
         user_TV.text = "$tabletName"
 
-        //todo bring back for other release
-        db = FirebaseFirestore.getInstance()
-
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
             currentOrderSum = orderAdapter.orderItems.map { it.finalPrice }.sum()
@@ -129,30 +119,7 @@ class MainActivity : AppCompatActivity() {
             val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
             val orders = listOf(order)
 
-            if (modeAmritapuri) {
                 printOrder(orders) // just for testing history
-//                startNewOrder() // same TODO remove both
-
-//                finishOrder()
-            } else {
-                openPaymentDialog()
-            }
-        }
-
-        val latestMenu = loadLastMenu(pref)
-        println("latest menu: $latestMenu")
-//        setMenuAdapter(latestMenu)
-        readSheets(pref) { menuList, users ->
-            println("CALLBACK BABY")
-            sheetsMenu = menuList
-//            setMenuAdapter(menuList)
-
-            allUsers = users
-            if (!allUsers.isEmpty())
-                adminEmail = allUsers.last().email
-            runOnUiThread {
-                dialogRoot?.let { setupSpinner(it) }
-            }
         }
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
@@ -163,20 +130,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val latestUsers = loadLastUsers(pref)
-        allUsers = latestUsers
-        if (!allUsers.isEmpty())
-            adminEmail = allUsers.last().email
-
         println("STARTED?")
 
         updateNameForToggleButton()
 
-        if (!modeAmritapuri)
-            openLoginDialog()
-        else {
-            setAmritapuriMode()
-        }
+        setAmritapuriMode()
+
     }
 
     private val orderHistory = mutableListOf<Order>()
@@ -191,16 +150,6 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
         runOnUiThread { menuGridView.adapter = menuAdapter }
-    }
-
-    private fun setupSpinner(root: View) {
-        val namesOnly = allUsers.map {
-            "${it.name} - ${it.email}"
-        }
-        val userNameAdapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_item, namesOnly)
-        userNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        root.user_spinner.adapter = userNameAdapter
     }
 
     private fun finishOrder(cash: Boolean = false) {
@@ -237,85 +186,6 @@ class MainActivity : AppCompatActivity() {
         myToast?.show()
     }
 
-    private fun openPaymentDialog() {
-        val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.dialog_payment, null).let { view ->
-                AlertDialog.Builder(this)
-                    .setView(view)
-                    .setCancelable(true)
-                    .show()
-                    .to(view)
-            }
-
-        fun allItemsToDatabase() {
-            orderAdapter.orderItems.forEach {
-                val item = hashMapOf(
-                    "time" to Date(),
-                    "cashier" to currentUser.name,
-                    "order_number" to currentOrderNumber,
-                    "item_name" to it.menuItem.name,
-                    "quantity" to it.quantity,
-                    "discount_factor" to it.priceMultiplier,
-                    "original_price" to it.originalPrice,
-                    "final_price" to it.finalPrice
-                )
-
-                // Add a new document with a generated ID
-                db.collection("sold_item")
-                    .add(item)
-                    .addOnSuccessListener { documentReference ->
-                        makeToast("Success: ${it.menuItem.name} added to database")
-                        Log.d("hhallo", "DocumentSnapshot added with ID: ${documentReference.id}")
-                    }
-                    .addOnFailureListener { e ->
-                        makeToast(
-                            "Failure: ${it.menuItem.name} not added to database\nWill upload once " +
-                                    "internet is reestablished"
-                        )
-                        Log.w("hhallo", "Error adding document", e)
-                    }
-            }
-        }
-
-        root.cash_received_button.setOnClickListener {
-            allItemsToDatabase()
-            finishOrder(true)
-            dialog.dismiss()
-        }
-        root.credit_received_button.setOnClickListener {
-            allItemsToDatabase()
-            finishOrder(false)
-            dialog.dismiss()
-        }
-
-        received = 0f
-        currentTotalCost = orderAdapter.orderItems.map { it.finalPrice }.sum()
-        root.to_pay_TV.text = currentTotalCost.toString()
-        val onClickRecivedListener = View.OnClickListener { billButton ->
-            billButton as Button
-            when (billButton.text) {
-                "100$" -> received += 100
-                "50$" -> received += 50
-                "20$" -> received += 20
-                "10$" -> received += 10
-                "5$" -> received += 5
-                "1$" -> received += 1
-                ".25$" -> received += .25f
-                "CLEAR" -> received = 0f
-            }
-            root.received_TV.text = received.toString()
-            root.to_return_TV.text = (received - currentTotalCost).toString()
-        }
-        root.received_100_button.setOnClickListener(onClickRecivedListener)
-        root.received_50_button.setOnClickListener(onClickRecivedListener)
-        root.received_20_button.setOnClickListener(onClickRecivedListener)
-        root.received_10_button.setOnClickListener(onClickRecivedListener)
-        root.received_5_button.setOnClickListener(onClickRecivedListener)
-        root.received_1_button.setOnClickListener(onClickRecivedListener)
-        root.received_25cent_button.setOnClickListener(onClickRecivedListener)
-        root.clear_received_button.setOnClickListener(onClickRecivedListener)
-    }
-
     override fun onResume() {
         super.onResume()
         if (modeAmritapuri) loadAmritapuriMenu()
@@ -327,53 +197,9 @@ class MainActivity : AppCompatActivity() {
         setMenuAdapter(list)
     }
 
-    var dialogRoot: View? = null
-    private fun openLoginDialog() {
-        val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.dialog_login, null).let { view ->
-                AlertDialog.Builder(this)
-                    .setView(view)
-                    .setCancelable(false)
-                    .show()
-                    .to(view)
-            }
-        dialogRoot = root
-
-        setupSpinner(root)
-
-        root.amritapuri_button.setOnClickListener {
-            dialog.dismiss()
-        }
-        root.login_button.setOnClickListener {
-            currentUser = allUsers[root.user_spinner.selectedItemPosition]
-            if (root.password_ET.text.toString() == currentUser.password) {
-                modeAmritapuri = false
-                Toast.makeText(
-                    this,
-                    "Succesfully logged as ${currentUser.name}\n${currentUser.email}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                createHistoryFile(currentUser.name)
-                order_button.text = "Pay"
-                settings_button.visibility = View.GONE
-                dialog.dismiss()
-                user_TV.text = "$currentUser.name @ $tabletName"
-                setMenuAdapter(sheetsMenu)
-            } else {
-                Toast.makeText(
-                    this,
-                    "Failed login, you have infinite attempts left",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            dialogRoot = null
-        }
-    }
-
     private fun setAmritapuriMode() {
         modeAmritapuri = true
         order_button.text = "Order"
-        dialogRoot = null
         user_TV.text = "Amritapuri @ $tabletName"
         refund_button.visibility = View.GONE
         discount_100_button.visibility = View.GONE
@@ -407,138 +233,20 @@ class MainActivity : AppCompatActivity() {
         currentHistoryFile.appendText(
             "Session: ${fileDate}\n" +
                     "User: $user\n" +
-                    "Email: ${currentUser.email}\n" +
                     "Tablet: $tabletName\n"
 //                    + "App Version: ${BuildConfig.VERSION_NAME}\n\n"
         )
     }
 
-    override fun onBackPressed() {
-        println("dialog open: $dialogOpen")
-        if (!dialogOpen) {
-            if (!modeAmritapuri) {
-                openExitDialog()
-            } else
-                finish()
-        }
-    }
-
-    var myFinalComment = ""
-
-    @SuppressLint("CheckResult")
-    private fun openExitDialog() {
-        if (!isOnline()) {
-            makeToast("No internet connection!!! Git some!!!")
-            return
-        }
-
-        val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.dialog_finish, null).let { view ->
-                AlertDialog.Builder(this)
-                    .setView(view)
-                    .setCancelable(false)
-                    .show()
-                    .apply {
-                        setCanceledOnTouchOutside(false)
-                    }.to(view)
-            }
-        root.final_comments_ET.setText(myFinalComment)
-        root.final_comments_ET.doOnTextChanged { text, start, count, after ->
-            myFinalComment = text.toString()
-        }
-
-        root.receipt_text_TV.text = "Session record will be sent to ${currentUser.email}"
-        root.email_TV2.text = "Session record will be sent to ${adminEmail}"
-        root.kitchen_retry_button.setOnClickListener {
-            root.final_comments_ET.visibility = View.GONE
-            root.receipt_progress.visibility = View.VISIBLE
-            root.email_progress2.visibility = View.VISIBLE
-            root.kitchen_retry_button.visibility = View.GONE
-            if (isOnline()) {
-                root.receipt_text_TV.text = "Sending email to ${currentUser.email}..."
-                root.email_TV2.text = "Sending email to ${adminEmail}..."
-                val emailBody =
-                    "${currentHistoryFile.readText()}Final Comments:\n${root.final_comments_ET.text}"
-                val subject =
-                    "${currentUser.name} - Cash: $sessionCash, Credit: $sessionCredit"
-                println("Sending first mail")
-                Mailer.sendMail(currentUser.email, subject, emailBody)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            fun close() {
-                                dialog.dismiss()
-                                println("finishing")
-                                finish()
-                            }
-                            if (!dialog.isShowing) {
-                                Toast.makeText(
-                                    this,
-                                    "Mail successfully sent! Thank you!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                close()
-                            } else {
-                                root.receipt_progress.visibility = View.GONE
-                                root.receipt_retry_button.visibility = View.GONE
-                                root.kitchen_retry_button.visibility = View.VISIBLE
-                                root.email_success_IV.visibility = View.VISIBLE
-                                root.receipt_text_TV.text =
-                                    "Mail successfully sent ${currentUser.email}!"
-                                root.kitchen_retry_button.text = "close"
-                                root.kitchen_retry_button.setOnClickListener { close() }
-                            }
-
-                        },
-                        {
-                            root.receipt_progress.visibility = View.GONE
-                            root.email_error_IV.visibility = View.VISIBLE
-                            root.receipt_text_TV.text = "Error while sending!"
-                            Log.e("BlackMailin", "error")
-                            it.printStackTrace()
-                        }
-                    )
-                println("Sending second mail")
-                Mailer.sendMail(
-                    adminEmail,
-                    subject,
-                    emailBody
-                ).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            root.email_progress2.visibility = View.GONE
-                            root.email_TV2.text = "Mail successfully sent ${adminEmail}!"
-                            root.email_success_IV2.visibility = View.VISIBLE
-                            Toast.makeText(this, "success", Toast.LENGTH_SHORT).show()
-                        },
-                        {
-                            root.email_progress2.visibility = View.GONE
-                            root.email_error_IV2.visibility = View.VISIBLE
-                            root.email_TV2.text = "Error while sending!"
-                            Toast.makeText(this, "failed", Toast.LENGTH_SHORT).show()
-                            it.printStackTrace()
-                        }
-                    )
-            } else {
-                root.receipt_progress.visibility = View.INVISIBLE
-                root.email_progress2.visibility = View.INVISIBLE
-                root.receipt_text_TV.text = "No internet connection!"
-                root.email_TV2.text = ""
-                root.email_error_IV.visibility = View.VISIBLE
-                Toast.makeText(this, "No internet connection!!", Toast.LENGTH_SHORT).show()
-            }
-        }
-        root.receipt_retry_button.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun isOnline(): Boolean {
-        val cm =
-            getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        val netInfo = cm.activeNetworkInfo
-        return netInfo != null && netInfo.isConnectedOrConnecting
-    }
+//    override fun onBackPressed() {
+//        println("dialog open: $dialogOpen")
+//        if (!dialogOpen) {
+//            if (!modeAmritapuri) {
+//                openExitDialog()
+//            } else
+//                finish()
+//        }
+//    }
 
     private fun startNewOrder() {
         GlobalScope.launch {
@@ -555,15 +263,6 @@ class MainActivity : AppCompatActivity() {
                 orderAdapter.clear()
                 order_number_TV.text = currentOrderNumber.toString()
             }
-        }
-    }
-
-    fun lastItemCostMultiplier(view: View) {
-        when (view.id) {
-            R.id.discount_25_button -> lastItemCostMultiplier(0.75f)
-            R.id.discount_50_button -> lastItemCostMultiplier(0.5f)
-            R.id.discount_100_button -> lastItemCostMultiplier(0f)
-            R.id.refund_button -> lastItemCostMultiplier(-1f)
         }
     }
 
@@ -686,10 +385,6 @@ class MainActivity : AppCompatActivity() {
     private fun updateNameForToggleButton() {
         short_long_toggle_button.text =
             if (configuration.showMenuItemNames) "Short Names" else "Long Names"
-    }
-
-    fun finishSession(view: View) {
-        openExitDialog()
     }
 
     fun openSettings(view: View) {
