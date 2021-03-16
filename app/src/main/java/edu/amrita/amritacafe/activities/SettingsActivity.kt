@@ -4,12 +4,11 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.BREAKFAST_FILE
-import edu.amrita.amritacafe.menu.LUNCH_DINNER_FILE
-import edu.amrita.amritacafe.menu.saveIfValidText
+import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE
 import edu.amrita.amritacafe.settings.Configuration.Companion.ORDER_NUMBER_RANGE
@@ -42,12 +41,7 @@ class SettingsActivity : AppCompatActivity() {
         val column = pref.getString(COLUMN_NUMBER_RANGE, "10")
         column_numbers_ET.setText(column)
 
-        fun loadCurrentMenu() {
-            println("Loading is breakfast: ${configuration.isBreakfastTime}")
-            val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
-            val br = BufferedReader(FileReader(file))
-            menu_ET.setText(br.readText())
-        }
+
         menu_toggle_button.isChecked = configuration.isBreakfastTime
         loadCurrentMenu()
 
@@ -55,6 +49,13 @@ class SettingsActivity : AppCompatActivity() {
             configuration.isBreakfastTime = isBreakfastTime
             loadCurrentMenu()
         }
+    }
+
+    fun loadCurrentMenu() {
+        println("Loading is breakfast: ${configuration.isBreakfastTime}")
+        val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
+        val br = BufferedReader(FileReader(file))
+        menu_ET.setText(br.readText())
     }
 
     override fun onStop() {
@@ -78,5 +79,28 @@ class SettingsActivity : AppCompatActivity() {
 
 //        if (response == "SUCCESS")
 //            overrideFile(menu_ET.text.toString(), file, applicationContext)
+    }
+
+    fun resetMenu(view: View) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Reset current menu?")
+
+        builder.setPositiveButton(android.R.string.yes) { dialog, which ->
+                if (configuration.isBreakfastTime)
+                    createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
+                else
+                    createMenuFileFromMenuList(LUNCH_DINNER_FILE, DEFAULT_LUNCH_DINNER_MENU)
+
+            loadCurrentMenu()
+            Toast.makeText(applicationContext,
+                "Current menu reset to default", Toast.LENGTH_SHORT).show()
+        }
+
+        builder.setNegativeButton(android.R.string.no) { dialog, which ->
+//            Toast.makeText(applicationContext,
+//                android.R.string.no, Toast.LENGTH_SHORT).show()
+        }
+
+        builder.show()
     }
 }

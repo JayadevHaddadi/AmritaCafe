@@ -100,7 +100,7 @@
             app:layout_constraintTop_toBottomOf="@+id/receipt_ip_ET" />
 
     <Button
-            android:id="@+id/button"
+            android:id="@+id/saveButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
@@ -109,6 +109,17 @@
             android:text="Save"
             app:layout_constraintStart_toEndOf="@+id/menu_ET"
             app:layout_constraintTop_toBottomOf="@+id/menu_toggle_button" />
+
+    <Button
+            android:id="@+id/resetButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:onClick="resetMenu"
+            android:padding="20dp"
+            android:text="Reset"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/menu_ET" />
 
     <ToggleButton
             android:id="@+id/menu_toggle_button"

@@ -2,7 +2,6 @@ package edu.amrita.amritacafe.printer
 
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.model.Order
-import edu.amrita.amritacafe.printer.writer.Kitchen2Writer
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.settings.Configuration

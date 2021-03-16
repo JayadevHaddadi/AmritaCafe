@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.os.Environment
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
@@ -35,7 +34,6 @@ import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -43,6 +41,7 @@ fun String.capitalizeWords(): String =
     split(" ").map { it.toLowerCase().capitalize() }.joinToString(" ")
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var allCurrentCategories: MutableList<String>
     private var myToast: Toast? = null
     private lateinit var tabletName: String
     private var modeAmritapuri: Boolean = false
@@ -96,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         order_ListView.adapter = orderAdapter
 
         order_button.setOnClickListener {
-                printOrder() // just for testing history
+            printOrder() // just for testing history
         }
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
@@ -137,12 +136,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (modeAmritapuri) loadAmritapuriMenu()
+        loadAmritapuriMenu()
     }
 
     fun loadAmritapuriMenu() {
         val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
         val list = getListOfMenu(file)
+
+        allCurrentCategories = mutableListOf()
+
+        list.forEach {
+            if (!allCurrentCategories.contains(it.category))
+                allCurrentCategories.add(it.category)
+        }
+
         setMenuAdapter(list)
     }
 
@@ -164,38 +171,6 @@ class MainActivity : AppCompatActivity() {
 
         startNewOrder()
     }
-
-    private fun createHistoryFile(user: String) {
-        println("Logged in as: $user")
-        startNewOrder()
-        val root = File(Environment.getExternalStorageDirectory(), "Amrita Cafe")
-        if (!root.exists())
-            root.mkdirs()
-
-        val currentTime = Calendar.getInstance().time
-        val dateFormatString = "yyyy-MM-dd kk-mm" // hh-mm a for pm/am
-        val dateFormat = SimpleDateFormat(dateFormatString, Locale.US)
-        val fileDate = dateFormat.format(currentTime)
-        val fileName = "${fileDate} - $user.txt"
-
-        currentHistoryFile = File(root, fileName)
-        currentHistoryFile.appendText(
-            "Session: ${fileDate}\n" +
-                    "User: $user\n" +
-                    "Tablet: $tabletName\n"
-//                    + "App Version: ${BuildConfig.VERSION_NAME}\n\n"
-        )
-    }
-
-//    override fun onBackPressed() {
-//        println("dialog open: $dialogOpen")
-//        if (!dialogOpen) {
-//            if (!modeAmritapuri) {
-//                openExitDialog()
-//            } else
-//                finish()
-//        }
-//    }
 
     private fun startNewOrder() {
         GlobalScope.launch {
@@ -219,11 +194,52 @@ class MainActivity : AppCompatActivity() {
     private lateinit var currentDialog: AlertDialog
 
     private fun printOrder() {
-        val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
-//        val orders = listOf(order)
+        val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
-        val orders = Order(currentOrderNumber, orderAdapter.orderItems)
-            .collectToppings().split(orderNumberService)
+        var pos = 0
+        orderItemsCopy.forEach {
+            if (it.menuItem.category == TOPPING) {
+                for (i in pos downTo 0) {
+                    if (orderItemsCopy[i].menuItem.category != TOPPING) {
+                        orderItemsCopy[i].addTopping(it)
+                    }
+                }
+            }
+            pos++
+        }
+        val orderList = orderItemsCopy.filter {
+            it.menuItem.category != TOPPING
+        }
+
+        var hasPizza = false
+        var hasGrill = false
+        orderList.forEach {
+            when (it.menuItem.category) {
+                PIZZA -> hasPizza = true
+                BREAKFAST, SANDWICH, EGGS, TOAST, BURGER -> hasGrill = true
+            }
+        }
+
+        val orders = if (hasPizza and hasGrill) {
+            listOf(
+                Order(
+                    currentOrderNumber,
+                    orderList.filter { it.menuItem.category != PIZZA }
+                ),
+                Order(
+                    ++currentOrderNumber,
+                    orderList.filter { it.menuItem.category == PIZZA }
+                )
+            )
+        } else {
+            listOf(Order(currentOrderNumber, orderList))
+        }
+
+        orders.forEach {
+            it.orderItems = it.orderItems.sortedBy {
+                allCurrentCategories.indexOf(it.menuItem.category)
+            }
+        }
 
         val (dialog, view) = printerDialog()
         currentDialog = dialog
@@ -356,7 +372,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         root.history_RV.layoutManager = LinearLayoutManager(this)
-        val historyAdapter = HistoryAdapter(orderHistory,configuration)
+        val historyAdapter = HistoryAdapter(orderHistory, configuration)
         root.history_RV.adapter = historyAdapter
     }
 

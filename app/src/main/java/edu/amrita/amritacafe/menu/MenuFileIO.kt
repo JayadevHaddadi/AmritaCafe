@@ -29,7 +29,7 @@ fun createDefualtFilesIfNecessary() {
 
 }
 
-private fun createMenuFileFromMenuList(file: File, list: List<MenuItemUS>) {
+public fun createMenuFileFromMenuList(file: File, list: List<MenuItemUS>) {
     file.createNewFile()
     val fos = FileOutputStream(file, false)
     var category = ""

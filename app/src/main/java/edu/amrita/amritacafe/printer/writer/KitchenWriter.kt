@@ -23,61 +23,15 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
                     "\n  * ${orderItem.comment}"
                 }
 
-//    private fun orderItemsText(orderItems: List<RegularOrderItem>) =
-//        orderItems.joinToString("\n") {
-//            "${it.quantity} ${it.code}".padEnd(17) +
-//                    it.finalPrice.toString().padStart(3) +
-//                    if (it.comment.isBlank()) ""
-//                    else "\n * ${it.comment}"
-//        }
-
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         orders.forEach { (orderNumber, itemList, time) ->
-//            val myOrderItems = itemList.map {
-//                listOf(it)
-//            }.flatten()
-
-            val itemsMap = itemList.groupBy {
-//                Pizza,
-//                Burger,
-//                Fries,
-//                Pasta,
-//                Eggs,
-//                Salad,
-//                Toast,
-//                Breakfast("Break fast"),
-//                Topping("Top with"),
-//                Kitcheri("Kitch"),
-//                Side;
-
-                //{if(it.menuItem.name)}
-                when (it.menuItem.category) {
-                    "PIZZA" -> 1
-                    "EGGS" -> 2
-                    "BURGER" -> 2
-                    "TOAST" -> 2
-                    "SALAD" -> 3
-                    "SIDE" -> 3
-                    "KITCHERI" -> 3
-                    "BREAKFAST" -> {
-                        if (it.menuItem.name == "Oatmeal" ||
-                            it.menuItem.name == "Ragi Porridge"
-                        ) 3 else 2
-                    }
-                    "PASTA" -> 3
-                    "FRIES" -> 3
-                    else -> 3
-                }
-//                it.menuItem.category
-
-
-            }.toSortedMap()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
-            val orderItemsText = itemsMap.map { (_, orderItems) ->
-                orderItems.map(::writeLine)
-            }.flatten().joinToString("\n")
+            val orderItemsText =
+                itemList.map {
+                    printItem(it)
+                }.joinToString("\n")
             val itemCount =
                 itemList.map { 1 }.sum()
 
@@ -95,6 +49,24 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             printer.addFeedLine((6 - itemCount).let { if (it < 0) 0 else it })
             printer.addCut(Printer.CUT_FEED)
         }
+    }
+
+    private fun printItem(orderItem: RegularOrderItem): String {
+        val toppingsString = StringBuffer()
+        orderItem.toppings.forEach {
+            toppingsString.append("\n  + " + it.quantity + " " + it.code)
+        }
+
+        return if (orderItem.quantity == 1) {
+            "  "
+        } else {
+            orderItem.quantity.toString().padEnd(2)
+        } + orderItem.code +
+                if (orderItem.comment.isBlank()) {
+                    ""
+                } else {
+                    "\n  * ${orderItem.comment}"
+                } + toppingsString.toString()
     }
 
     companion object : Writer {
