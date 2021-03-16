@@ -11,7 +11,6 @@ import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE
-import edu.amrita.amritacafe.settings.Configuration.Companion.ORDER_NUMBER_RANGE
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.BufferedReader
 import java.io.FileReader
@@ -36,11 +35,8 @@ class SettingsActivity : AppCompatActivity() {
         receipt_ip_ET.setText(configuration.receiptPrinterConnStr)
         kitchen_ip_ET.setText(configuration.kitchenPrinterConnStr)
 
-        val orderNr = pref.getString(ORDER_NUMBER_RANGE, "100")
-        range_ET.setText(orderNr)
         val column = pref.getString(COLUMN_NUMBER_RANGE, "10")
         column_numbers_ET.setText(column)
-
 
         menu_toggle_button.isChecked = configuration.isBreakfastTime
         loadCurrentMenu()

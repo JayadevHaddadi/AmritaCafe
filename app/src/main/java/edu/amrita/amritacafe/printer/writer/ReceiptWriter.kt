@@ -27,10 +27,10 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             val orderTotalText = orderItems.map { it.finalPrice }.sum().toString()
 
             val itemCount = orderItems.map { 1 }.sum()
-            val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("$orderNumStr        $time")
+            //total length of this size is 16
+            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
 
             printer.addFeedLine(lineFeed)
             printer.addTextSize(textSize, textSize)

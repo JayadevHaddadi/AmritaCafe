@@ -2,13 +2,11 @@ package edu.amrita.amritacafe.printer
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class OrderNumberService(private val preferences: SharedPreferences) {
-
-    private var lastOrderNumber
+    var currentOrderNumber
         get() = preferences.getInt(LAST_ORDER_NUMBER, 0)
         set(value) {
             preferences.edit {
@@ -18,10 +16,8 @@ class OrderNumberService(private val preferences: SharedPreferences) {
         }
 
     suspend fun next() = mutex.withLock {
-        val range = preferences.getString(Configuration.ORDER_NUMBER_RANGE, "100")!!.toInt()
-
-        lastOrderNumber = range + (lastOrderNumber + 1) % 100
-        lastOrderNumber
+        currentOrderNumber = currentOrderNumber + 1
+        currentOrderNumber
     }
 
     companion object {

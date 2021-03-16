@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.provider.Settings
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -15,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
-import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.model.MenuAdapter
@@ -27,13 +27,11 @@ import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_finish.view.receipt_progress
-import kotlinx.android.synthetic.main.dialog_finish.view.receipt_retry_button
 import kotlinx.android.synthetic.main.dialog_history.view.*
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.File
+import kotlinx.coroutines.runBlocking
 import java.util.*
 
 
@@ -44,14 +42,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var allCurrentCategories: MutableList<String>
     private var myToast: Toast? = null
     private lateinit var tabletName: String
-    private var modeAmritapuri: Boolean = false
-    private lateinit var currentHistoryFile: File
 
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
-    private var currentOrderNumber = 0
     private var currentOrderSum = 0f
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -61,9 +56,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        modeAmritapuri = BuildConfig.FLAVOR == "amritapuri"
-        println("Build flavor: ${BuildConfig.FLAVOR}, is amritapuri: $modeAmritapuri")
 
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
         pref.let { preferences ->
@@ -106,12 +98,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        println("STARTED?")
-
         updateNameForToggleButton()
+        user_TV.text = "Amritapuri @ $tabletName"
 
-        setAmritapuriMode()
+        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
+        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
+        createDefualtFilesIfNecessary()
+        loadAmritapuriMenu() //will load on resume
+
+        order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
+
+        order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+            if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                Toast.makeText(this, order_number_ET.text, Toast.LENGTH_SHORT).show()
+                orderNumberService.currentOrderNumber = order_number_ET.text.toString().toInt()
+                return@OnKeyListener true
+            }
+            false
+        })
+
+//        order_number_ET.doOnTextChanged { text, start, before, count ->
+//
+//        }
     }
 
     private val orderHistory = mutableListOf<Order>()
@@ -153,40 +162,13 @@ class MainActivity : AppCompatActivity() {
         setMenuAdapter(list)
     }
 
-    private fun setAmritapuriMode() {
-        modeAmritapuri = true
-        order_button.text = "Order"
-        user_TV.text = "Amritapuri @ $tabletName"
-        refund_button.visibility = View.GONE
-        discount_100_button.visibility = View.GONE
-        discount_50_button.visibility = View.GONE
-        discount_25_button.visibility = View.GONE
-        finish_button.visibility = View.GONE
-
-        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
-        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
-
-        createDefualtFilesIfNecessary()
-        loadAmritapuriMenu() //will load on resume
-
-        startNewOrder()
-    }
-
     private fun startNewOrder() {
         GlobalScope.launch {
-            println("New order, printMode: $modeAmritapuri")
-            val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
-            storeOrders(order)
-
-            if (modeAmritapuri)
-                currentOrderNumber = orderNumberService.next()
-            else
-                currentOrderNumber++
-
+            orderNumberService.next()
 
             runOnUiThread {
                 orderAdapter.clear()
-                order_number_TV.text = currentOrderNumber.toString()
+                order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
             }
         }
     }
@@ -223,22 +205,24 @@ class MainActivity : AppCompatActivity() {
         val orders = if (hasPizza and hasGrill) {
             listOf(
                 Order(
-                    currentOrderNumber,
+                    orderNumberService.currentOrderNumber,
                     orderList.filter { it.menuItem.category != PIZZA }
                 ),
                 Order(
-                    ++currentOrderNumber,
+                    runBlocking { orderNumberService.next() },
                     orderList.filter { it.menuItem.category == PIZZA }
                 )
             )
         } else {
-            listOf(Order(currentOrderNumber, orderList))
+            listOf(Order(orderNumberService.currentOrderNumber, orderList))
         }
 
         orders.forEach {
             it.orderItems = it.orderItems.sortedBy {
                 allCurrentCategories.indexOf(it.menuItem.category)
             }
+
+            storeOrders(it)
         }
 
         val (dialog, view) = printerDialog()

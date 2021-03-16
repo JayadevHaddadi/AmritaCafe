@@ -43,6 +43,7 @@
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
+
         </LinearLayout>
 
         <TextView
@@ -95,9 +96,7 @@
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0"
-            tools:listitem="@layout/item_menu">
-
-    </GridView>
+            tools:listitem="@layout/item_menu"/>
 
     <!--    <ImageButton-->
     <!--            android:id="@+id/button_cancel"-->
@@ -131,11 +130,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-                android:id="@+id/order_number_TV"
+        <EditText
+                android:id="@+id/order_number_ET"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1"
+                android:inputType="number"
                 android:textColor="@color/black"
                 android:textSize="26sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -233,7 +233,6 @@
             android:layout_height="50dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
-            android:layout_marginBottom="4dp"
             android:background="@drawable/background_other_buttons"
             android:onClick="openHistoryDialog"
             android:text="Order History"
@@ -241,103 +240,9 @@
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/discount_25_button"
-            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-            android:id="@+id/discount_25_button"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="lastItemCostMultiplier"
-            android:text="25%"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/discount_100_button"
-            app:layout_constraintEnd_toStartOf="@+id/discount_50_button"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-            android:id="@+id/discount_50_button"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="lastItemCostMultiplier"
-            android:text="50%"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/discount_100_button"
-            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/discount_25_button" />
-
-    <Button
-            android:id="@+id/discount_100_button"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginBottom="2dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="lastItemCostMultiplier"
-            android:text="100%"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/discount_50_button"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-            android:id="@+id/refund_button"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginBottom="2dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="lastItemCostMultiplier"
-            android:text="Refund"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/discount_25_button" />
-
-    <Button
-            android:id="@+id/finish_button"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginRight="4dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="finishSession"
-            android:text="Finish"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/settings_button"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title" />
+            app:layout_constraintStart_toStartOf="parent" />
 
     <Button
             android:id="@+id/settings_button"
@@ -353,7 +258,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/short_long_toggle_button"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/finish_button"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <Button

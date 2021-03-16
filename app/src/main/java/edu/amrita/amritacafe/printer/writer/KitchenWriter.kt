@@ -26,7 +26,6 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         orders.forEach { (orderNumber, itemList, time) ->
-            val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             val orderItemsText =
                 itemList.map {
@@ -36,7 +35,8 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
                 itemList.map { 1 }.sum()
 
             printer.addTextSize(titleSize, titleSize)
-            printer.addText("$orderNumStr        $time")
+            //total length of this size is 16
+            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
             printer.addFeedLine(lineFeed)
             printer.addHLine(1, 2400, Printer.LINE_THICK_DOUBLE)
 
