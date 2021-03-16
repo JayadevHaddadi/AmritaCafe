@@ -1,5 +1,7 @@
 package edu.amrita.amritacafe.menu
 
+const val TOPPING = "Topping"
+
 val DEFAULT_BREAKFAST_MENU: List<MenuItemUS> = listOf(
     MenuItemUS("Grilled Cheese", "GC", 40f, "Fries"),
     MenuItemUS("Egg Cheese Sand", "ECS", 60f, "Fries"),
@@ -36,11 +38,11 @@ val DEFAULT_BREAKFAST_MENU: List<MenuItemUS> = listOf(
     MenuItemUS("Gourmet Omelet", "GM OM", 110f, "Eggs"),
     MenuItemUS("Onion Omelet", "ON OM", 45f, "Eggs"),
 
-    MenuItemUS("Jam", "JAM", 10f, "Topping"),
-    MenuItemUS("Peanut Butter", "PB", 10f, "Topping"),
-    MenuItemUS("Butter", "BUTT", 10f, "Topping"),
-    MenuItemUS("Honey", "HON", 10f, "Topping"),
-    MenuItemUS("Choco Spread", "CHOC", 15f, "Topping"),
+    MenuItemUS("Jam", "+JAM", 10f, TOPPING),
+    MenuItemUS("Peanut Butter", "+PB", 10f, TOPPING),
+    MenuItemUS("Butter", "+BUTT", 10f, TOPPING),
+    MenuItemUS("Honey", "+HON", 10f, TOPPING),
+    MenuItemUS("Choco Spread", "+CHOC", 15f, TOPPING),
 
     MenuItemUS("Bread", "BREAD", 3f, "Side"),
     MenuItemUS("Butter", "BUTT", 10f, "Side"),

@@ -20,10 +20,13 @@ fun createDefualtFilesIfNecessary() {
         println("Crated: " + dir.mkdirs())
     }
 
-//    if (!file.isFile) { // TODO || true
-    createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
-    createMenuFileFromMenuList(LUNCH_DINNER_FILE, DEFAULT_LUNCH_DINNER_MENU)
-//    }
+    if (!BREAKFAST_FILE.isFile) { // TODO || true
+        createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
+    }
+    if (!LUNCH_DINNER_FILE.isFile) { // TODO || true
+        createMenuFileFromMenuList(LUNCH_DINNER_FILE, DEFAULT_LUNCH_DINNER_MENU)
+    }
+
 }
 
 private fun createMenuFileFromMenuList(file: File, list: List<MenuItemUS>) {

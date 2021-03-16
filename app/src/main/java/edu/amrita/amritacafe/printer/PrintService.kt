@@ -2,8 +2,9 @@ package edu.amrita.amritacafe.printer
 
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.model.Order
-import edu.amrita.amritacafe.printer.writer.ReceiptWriterImpl
-import edu.amrita.amritacafe.printer.writer.WorkOrderWriter
+import edu.amrita.amritacafe.printer.writer.Kitchen2Writer
+import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.settings.Configuration
 
 class PrintService(private val orders: List<Order>, private val listener: PrintServiceListener, configuration: Configuration) {
@@ -42,7 +43,7 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
 
     private val kitchenPrintDispatch = ReceiptDispatch(
         configuration.kitchenPrinterConnStr,
-        WorkOrderWriter,
+        KitchenWriter,
         configuration,
         object : PrintStatusListener {
             override fun printComplete(status: PrintDispatchResponse) {
@@ -66,7 +67,7 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
 
     private val receiptPrintDispatch = ReceiptDispatch(
         configuration.receiptPrinterConnStr,
-        ReceiptWriterImpl,
+        ReceiptWriter,
         configuration,
         object : PrintStatusListener {
             override fun printComplete(status: PrintDispatchResponse) {

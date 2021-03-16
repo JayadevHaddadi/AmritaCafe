@@ -5,15 +5,15 @@ import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
 
-class ReceiptWriterImpl(private val orders: List<Order>, private val configuration: Configuration) {
+class Kitchen2Writer(private val orders: List<Order>, private val configuration: Configuration) {
 
-    companion object : ReceiptWriter {
+    companion object : Writer {
         override fun writeToPrinter(
             orders: List<Order>,
             printer: Printer,
             configuration: Configuration
         ) {
-            ReceiptWriterImpl(orders, configuration).writeToPrinter(printer)
+            Kitchen2Writer(orders, configuration).writeToPrinter(printer)
         }
     }
 
@@ -45,7 +45,7 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
             )
 
             printer.addFeedLine(lineFeed)
-            printer.addText("TOTAL" + orderTotalText.padStart(15))
+//            printer.addText("TOTAL" + orderTotalText.padStart(15))
             printer.addFeedLine(lineFeed)
             printer.addFeedLine((4 - itemCount).let { if (it < 0) 0 else it })
             printer.addFeedLine(lineFeed)
@@ -55,8 +55,8 @@ class ReceiptWriterImpl(private val orders: List<Order>, private val configurati
 
     private fun orderItemsText(orderItems: List<RegularOrderItem>) =
         orderItems.joinToString("\n") {
-            "${it.quantity} ${it.menuItem.code}".padEnd(17) +
-                    it.finalPrice.toString().padStart(3) +
+            "${it.quantity} ${it.code}".padEnd(17) +
+//                    it.finalPrice.toString().padStart(3) +
                     if (it.comment.isBlank()) ""
                     else "\n * ${it.comment}"
         }

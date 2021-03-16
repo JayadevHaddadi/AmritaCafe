@@ -1,12 +1,11 @@
 package edu.amrita.amritacafe.printer
 
-import android.util.Log
 import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.Printer
 import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
 import edu.amrita.amritacafe.model.Order
-import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.printer.writer.Writer
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
 import java.util.logging.Logger
@@ -15,7 +14,7 @@ import kotlin.coroutines.resume
 
 class ReceiptDispatch(
     private val connectionString: String,
-    private val receiptWriter: ReceiptWriter,
+    private val receiptWriter: Writer,
     private val configuration: Configuration,
     private val listener: PrintStatusListener
 ) {

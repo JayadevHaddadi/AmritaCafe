@@ -5,7 +5,7 @@ import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
 
-class WorkOrderWriter(private val orders: List<Order>, private val configuration: Configuration) {
+class KitchenWriter(private val orders: List<Order>, private val configuration: Configuration) {
 
     init {
         require(orders.isNotEmpty()) { "An order needs at least one order item." }
@@ -16,17 +16,63 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
             "  "
         } else {
             orderItem.quantity.toString().padEnd(2)
-        } + orderItem.menuItem.code +
+        } + orderItem.code +
                 if (orderItem.comment.isBlank()) {
                     ""
                 } else {
                     "\n  * ${orderItem.comment}"
                 }
 
+//    private fun orderItemsText(orderItems: List<RegularOrderItem>) =
+//        orderItems.joinToString("\n") {
+//            "${it.quantity} ${it.code}".padEnd(17) +
+//                    it.finalPrice.toString().padStart(3) +
+//                    if (it.comment.isBlank()) ""
+//                    else "\n * ${it.comment}"
+//        }
+
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         orders.forEach { (orderNumber, itemList, time) ->
-            val itemsMap = itemList.groupBy { it.menuItem.category }.toSortedMap()
+//            val myOrderItems = itemList.map {
+//                listOf(it)
+//            }.flatten()
+
+            val itemsMap = itemList.groupBy {
+//                Pizza,
+//                Burger,
+//                Fries,
+//                Pasta,
+//                Eggs,
+//                Salad,
+//                Toast,
+//                Breakfast("Break fast"),
+//                Topping("Top with"),
+//                Kitcheri("Kitch"),
+//                Side;
+
+                //{if(it.menuItem.name)}
+                when (it.menuItem.category) {
+                    "PIZZA" -> 1
+                    "EGGS" -> 2
+                    "BURGER" -> 2
+                    "TOAST" -> 2
+                    "SALAD" -> 3
+                    "SIDE" -> 3
+                    "KITCHERI" -> 3
+                    "BREAKFAST" -> {
+                        if (it.menuItem.name == "Oatmeal" ||
+                            it.menuItem.name == "Ragi Porridge"
+                        ) 3 else 2
+                    }
+                    "PASTA" -> 3
+                    "FRIES" -> 3
+                    else -> 3
+                }
+//                it.menuItem.category
+
+
+            }.toSortedMap()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             val orderItemsText = itemsMap.map { (_, orderItems) ->
@@ -51,14 +97,14 @@ class WorkOrderWriter(private val orders: List<Order>, private val configuration
         }
     }
 
-    companion object : ReceiptWriter {
+    companion object : Writer {
 
         override fun writeToPrinter(
             orders: List<Order>,
             printer: Printer,
             configuration: Configuration
         ) {
-            WorkOrderWriter(orders, configuration).writeTo(printer)
+            KitchenWriter(orders, configuration).writeTo(printer)
         }
     }
 }

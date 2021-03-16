@@ -44,14 +44,17 @@ class OrderAdapter(context: Context) : BaseAdapter() {
     fun add(addItem: MenuItemUS) {
         var found = false
         for (existingItem in orderList) {
-            if(addItem.name == existingItem.menuItem.name && existingItem.comment == "") {
+            if (addItem.code == existingItem.menuItem.code &&
+                addItem.category == existingItem.menuItem.category &&
+                existingItem.comment == ""
+            ) {
                 existingItem.quantity++
                 println("increasing! ${existingItem.quantity}")
                 found = true
                 break
             }
         }
-        if(!found)
+        if (!found)
             orderList.add(RegularOrderItem(addItem))
         else
             orderList[0].increment()
@@ -61,18 +64,6 @@ class OrderAdapter(context: Context) : BaseAdapter() {
     fun clear() {
         orderList.clear()
         updateAll()
-    }
-
-    fun lastItemCostMultiplier(percentCost: Float) {
-        if (orderList.size > 0) {
-            val lastOrder = orderList.last()
-            if (percentCost == -1f)
-                lastOrder.comment = "Refund"
-            else
-                lastOrder.comment = "Discount ${Math.round(100 - percentCost * 100)}%"
-            lastOrder.priceMultiplier = percentCost
-            updateAll()
-        }
     }
 
     private fun updateAll() {

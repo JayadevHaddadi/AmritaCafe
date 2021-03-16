@@ -8,8 +8,8 @@ import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.*
-import edu.amrita.amritacafe.printer.writer.ReceiptWriterImpl
-import edu.amrita.amritacafe.printer.writer.WorkOrderWriter
+import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.android.synthetic.main.item_history.view.*
@@ -56,7 +56,7 @@ class HistoryAdapter(
                 view.kitchen_progress.visibility = View.VISIBLE
                 val receiptPrintDispatch = ReceiptDispatch(
                     configuration.kitchenPrinterConnStr,
-                    WorkOrderWriter,
+                    KitchenWriter,
                     configuration,
                     //TODO: RUN ON UI THREAD ISSUE
                     object : PrintStatusListener {
@@ -89,7 +89,7 @@ class HistoryAdapter(
                 view.receipt_progress.visibility = View.VISIBLE
                 val receiptPrintDispatch = ReceiptDispatch(
                     configuration.receiptPrinterConnStr,
-                    ReceiptWriterImpl,
+                    ReceiptWriter,
                     configuration,
                     object : PrintStatusListener {
                         override fun printComplete(status: PrintDispatchResponse) {

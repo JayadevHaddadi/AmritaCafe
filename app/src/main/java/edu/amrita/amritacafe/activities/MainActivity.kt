@@ -53,10 +53,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
     private var currentOrderNumber = 0
-    private var sessionCash = 0f
-    private var sessionCredit = 0f
-    private var sessionRefund = 0f
-    private var sessionDiscount = 0f
     private var currentOrderSum = 0f
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -100,10 +96,7 @@ class MainActivity : AppCompatActivity() {
         order_ListView.adapter = orderAdapter
 
         order_button.setOnClickListener {
-            val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
-            val orders = listOf(order)
-
-                printOrder(orders) // just for testing history
+                printOrder() // just for testing history
         }
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
@@ -134,34 +127,6 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
         runOnUiThread { menuGridView.adapter = menuAdapter }
-    }
-
-    private fun finishOrder(cash: Boolean = false) {
-        currentHistoryFile.appendText("Order: $currentOrderNumber\n")
-        var orderDiscount = 0f
-        var orderRefund = 0f
-        for (item in orderAdapter.orderItems) {
-            orderDiscount += item.discount
-            orderRefund += item.refund
-            currentHistoryFile.appendText(
-                "${item.quantity} ${item.menuItem.name}: ${item.finalPrice}$" +
-                        "${if (item.comment.length > 0) " (" + item.comment + ")" else ""}\n"
-            )
-        }
-        currentHistoryFile.appendText("Order   total: ${currentOrderSum}$ ${if (cash) "cash" else "credit"}\n")
-        if (cash)
-            sessionCash += currentOrderSum
-        else
-            sessionCredit += currentOrderSum
-
-        sessionRefund += orderRefund
-        sessionDiscount += orderDiscount
-        currentHistoryFile.appendText("Session Discount: ${sessionDiscount}$, Refund: ${sessionRefund}$\n")
-        currentHistoryFile.appendText("Session total: ${sessionCash}$ cash, ${sessionCredit}$ credit\n\n")
-
-        println("Text in file : \n" + currentHistoryFile.readText())
-
-        startNewOrder()
     }
 
     private fun makeToast(text: String) {
@@ -235,13 +200,14 @@ class MainActivity : AppCompatActivity() {
     private fun startNewOrder() {
         GlobalScope.launch {
             println("New order, printMode: $modeAmritapuri")
+            val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
+            storeOrders(order)
+
             if (modeAmritapuri)
                 currentOrderNumber = orderNumberService.next()
             else
                 currentOrderNumber++
 
-            val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
-            storeOrders(order)
 
             runOnUiThread {
                 orderAdapter.clear()
@@ -252,7 +218,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var currentDialog: AlertDialog
 
-    private fun printOrder(orders: List<Order>) {
+    private fun printOrder() {
+        val order = Order(currentOrderNumber, orderAdapter.orderItems.toList())
+//        val orders = listOf(order)
+
+        val orders = Order(currentOrderNumber, orderAdapter.orderItems)
+            .collectToppings().split(orderNumberService)
+
         val (dialog, view) = printerDialog()
         currentDialog = dialog
 

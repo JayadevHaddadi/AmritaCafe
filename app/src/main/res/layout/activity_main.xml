@@ -4,8 +4,10 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/amma_mysore_small"
+        android:background="@color/white"
         tools:context=".activities.MainActivity">
+
+<!--    android:background="@drawable/amma_mysore_small"-->
 
     <LinearLayout
             android:id="@+id/title"

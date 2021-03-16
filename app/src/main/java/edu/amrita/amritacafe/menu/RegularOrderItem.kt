@@ -9,20 +9,17 @@ data class RegularOrderItem(
     var priceMultiplier: Float = 1f,
     val id: UUID = UUID.randomUUID()
 ) {
-    val discount: Float by lazy {
-        if (priceMultiplier < 1f && priceMultiplier > -1f) (originalPrice * priceMultiplier) else 0f
-    }
-
-    val refund: Float by lazy {
-        if (priceMultiplier == -1f) (originalPrice * priceMultiplier) else 0f
-    }
-
     val finalPrice: Float by lazy {
         originalPrice * priceMultiplier
     }
 
     val originalPrice: Float by lazy {
         quantity * menuItem.price
+    }
+
+    val code: String by lazy {
+//        (if(menuItem.category.equals(TOPPING,true)) " + " else "") +
+         menuItem.code
     }
 
     fun editComment(newComment: String) = copy(comment = newComment)
