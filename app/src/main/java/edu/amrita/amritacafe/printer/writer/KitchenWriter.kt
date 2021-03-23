@@ -21,16 +21,27 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
                     ""
                 } else {
                     "\n  * ${orderItem.comment}"
+                } +
+
+                if (orderItem.toppings.isNotEmpty()) {
+                    "\n" + orderItem.toppings.joinToString("\n") {
+                        if (it.quantity == 1) {
+                            "  "
+                        } else {
+                            it.quantity.toString().padEnd(2)
+                        }  + it.menuItem.code //+ "+ "
+                    }
+                } else {
+                    ""
                 }
+
 
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         orders.forEach { (orderNumber, itemList, time) ->
 
             val orderItemsText =
-                itemList.map {
-                    printItem(it)
-                }.joinToString("\n")
+                itemList.map (::writeLine).joinToString("\n")
             val itemCount =
                 itemList.map { 1 }.sum()
 

@@ -1,21 +1,17 @@
 package edu.amrita.amritacafe.menu
 
-import java.util.*
-
 data class RegularOrderItem(
     val menuItem: MenuItemUS,
     var quantity: Int = 1,
     var comment: String = "",
-    var priceMultiplier: Float = 1f,
-    var toppings: MutableList<RegularOrderItem> = mutableListOf(),
-    val id: UUID = UUID.randomUUID()
+    var toppings: MutableList<RegularOrderItem> = mutableListOf()
 ) {
     val finalPrice: Float by lazy {
-        originalPrice * priceMultiplier
+        quantity * menuItem.price
     }
 
-    val originalPrice: Float by lazy {
-        quantity * menuItem.price
+    val priceWithToppings: Float by lazy {
+        finalPrice + if (toppings.isEmpty()) 0f else toppings.map { it.finalPrice }.sum()
     }
 
     val code: String by lazy {
