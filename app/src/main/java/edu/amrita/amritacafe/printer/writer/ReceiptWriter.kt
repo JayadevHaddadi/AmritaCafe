@@ -56,7 +56,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
     private fun orderItemsText(orderItems: List<RegularOrderItem>) =
         orderItems.joinToString("\n") {
             "${it.quantity} ${it.code}".padEnd(17) +
-                    it.finalPrice.toString().padStart(3) +
+                    it.priceWithoutToppings.toString().padStart(3) +
                     if (it.comment.isBlank()) ""
                     else {
                         "\n * ${it.comment}"
@@ -64,7 +64,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
                     if (it.toppings.isNotEmpty()) {
                         "\n" + it.toppings.joinToString("\n") { topp ->
                             "${topp.quantity} ${topp.code}".padEnd(17) +
-                                    topp.finalPrice.toString().padStart(3) +
+                                    topp.priceWithoutToppings.toString().padStart(3) +
                                     if (topp.comment.isBlank()) ""
                                     else {
                                         "\n * ${topp.comment}"

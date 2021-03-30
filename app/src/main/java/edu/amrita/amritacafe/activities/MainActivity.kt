@@ -41,13 +41,12 @@ fun String.capitalizeWords(): String =
 class MainActivity : AppCompatActivity() {
     private lateinit var allCurrentCategories: MutableList<String>
     private var myToast: Toast? = null
-    private lateinit var tabletName: String
 
+    private lateinit var tabletName: String
     private lateinit var menuAdapter: MenuAdapter
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
-    private var currentOrderSum = 0f
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         println("Unique device: $androidId")
         tabletName = when (androidId) {
             "f6ec19ab2b07a2f2" -> "Siva"
-            "cb41899147fbbee7" -> "Amma"
+            "b3f76281fb4a42aa" -> "Amma"
             "3ebd272118138401" -> "Kali"
             "9dc83032a79a71a8" -> "Krishna"
             "c001d62ed3579582" -> "Shani"
@@ -80,8 +79,7 @@ class MainActivity : AppCompatActivity() {
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
-            currentOrderSum = orderAdapter.orderItems.map { it.finalPrice }.sum()
-            total_cost_TV.text = currentOrderSum.toString()
+            total_cost_TV.text = orderAdapter.orderItems.map { it.priceWithoutToppings }.sum().toString()
         }
 
         order_ListView.adapter = orderAdapter
@@ -184,6 +182,7 @@ class MainActivity : AppCompatActivity() {
                 for (i in pos downTo 0) {
                     if (orderItemsCopy[i].menuItem.category != TOPPING) {
                         orderItemsCopy[i].addTopping(it)
+                        break
                     }
                 }
             }
@@ -365,5 +364,9 @@ class MainActivity : AppCompatActivity() {
             currentDialog.dismiss()
         }
         startNewOrder()
+    }
+
+    fun deleteOrder(view: View) {
+        orderAdapter.clear()
     }
 }

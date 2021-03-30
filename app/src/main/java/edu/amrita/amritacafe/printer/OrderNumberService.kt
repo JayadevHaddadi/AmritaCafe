@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.withLock
 
 class OrderNumberService(private val preferences: SharedPreferences) {
     var currentOrderNumber
-        get() = preferences.getInt(LAST_ORDER_NUMBER, 0)
+        get() = preferences.getInt(LAST_ORDER_NUMBER, 1)
         set(value) {
             preferences.edit {
                 putInt(LAST_ORDER_NUMBER, value)

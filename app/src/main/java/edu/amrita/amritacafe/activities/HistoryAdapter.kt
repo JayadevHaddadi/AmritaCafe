@@ -30,7 +30,7 @@ class HistoryAdapter(
                 println("order: ${item.menuItem.name}")
                 orderText.append(
                     "${item.quantity} ${item.menuItem.code}".padEnd(17) +
-                            item.finalPrice.toString().padStart(3) +
+                            item.priceWithoutToppings.toString().padStart(3) +
                             if (item.comment.isBlank()) "\n"
                             else "\n * ${item.comment}\n"
                 )

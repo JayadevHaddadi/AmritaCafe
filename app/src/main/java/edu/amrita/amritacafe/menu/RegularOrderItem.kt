@@ -6,12 +6,12 @@ data class RegularOrderItem(
     var comment: String = "",
     var toppings: MutableList<RegularOrderItem> = mutableListOf()
 ) {
-    val finalPrice: Float by lazy {
-        quantity * menuItem.price
+    val priceWithoutToppings: Int by lazy {
+        (quantity * menuItem.price).toInt()
     }
 
-    val priceWithToppings: Float by lazy {
-        finalPrice + if (toppings.isEmpty()) 0f else toppings.map { it.finalPrice }.sum()
+    val priceWithToppings: Int by lazy {
+        priceWithoutToppings + if (toppings.isEmpty()) 0 else toppings.map { it.priceWithoutToppings }.sum()
     }
 
     val code: String by lazy {

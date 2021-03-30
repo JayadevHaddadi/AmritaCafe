@@ -117,7 +117,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             orderList[position].let { orderItem ->
                 label.text = orderItem.menuItem.code
                 amount_TV.text = orderItem.quantity.toString()
-                price_TV.text = orderItem.finalPrice.toString()
+                price_TV.text = orderItem.priceWithoutToppings.toString()
                 comment_ET.setText(orderItem.comment)
                 comment_ET.visibility =
                     if (orderItem.comment.isNotBlank()) View.VISIBLE

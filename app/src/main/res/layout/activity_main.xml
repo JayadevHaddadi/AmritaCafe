@@ -98,16 +98,18 @@
             app:layout_constraintVertical_bias="0.0"
             tools:listitem="@layout/item_menu"/>
 
-    <!--    <ImageButton-->
-    <!--            android:id="@+id/button_cancel"-->
-    <!--            android:layout_marginLeft="4dp"-->
-    <!--            android:layout_width="68dp"-->
-    <!--            android:layout_height="79dp"-->
-    <!--            android:background="#C2C2C2"-->
-    <!--            app:layout_constraintBottom_toBottomOf="@+id/order_button"-->
-    <!--            app:layout_constraintStart_toStartOf="parent"-->
-    <!--            app:layout_constraintTop_toTopOf="@+id/order_button"-->
-    <!--            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />-->
+        <ImageButton
+                android:id="@+id/button_cancel"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:layout_width="60dp"
+                android:layout_height="0dp"
+                android:onClick="deleteOrder"
+                android:background="@drawable/background_payment"
+                app:layout_constraintBottom_toBottomOf="@+id/order_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/order_button"
+                app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -214,9 +216,10 @@
             android:id="@+id/order_button"
             android:layout_width="0dp"
             android:layout_height="70dp"
-            android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
+            android:layout_marginStart="4dp"
             android:layout_marginBottom="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/background_payment"
             android:text="Order"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -225,7 +228,9 @@
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/history_button"
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/button_cancel"
+            android:layout_marginLeft="4dp" />
 
     <Button
             android:id="@+id/history_button"
@@ -233,6 +238,7 @@
             android:layout_height="50dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
             android:background="@drawable/background_other_buttons"
             android:onClick="openHistoryDialog"
             android:text="Order History"
