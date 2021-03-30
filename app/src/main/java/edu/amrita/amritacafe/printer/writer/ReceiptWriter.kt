@@ -15,7 +15,31 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
         ) {
             ReceiptWriter(orders, configuration).writeToPrinter(printer)
         }
+
+        fun orderItemsText(orderItems: List<RegularOrderItem>) =
+            orderItems.joinToString("\n") {
+                "${it.quantity} ${it.code}".padEnd(17) +
+                        it.priceWithoutToppings.toString().padStart(3) +
+                        if (it.comment.isBlank()) ""
+                        else {
+                            "\n * ${it.comment}"
+                        } +
+                        if (it.toppings.isNotEmpty()) {
+                            "\n" + it.toppings.joinToString("\n") { topp ->
+                                "${topp.quantity} ${topp.code}".padEnd(17) +
+                                        topp.priceWithoutToppings.toString().padStart(3) +
+                                        if (topp.comment.isBlank()) ""
+                                        else {
+                                            "\n * ${topp.comment}"
+                                        }
+//                            topp.quantity.toString().padEnd(2) + topp.menuItem.code //+ "+ "
+                            }
+                        } else {
+                            ""
+                        }
+            }
     }
+
 
     private fun writeToPrinter(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
@@ -55,28 +79,28 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
         }
     }
 
-    private fun orderItemsText(orderItems: List<RegularOrderItem>) =
-        orderItems.joinToString("\n") {
-            "${it.quantity} ${it.code}".padEnd(17) +
-                    it.priceWithoutToppings.toString().padStart(3) +
-                    if (it.comment.isBlank()) ""
-                    else {
-                        "\n * ${it.comment}"
-                    } +
-                    if (it.toppings.isNotEmpty()) {
-                        "\n" + it.toppings.joinToString("\n") { topp ->
-                            "${topp.quantity} ${topp.code}".padEnd(17) +
-                                    topp.priceWithoutToppings.toString().padStart(3) +
-                                    if (topp.comment.isBlank()) ""
-                                    else {
-                                        "\n * ${topp.comment}"
-                                    }
-//                            topp.quantity.toString().padEnd(2) + topp.menuItem.code //+ "+ "
-                        }
-                    } else {
-                        ""
-                    }
-        }
+//    private fun orderItemsText(orderItems: List<RegularOrderItem>) =
+//        orderItems.joinToString("\n") {
+//            "${it.quantity} ${it.code}".padEnd(17) +
+//                    it.priceWithoutToppings.toString().padStart(3) +
+//                    if (it.comment.isBlank()) ""
+//                    else {
+//                        "\n * ${it.comment}"
+//                    } +
+//                    if (it.toppings.isNotEmpty()) {
+//                        "\n" + it.toppings.joinToString("\n") { topp ->
+//                            "${topp.quantity} ${topp.code}".padEnd(17) +
+//                                    topp.priceWithoutToppings.toString().padStart(3) +
+//                                    if (topp.comment.isBlank()) ""
+//                                    else {
+//                                        "\n * ${topp.comment}"
+//                                    }
+////                            topp.quantity.toString().padEnd(2) + topp.menuItem.code //+ "+ "
+//                        }
+//                    } else {
+//                        ""
+//                    }
+//        }
 
 //    private fun orderItemsText2(orderItems: List<OrderItem>) =
 //        orderItems.joinToString("\n") {

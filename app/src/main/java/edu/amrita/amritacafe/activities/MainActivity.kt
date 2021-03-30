@@ -354,9 +354,14 @@ class MainActivity : AppCompatActivity() {
                     .to(view)
             }
 
-        root.history_RV.layoutManager = LinearLayoutManager(this)
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.reverseLayout = true
+        root.history_RV.layoutManager =layoutManager
+
         val historyAdapter = HistoryAdapter(orderHistory, configuration)
         root.history_RV.adapter = historyAdapter
+        root.history_RV.scrollToPosition(orderHistory.size-1)
+//        historyAdapter.scroll
     }
 
     fun nextOrder(view: View) {

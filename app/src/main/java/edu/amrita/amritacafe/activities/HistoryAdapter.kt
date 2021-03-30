@@ -8,8 +8,8 @@ import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.*
-import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
+import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.android.synthetic.main.item_history.view.*
@@ -24,18 +24,19 @@ class HistoryAdapter(
             view.history_time_TV.text = order.orderTime
             view.history_order_nr_TV.text = order.orderNumber.toString()
 
-            val orderText = StringBuffer()
-            println("size: ${order.orderItems.size}")
-            for (item in order.orderItems) {
-                println("order: ${item.menuItem.name}")
-                orderText.append(
-                    "${item.quantity} ${item.menuItem.code}".padEnd(17) +
-                            item.priceWithoutToppings.toString().padStart(3) +
-                            if (item.comment.isBlank()) "\n"
-                            else "\n * ${item.comment}\n"
-                )
-            }
-            view.history_order_TV.text = orderText.toString()
+//            val orderText = StringBuffer()
+//            println("size: ${order.orderItems.size}")
+//
+//            for (item in order.orderItems) {
+//                println("order: ${item.menuItem.name}")
+//                orderText.append(
+//                    "${item.quantity} ${item.menuItem.code}".padEnd(17) +
+//                            item.priceWithoutToppings.toString().padStart(3) +
+//                            if (item.comment.isBlank()) "\n"
+//                            else "\n * ${item.comment}\n"
+//                )
+//            }
+            view.history_order_TV.text = ReceiptWriter.orderItemsText(order.orderItems)//orderText.toString()
 
             view.kitchen_progress.visibility = View.INVISIBLE
             view.image_kitchen_error.visibility = View.INVISIBLE
