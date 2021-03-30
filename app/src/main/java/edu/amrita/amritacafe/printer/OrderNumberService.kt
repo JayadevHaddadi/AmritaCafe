@@ -16,7 +16,7 @@ class OrderNumberService(private val preferences: SharedPreferences) {
         }
 
     suspend fun next() = mutex.withLock {
-        currentOrderNumber = currentOrderNumber + 1
+        currentOrderNumber = (currentOrderNumber + 1) % 1000
         currentOrderNumber
     }
 

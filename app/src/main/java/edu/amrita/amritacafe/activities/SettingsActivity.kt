@@ -32,8 +32,8 @@ class SettingsActivity : AppCompatActivity() {
 //        val kitchenIP = pref.getString(IP_KITCEN_PRINTER, "192.168.0.11")
 //        val receiptIP = pref.getString(IP_RECEIPT_PRINTER,
 //        )
-        receipt_ip_ET.setText(configuration.receiptPrinterConnStr)
-        kitchen_ip_ET.setText(configuration.kitchenPrinterConnStr)
+        receipt_ip_ET.setText(configuration.receiptPrinterIP)
+        kitchen_ip_ET.setText(configuration.kitchenPrinterIP)
 
         val column = pref.getString(COLUMN_NUMBER_RANGE, "10")
         column_numbers_ET.setText(column)
@@ -45,6 +45,11 @@ class SettingsActivity : AppCompatActivity() {
             configuration.isBreakfastTime = isBreakfastTime
             loadCurrentMenu()
         }
+
+        testingCheckBox.isChecked = configuration.testing
+        testingCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
+            configuration.testing = isChecked
+        }
     }
 
     fun loadCurrentMenu() {
@@ -54,10 +59,22 @@ class SettingsActivity : AppCompatActivity() {
         menu_ET.setText(br.readText())
     }
 
+//    override fun onResume() {
+//        super.onResume()
+//
+//
+//        menu_ET.hideKeyboard()
+//    }
+//
+//    fun View.hideKeyboard() {
+//        val inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+//        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
+//    }
+
     override fun onStop() {
         super.onStop()
-        configuration.kitchenPrinterConnStr = kitchen_ip_ET.text.toString()
-        configuration.receiptPrinterConnStr = receipt_ip_ET.text.toString()
+        configuration.kitchenPrinterIP = kitchen_ip_ET.text.toString()
+        configuration.receiptPrinterIP = receipt_ip_ET.text.toString()
 //        val edit = pref.edit()
 //        edit.putString(IP_RECEIPT_PRINTER, receipt_ip_ET.text.toString())
 //        edit.putString(IP_KITCEN_PRINTER, kitchen_ip_ET.text.toString())

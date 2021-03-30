@@ -47,7 +47,10 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
 
             printer.addTextSize(titleSize, titleSize)
             //total length of this size is 16
-            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
+//            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
+            val orderNumStr = orderNumber.toString().padStart(3, '0')
+            printer.addText("$orderNumStr        $time")
+
             printer.addFeedLine(lineFeed)
             printer.addHLine(1, 2400, Printer.LINE_THICK_DOUBLE)
 

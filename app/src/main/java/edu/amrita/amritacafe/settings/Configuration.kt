@@ -17,7 +17,13 @@ data class Configuration(private val preferences: SharedPreferences) {
             }
         }
 
-    val testing get() = preferences.getBoolean(TESTING, false)
+    var testing
+        get() = preferences.getBoolean(TESTING, false)
+        set(value) {
+            preferences.edit {
+                putBoolean(TESTING, value)
+            }
+        }
 
     val textConfig
         get() = if (testing) {
@@ -35,29 +41,28 @@ data class Configuration(private val preferences: SharedPreferences) {
 
     val showMenuItemNames get() = preferences.getBoolean(SHOW_FULL_NAMES, false)
 
-    var receiptPrinterConnStr
-        get() = "TCP:" + preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.102")!!
+    val receiptPrinterConnStr
+        get() = "TCP:" + receiptPrinterIP
+
+    var receiptPrinterIP
+        get() = preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.102")!!
         set(value) {
-            preferences.edit().putString(IP_RECEIPT_PRINTER, value)
+            preferences.edit().putString(IP_RECEIPT_PRINTER, value).apply()
         }
 
-    var kitchenPrinterConnStr
-        get() = "TCP:" + preferences.getString(IP_KITCEN_PRINTER, "192.168.0.11")!!
+    val kitchenPrinterConnStr
+        get() = "TCP:" + kitchenPrinterIP
+
+    var kitchenPrinterIP
+        get() = preferences.getString(IP_KITCEN_PRINTER, "192.168.0.11")!!
         set(value) {
-            preferences.edit().putString(IP_KITCEN_PRINTER, value)
+            preferences.edit().putString(IP_KITCEN_PRINTER, value).apply()
         }
 
     companion object {
-        const val MENU_US_KEY = "menu_us_key"
-        const val USERS_KEY = "users_json"
         const val SHOW_FULL_NAMES = "show_names"
-        const val MENU_RESET = "menu_reset"
-        const val MENU_JSON = "menu_json"
-        const val UPDATE_NOW = "update_now"
         const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
-        const val MEAL = "meal"
-        const val ORDER_NUMBER_RANGE = "order_number_range"
         const val COLUMN_NUMBER_RANGE = "column_number_range"
         const val TESTING = "testing"
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
