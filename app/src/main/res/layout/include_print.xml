@@ -83,7 +83,7 @@
             tools:visibility="visible" />
 
     <ImageView
-            android:id="@+id/image_kitchen_done"
+            android:id="@+id/kitchen_done"
             android:layout_width="50dp"
             android:layout_height="45dp"
             android:visibility="invisible"
@@ -94,7 +94,7 @@
             tools:visibility="visible" />
 
     <ImageView
-            android:id="@+id/image_receipt_done"
+            android:id="@+id/receipt_done"
             android:layout_width="50dp"
             android:layout_height="46dp"
             android:visibility="invisible"
@@ -106,17 +106,17 @@
             tools:visibility="visible" />
 
     <ImageView
-            android:id="@+id/image_kitchen_error"
+            android:id="@+id/kitchen_error"
             android:layout_width="48dp"
             android:layout_height="46dp"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/textView7"
-            app:layout_constraintStart_toStartOf="@+id/image_kitchen_done"
+            app:layout_constraintStart_toStartOf="@+id/kitchen_done"
             app:layout_constraintTop_toTopOf="@+id/textView7"
             app:srcCompat="@drawable/ic_error_black_24dp" />
 
     <ImageView
-            android:id="@+id/image_receipt_error"
+            android:id="@+id/receipt_error"
             android:layout_width="48dp"
             android:layout_height="46dp"
             android:layout_marginStart="8dp"

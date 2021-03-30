@@ -1,7 +1,7 @@
 package edu.amrita.amritacafe.menu
 
 data class RegularOrderItem(
-    val menuItem: MenuItemUS,
+    val menuItem: MenuItem,
     var quantity: Int = 1,
     var comment: String = "",
     var toppings: MutableList<RegularOrderItem> = mutableListOf()

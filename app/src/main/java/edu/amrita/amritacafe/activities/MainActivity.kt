@@ -18,9 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.*
-import edu.amrita.amritacafe.model.MenuAdapter
-import edu.amrita.amritacafe.model.Order
-import edu.amrita.amritacafe.model.OrderAdapter
+import edu.amrita.amritacafe.model.*
 import edu.amrita.amritacafe.printer.ErrorStatus
 import edu.amrita.amritacafe.printer.OrderNumberService
 import edu.amrita.amritacafe.printer.PrintFailed
@@ -47,6 +45,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
+
+    private val orderHistory = mutableListOf<HistoricalOrder>()
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +79,8 @@ class MainActivity : AppCompatActivity() {
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
-            total_cost_TV.text = orderAdapter.orderItems.map { it.priceWithoutToppings }.sum().toString()
+            total_cost_TV.text =
+                orderAdapter.orderItems.map { it.priceWithoutToppings }.sum().toString()
         }
 
         order_ListView.adapter = orderAdapter
@@ -90,7 +91,7 @@ class MainActivity : AppCompatActivity() {
 
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
-                is MenuItemUS -> {
+                is MenuItem -> {
                     orderAdapter.add(menuItem)
                 }
             }
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity() {
         configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
         createDefualtFilesIfNecessary()
-        loadAmritapuriMenu() //will load on resume
+        loadMenu() //will load on resume
 
         order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
 
@@ -121,13 +122,7 @@ class MainActivity : AppCompatActivity() {
 //        }
     }
 
-    private val orderHistory = mutableListOf<Order>()
-
-    private fun storeOrders(order: Order) {
-        orderHistory.add(order)
-    }
-
-    private fun setMenuAdapter(menu: List<MenuItemUS>) {
+    private fun setMenuAdapter(menu: List<MenuItem>) {
         menuAdapter =
             MenuAdapter(menu, applicationContext, configuration.showMenuItemNames) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
@@ -143,10 +138,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        loadAmritapuriMenu()
+        loadMenu()
     }
 
-    fun loadAmritapuriMenu() {
+    fun loadMenu() {
         val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
         val list = getListOfMenu(file)
 
@@ -216,12 +211,16 @@ class MainActivity : AppCompatActivity() {
             listOf(Order(orderNumberService.currentOrderNumber, orderList))
         }
 
+        val histories = mutableListOf<HistoricalOrder>()
+
         orders.forEach {
             it.orderItems = it.orderItems.sortedBy {
                 allCurrentCategories.indexOf(it.menuItem.category)
             }
 
-            storeOrders(it)
+            val historicalOrder = HistoricalOrder(it)
+            histories.add(historicalOrder)
+            orderHistory.add(historicalOrder)
         }
 
         val (dialog, view) = printerDialog()
@@ -231,46 +230,24 @@ class MainActivity : AppCompatActivity() {
             orders, configuration = configuration,
             listener = object : PrintService.PrintServiceListener {
                 override fun kitchenPrinterFinished() = runOnUiThread {
+                    histories.forEach {
+                        it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+                    }
                     view.run {
                         kitchen_progress.visibility = View.INVISIBLE
-                        image_kitchen_error.visibility = View.INVISIBLE
-                        image_kitchen_done.visibility = View.VISIBLE
+                        kitchen_error.visibility = View.INVISIBLE
+                        kitchen_done.visibility = View.VISIBLE
                         kitchen_retry_button.visibility = View.INVISIBLE
                     }
                 }
 
-                override fun receiptPrinterFinished() = runOnUiThread {
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        image_receipt_error.visibility = View.INVISIBLE
-                        image_receipt_done.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.INVISIBLE
-                    }
-                }
-
-                override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        image_receipt_error.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.VISIBLE
-                    }
-                }
-
-                override fun receiptPrinterError(
-                    errorStatus: ErrorStatus,
-                    exception: Epos2Exception
-                ) = runOnUiThread {
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        image_receipt_error.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.VISIBLE
-                    }
-                }
-
                 override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
+                    histories.forEach {
+                        it.KitchenPrinted = PrintStatus.FAILED_PRINT
+                    }
                     view.run {
                         kitchen_progress.visibility = View.INVISIBLE
-                        image_kitchen_error.visibility = View.VISIBLE
+                        kitchen_error.visibility = View.VISIBLE
                         kitchen_retry_button.visibility = View.VISIBLE
                     }
                 }
@@ -279,10 +256,50 @@ class MainActivity : AppCompatActivity() {
                     errorStatus: ErrorStatus,
                     exception: Epos2Exception
                 ) = runOnUiThread {
+                    histories.forEach {
+                        it.KitchenPrinted = PrintStatus.FAILED_PRINT
+                    }
                     view.run {
                         kitchen_progress.visibility = View.INVISIBLE
-                        image_kitchen_error.visibility = View.VISIBLE
+                        kitchen_error.visibility = View.VISIBLE
                         kitchen_retry_button.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun receiptPrinterFinished() = runOnUiThread {
+                    histories.forEach {
+                        it.RecipePrinted = PrintStatus.SUCCESS_PRINT
+                    }
+                    view.run {
+                        receipt_progress.visibility = View.INVISIBLE
+                        receipt_error.visibility = View.INVISIBLE
+                        receipt_done.visibility = View.VISIBLE
+                        receipt_retry_button.visibility = View.INVISIBLE
+                    }
+                }
+
+                override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
+                    histories.forEach {
+                        it.RecipePrinted = PrintStatus.FAILED_PRINT
+                    }
+                    view.run {
+                        receipt_progress.visibility = View.INVISIBLE
+                        receipt_error.visibility = View.VISIBLE
+                        receipt_retry_button.visibility = View.VISIBLE
+                    }
+                }
+
+                override fun receiptPrinterError(
+                    errorStatus: ErrorStatus,
+                    exception: Epos2Exception
+                ) = runOnUiThread {
+                    histories.forEach {
+                        it.RecipePrinted = PrintStatus.FAILED_PRINT
+                    }
+                    view.run {
+                        receipt_progress.visibility = View.INVISIBLE
+                        receipt_error.visibility = View.VISIBLE
+                        receipt_retry_button.visibility = View.VISIBLE
                     }
                 }
 
@@ -298,16 +315,22 @@ class MainActivity : AppCompatActivity() {
         printService.print()
 
         view.kitchen_retry_button.setOnClickListener {
+            histories.forEach {
+                it.KitchenPrinted = PrintStatus.PRINTING
+            }
             printService.retry()
             it.visibility = View.INVISIBLE
-            view.image_kitchen_error.visibility = View.INVISIBLE
+            view.kitchen_error.visibility = View.INVISIBLE
             view.kitchen_progress.visibility = View.VISIBLE
         }
 
         view.receipt_retry_button.setOnClickListener {
+            histories.forEach {
+                it.RecipePrinted = PrintStatus.PRINTING
+            }
             printService.retry()
             it.visibility = View.INVISIBLE
-            view.image_receipt_error.visibility = View.INVISIBLE
+            view.receipt_error.visibility = View.INVISIBLE
             view.receipt_progress.visibility = View.VISIBLE
         }
 
@@ -344,7 +367,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun openHistoryDialog(historyButton: View) {
-        makeToast("So many old orders: ${orderHistory.size}")
+//        makeToast("So many old orders: ${orderHistory.size}")
         val (dialog, root) =
             LayoutInflater.from(this).inflate(R.layout.dialog_history, null).let { view ->
                 AlertDialog.Builder(this)
@@ -355,13 +378,12 @@ class MainActivity : AppCompatActivity() {
             }
 
         val layoutManager = LinearLayoutManager(this)
-        layoutManager.reverseLayout = true
-        root.history_RV.layoutManager =layoutManager
+//        layoutManager.reverseLayout = true
+        root.history_RV.layoutManager = layoutManager
 
-        val historyAdapter = HistoryAdapter(orderHistory, configuration)
+        val historyAdapter = HistoryAdapter(orderHistory, configuration, this)
         root.history_RV.adapter = historyAdapter
-        root.history_RV.scrollToPosition(orderHistory.size-1)
-//        historyAdapter.scroll
+        root.history_RV.scrollToPosition(orderHistory.size - 1)
     }
 
     fun nextOrder(view: View) {

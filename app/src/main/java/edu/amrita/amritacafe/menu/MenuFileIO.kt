@@ -29,7 +29,7 @@ fun createDefualtFilesIfNecessary() {
 
 }
 
-public fun createMenuFileFromMenuList(file: File, list: List<MenuItemUS>) {
+public fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
     file.createNewFile()
     val fos = FileOutputStream(file, false)
     var category = ""
@@ -54,7 +54,7 @@ fun overrideFile(text: String, file: File, con: Context) {
     fos.close()
 }
 
-fun getListOfMenu(file: File): List<MenuItemUS> {
+fun getListOfMenu(file: File): List<MenuItem> {
 //    val fileInputStream = FileInputStream(file)
     val readLines = file.readText()
     val (_, list) = readMenuFromText(readLines)
@@ -78,10 +78,10 @@ fun saveIfValidText(text: String, context: Context, file: File): String {
 
 private fun readMenuFromText(
     allText: String
-): Pair<String, List<MenuItemUS>> {
+): Pair<String, List<MenuItem>> {
     val lineByLine = allText.split("\n")
 
-    val menu = mutableListOf<MenuItemUS>()
+    val menu = mutableListOf<MenuItem>()
 
     var category = ""
     var itemNr = 1
@@ -95,7 +95,7 @@ private fun readMenuFromText(
                 itemNr = 1
             } else
                 menu.add(
-                    MenuItemUS(
+                    MenuItem(
                         columns[0].capitalizeWords(),
                         columns[1].toUpperCase(),
                         columns[2].toFloat(),

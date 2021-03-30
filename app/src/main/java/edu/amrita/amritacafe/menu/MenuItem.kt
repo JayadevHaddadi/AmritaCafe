@@ -1,9 +1,6 @@
 package edu.amrita.amritacafe.menu
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class MenuItemUS(
+data class MenuItem(
     val name: String,
     val code: String,
     val price: Float,

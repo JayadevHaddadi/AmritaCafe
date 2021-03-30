@@ -14,11 +14,11 @@ import android.widget.BaseAdapter
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.MenuItemUS
+import edu.amrita.amritacafe.menu.MenuItem
 import kotlinx.android.synthetic.main.item_menu.view.*
 
 class MenuAdapter(
-    menu: List<MenuItemUS>,
+    menu: List<MenuItem>,
     private val context: Context,
     showFullName: Boolean,
     private val onChanged: () -> Unit
@@ -32,7 +32,7 @@ class MenuAdapter(
 
     private var menuItems: List<Any>
     private var colorMap: Map<String, Int>
-    private var menuItemDisplayNameHandler: (MenuItemUS) -> String = { "" }
+    private var menuItemDisplayNameHandler: (MenuItem) -> String = { "" }
 
     init {
         menu.groupBy {
@@ -88,7 +88,7 @@ class MenuAdapter(
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
                     name.text = menuItem
                 }
-                is MenuItemUS -> {
+                is MenuItem -> {
                     val color = colorMap.getValue(menuItem.category)
                     val lighten = color.lighten
                     (background as GradientDrawable).setStroke(3, color)

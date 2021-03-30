@@ -6,7 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.model.Order
+import edu.amrita.amritacafe.model.HistoricalOrder
+import edu.amrita.amritacafe.model.PrintStatus
 import edu.amrita.amritacafe.printer.*
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
@@ -15,77 +16,90 @@ import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.android.synthetic.main.item_history.view.*
 
 class HistoryAdapter(
-    val orders: MutableList<Order>,
-    val configuration: Configuration
+    val orders: MutableList<HistoricalOrder>,
+    val configuration: Configuration,
+    val mainActivity: MainActivity
 ) :
     RecyclerView.Adapter<HistoryAdapter.HistoryHolder>() {
     inner class HistoryHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(order: Order) {
-            view.history_time_TV.text = order.orderTime
-            view.history_order_nr_TV.text = order.orderNumber.toString()
+        fun bind(historicalOrder: HistoricalOrder) {
+            view.history_time_TV.text = historicalOrder.order.orderTime
+            view.history_order_nr_TV.text = historicalOrder.order.orderNumber.toString()
 
-//            val orderText = StringBuffer()
-//            println("size: ${order.orderItems.size}")
-//
-//            for (item in order.orderItems) {
-//                println("order: ${item.menuItem.name}")
-//                orderText.append(
-//                    "${item.quantity} ${item.menuItem.code}".padEnd(17) +
-//                            item.priceWithoutToppings.toString().padStart(3) +
-//                            if (item.comment.isBlank()) "\n"
-//                            else "\n * ${item.comment}\n"
-//                )
-//            }
-            view.history_order_TV.text = ReceiptWriter.orderItemsText(order.orderItems)//orderText.toString()
+            view.history_order_TV.text =
+                ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)//orderText.toString()
 
             view.kitchen_progress.visibility = View.INVISIBLE
-            view.image_kitchen_error.visibility = View.INVISIBLE
-            view.image_kitchen_done.visibility = View.INVISIBLE
+            view.kitchen_error.visibility = View.INVISIBLE
+            view.kitchen_done.visibility = View.INVISIBLE
             view.kitchen_retry_button.visibility = View.VISIBLE
 
             view.receipt_progress.visibility = View.INVISIBLE
-            view.image_receipt_error.visibility = View.INVISIBLE
-            view.image_receipt_done.visibility = View.INVISIBLE
+            view.receipt_error.visibility = View.INVISIBLE
+            view.receipt_done.visibility = View.INVISIBLE
             view.receipt_retry_button.visibility = View.VISIBLE
 
-            view.history_item_sum_TV.text = order.sum.toString()
+            when (historicalOrder.KitchenPrinted) {
+                PrintStatus.SUCCESS_PRINT -> view.kitchen_done.visibility = View.VISIBLE
+                PrintStatus.FAILED_PRINT -> view.kitchen_error.visibility = View.VISIBLE
+                PrintStatus.PRINTING -> view.kitchen_progress.visibility = View.VISIBLE
+            }
+            when (historicalOrder.RecipePrinted) {
+                PrintStatus.SUCCESS_PRINT -> view.receipt_done.visibility = View.VISIBLE
+                PrintStatus.FAILED_PRINT -> view.receipt_error.visibility = View.VISIBLE
+                PrintStatus.PRINTING -> view.receipt_progress.visibility = View.VISIBLE
+            }
+
+            view.history_item_sum_TV.text = historicalOrder.order.sum.toString()
 
             view.kitchen_retry_button.setOnClickListener {
-                view.image_kitchen_error.visibility = View.INVISIBLE
-                view.image_kitchen_done.visibility = View.INVISIBLE
+                view.kitchen_error.visibility = View.INVISIBLE
+                view.kitchen_done.visibility = View.INVISIBLE
                 view.kitchen_retry_button.visibility = View.VISIBLE
                 view.kitchen_progress.visibility = View.VISIBLE
-                val receiptPrintDispatch = ReceiptDispatch(
+                val printerDispatch = ReceiptDispatch(
                     configuration.kitchenPrinterConnStr,
                     KitchenWriter,
                     configuration,
                     //TODO: RUN ON UI THREAD ISSUE
                     object : PrintStatusListener {
                         override fun printComplete(status: PrintDispatchResponse) {
-//                            view.kitchen_progress.visibility = View.INVISIBLE
+                            mainActivity.runOnUiThread {
+                                view.kitchen_progress.visibility = View.INVISIBLE
+                            }
                             if (status is PrintSuccess) {
-                                Log.d("kitchen_retry_button","PrintSuccess")
-//                                view.image_kitchen_done.visibility = View.VISIBLE
+                                historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+                                Log.d("kitchen_retry_button", "PrintSuccess")
+                                mainActivity.runOnUiThread {
+                                    view.kitchen_done.visibility = View.VISIBLE
+                                }
                             } else if (status is PrintFailed) {
-                                Log.d("kitchen_retry_button","PrintFailed")
-//                                view.image_kitchen_error.visibility = View.VISIBLE
+                                historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
+                                mainActivity.runOnUiThread {
+                                    Log.d("kitchen_retry_button", "PrintFailed")
+                                    view.kitchen_error.visibility = View.VISIBLE
+                                }
                             }
                         }
 
                         override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
-//                            view.kitchen_progress.visibility = View.INVISIBLE
-                            Log.d("kitchen_retry_button","error")
-//                            view.image_kitchen_error.visibility = View.VISIBLE
+                            historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
+                            mainActivity.runOnUiThread {
+                                view.kitchen_progress.visibility = View.INVISIBLE
+                                Log.d("kitchen_retry_button", "error")
+                                view.kitchen_error.visibility = View.VISIBLE
+                            }
                         }
 
                     }
                 )
 
-                receiptPrintDispatch.dispatchPrint(listOf(order))
+                printerDispatch.dispatchPrint(listOf(historicalOrder.order))
             }
+
             view.receipt_retry_button.setOnClickListener {
-                view.image_receipt_error.visibility = View.INVISIBLE
-                view.image_receipt_done.visibility = View.INVISIBLE
+                view.receipt_error.visibility = View.INVISIBLE
+                view.receipt_done.visibility = View.INVISIBLE
                 view.receipt_retry_button.visibility = View.VISIBLE
                 view.receipt_progress.visibility = View.VISIBLE
                 val receiptPrintDispatch = ReceiptDispatch(
@@ -94,26 +108,36 @@ class HistoryAdapter(
                     configuration,
                     object : PrintStatusListener {
                         override fun printComplete(status: PrintDispatchResponse) {
-//                            view.receipt_progress.visibility = View.INVISIBLE
+                            mainActivity.runOnUiThread {
+                                view.receipt_progress.visibility = View.INVISIBLE
+                            }
                             if (status is PrintSuccess) {
-                                Log.d("receipt_retry_button","PrintSuccess")
-//                                view.image_receipt_done.visibility = View.VISIBLE
+                                historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
+                                Log.d("receipt_retry_button", "PrintSuccess")
+                                mainActivity.runOnUiThread {
+                                    view.receipt_done.visibility = View.VISIBLE
+                                }
                             } else if (status is PrintFailed) {
-                                Log.d("receipt_retry_button","PrintFailed")
-//                                view.image_receipt_error.visibility = View.VISIBLE
+                                historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
+                                Log.d("receipt_retry_button", "PrintFailed")
+                                mainActivity.runOnUiThread {
+                                    view.receipt_error.visibility = View.VISIBLE
+                                }
                             }
                         }
 
                         override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
-//                            view.receipt_progress.visibility = View.INVISIBLE
-                            Log.d("receipt_retry_button","error")
-//                            view.image_receipt_error.visibility = View.VISIBLE
+                            historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
+                            mainActivity.runOnUiThread {
+                                view.receipt_progress.visibility = View.INVISIBLE
+                                Log.d("receipt_retry_button", "error")
+                                view.receipt_error.visibility = View.VISIBLE
+                            }
                         }
-
                     }
                 )
 
-                receiptPrintDispatch.dispatchPrint(listOf(order))
+                receiptPrintDispatch.dispatchPrint(listOf(historicalOrder.order))
             }
         }
     }

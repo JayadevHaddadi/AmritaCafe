@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
 import edu.amrita.amritacafe.R
-import edu.amrita.amritacafe.menu.MenuItemUS
+import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import kotlinx.android.synthetic.main.item_order.view.*
 
@@ -41,7 +41,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         updateAll()
     }
 
-    fun add(addItem: MenuItemUS) {
+    fun add(addItem: MenuItem) {
         var found = false
         for (existingItem in orderList) {
             if (addItem.code == existingItem.menuItem.code &&
