@@ -19,7 +19,7 @@
 
     <EditText
             android:id="@+id/menu_ET"
-            android:layout_width="600dp"
+            android:layout_width="400dp"
             android:layout_height="0dp"
             android:inputType="textMultiLine"
             android:textSize="20sp"

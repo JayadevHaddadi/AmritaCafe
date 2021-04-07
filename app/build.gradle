@@ -24,20 +24,6 @@ android {
             // worked fine without x86, needed for emulator
         }
     }
-
-    flavorDimensions "version"
-    productFlavors {
-        tour {
-            dimension "version"
-//            applicationIdSuffix ".demo"
-//            versionNameSuffix "-demo"
-        }
-        amritapuri {
-            dimension "version"
-//            applicationIdSuffix ".full"
-//            versionNameSuffix "-full"
-        }
-    }
     signingConfigs {
         release {
             storePassword 'amrita'
@@ -46,18 +32,7 @@ android {
             storeFile file('../AmritaCafeKeyStore')
         }
     }
-    applicationVariants.all { variant ->
-        variant.resValue "string", "versionName", variant.versionName
-    }
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            debuggable true
-        }
-        debug {
-            signingConfig signingConfigs.release
-        }
-    }
+
     lintOptions {
         abortOnError false
     }
@@ -104,21 +79,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.preference:preference-ktx:1.1.1'
 
-    // something
-    implementation 'com.github.kittinunf.fuel:fuel:2.2.0'
-    implementation 'com.github.kittinunf.fuel:fuel-coroutines:2.2.0'
-    implementation 'com.github.kittinunf.fuel:fuel-kotlinx-serialization:2.1.0'
-
-    // for mail? i dont remember...
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.6'
-
     //multidex
-    implementation 'androidx.multidex:multidex:2.0.1'
-
-    // GSON json conversion
-    implementation 'com.google.code.gson:gson:2.8.6'
-
-//    security thingy
-    implementation 'org.conscrypt:conscrypt-android:2.4.0'
+//    implementation 'androidx.multidex:multidex:2.0.1'
 }
