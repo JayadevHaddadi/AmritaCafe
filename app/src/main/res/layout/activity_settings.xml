@@ -140,9 +140,9 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:text=" to "
-            app:layout_constraintBottom_toBottomOf="@+id/column_numbers_ET3"
-            app:layout_constraintEnd_toStartOf="@+id/column_numbers_ET3"
-            app:layout_constraintTop_toTopOf="@+id/column_numbers_ET3" />
+            app:layout_constraintBottom_toBottomOf="@+id/range_to_ET"
+            app:layout_constraintEnd_toStartOf="@+id/range_to_ET"
+            app:layout_constraintTop_toTopOf="@+id/range_to_ET" />
 
     <EditText
             android:id="@+id/column_numbers_ET"
@@ -157,7 +157,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textView22" />
 
     <EditText
-            android:id="@+id/column_numbers_ET3"
+            android:id="@+id/range_to_ET"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -170,13 +170,13 @@
             app:layout_constraintTop_toBottomOf="@+id/textView10" />
 
     <EditText
-            android:id="@+id/column_numbers_ET4"
+            android:id="@+id/range_from_ET"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:ems="10"
             android:layout_marginEnd="10dp"
-            android:text="001"
+            android:text="1"
             android:inputType="numberSigned"
             app:layout_constraintEnd_toStartOf="@+id/textView11"
             app:layout_constraintTop_toBottomOf="@+id/textView10"

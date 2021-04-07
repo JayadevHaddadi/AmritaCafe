@@ -49,15 +49,15 @@ android {
 //    applicationVariants.all { variant ->
 //        variant.resValue "string", "versionName", variant.versionName
 //    }
-//    buildTypes {
-//        release {
-//            signingConfig signingConfigs.release
-//            debuggable true
-//        }
-//        debug {
-//            signingConfig signingConfigs.release
-//        }
-//    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            debuggable true
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
     lintOptions {
         abortOnError false
     }

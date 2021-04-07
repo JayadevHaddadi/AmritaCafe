@@ -8,6 +8,7 @@ data class Configuration(private val preferences: SharedPreferences) {
 
     data class TextConfig(val titleSize: Int, val textSize: Int, val lineFeed: Int)
 
+
     var isBreakfastTime
         get() = preferences.getBoolean(IS_BREAKFAST_MENU_KEY, true)
         set(value) {
@@ -59,7 +60,23 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(IP_KITCEN_PRINTER, value).apply()
         }
 
+    var rangeFrom
+        get() = preferences.getInt(RANGE_FROM, RANGE_FROM_DEFAULT)
+        set(value) {
+            preferences.edit().putInt(RANGE_FROM, value).apply()
+        }
+
+    var rangeTo
+        get() = preferences.getInt(RANGE_TO, RANGE_TO_DEFAULT)
+        set(value) {
+            preferences.edit().putInt(RANGE_TO, value).apply()
+        }
+
     companion object {
+        const val RANGE_FROM_DEFAULT = 1
+        const val RANGE_TO_DEFAULT = 999
+        const val RANGE_FROM = "range from"
+        const val RANGE_TO = "range to"
         const val SHOW_FULL_NAMES = "show_names"
         const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"

@@ -106,8 +106,6 @@ class MainActivity : AppCompatActivity() {
         createDefualtFilesIfNecessary()
         loadMenu() //will load on resume
 
-        order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
-
         order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
                 Toast.makeText(this, order_number_ET.text, Toast.LENGTH_SHORT).show()
@@ -151,6 +149,9 @@ class MainActivity : AppCompatActivity() {
             if (!allCurrentCategories.contains(it.category))
                 allCurrentCategories.add(it.category)
         }
+
+        orderNumberService.updateRange()
+        order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
 
         setMenuAdapter(list)
     }

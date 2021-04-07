@@ -50,6 +50,9 @@ class SettingsActivity : AppCompatActivity() {
         testingCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
             configuration.testing = isChecked
         }
+
+        range_from_ET.setText(configuration.rangeFrom.toString())
+        range_to_ET.setText(configuration.rangeTo.toString())
     }
 
     fun loadCurrentMenu() {
@@ -75,6 +78,8 @@ class SettingsActivity : AppCompatActivity() {
         super.onStop()
         configuration.kitchenPrinterIP = kitchen_ip_ET.text.toString()
         configuration.receiptPrinterIP = receipt_ip_ET.text.toString()
+        configuration.rangeFrom = range_from_ET.text.toString().toInt()
+        configuration.rangeTo = range_to_ET.text.toString().toInt()
 //        val edit = pref.edit()
 //        edit.putString(IP_RECEIPT_PRINTER, receipt_ip_ET.text.toString())
 //        edit.putString(IP_KITCEN_PRINTER, kitchen_ip_ET.text.toString())
