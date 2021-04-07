@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#2196F3</color>
-    <color name="lightBlue">#C8E6C9</color>
     <color name="colorPrimaryDark">#D98FE6</color>
     <color name="colorAccent">#D81B60</color>
     <color name="black">#000000</color>
@@ -9,7 +8,6 @@
     <color name="best_pink">#D98FE6</color>
     <color name="best_pink_trans">#bbD98FE6</color>
     <color name="best_pink_dark">#E07AF3</color>
-    <color name="best_pink_dark_others">#E084F1</color>
     <color name="best_pink_very_dark">#BD51CF</color>
     <color name="transparent_white">#99FFFFFF</color>
 </resources>

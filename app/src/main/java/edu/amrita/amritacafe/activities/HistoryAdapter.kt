@@ -61,7 +61,6 @@ class HistoryAdapter(
                     configuration.kitchenPrinterConnStr,
                     KitchenWriter,
                     configuration,
-                    //TODO: RUN ON UI THREAD ISSUE
                     object : PrintStatusListener {
                         override fun printComplete(status: PrintDispatchResponse) {
                             mainActivity.runOnUiThread {
