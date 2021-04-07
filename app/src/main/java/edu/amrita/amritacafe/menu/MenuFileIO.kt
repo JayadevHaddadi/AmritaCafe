@@ -29,7 +29,7 @@ fun createDefualtFilesIfNecessary() {
 
 }
 
-public fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
+fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
     file.createNewFile()
     val fos = FileOutputStream(file, false)
     var category = ""
@@ -47,12 +47,12 @@ public fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
     fos.close()
 }
 
-fun overrideFile(text: String, file: File, con: Context) {
-//    file.createNewFile()
-    val fos = FileOutputStream(file, false)
-    fos.write(text.toByteArray())
-    fos.close()
-}
+//fun overrideFile(text: String, file: File, con: Context) {
+////    file.createNewFile()
+//    val fos = FileOutputStream(file, false)
+//    fos.write(text.toByteArray())
+//    fos.close()
+//}
 
 fun getListOfMenu(file: File): List<MenuItem> {
 //    val fileInputStream = FileInputStream(file)
