@@ -29,9 +29,7 @@ class SettingsActivity : AppCompatActivity() {
         pref.let { preferences ->
             configuration = Configuration(preferences)
         }
-//        val kitchenIP = pref.getString(IP_KITCEN_PRINTER, "192.168.0.11")
-//        val receiptIP = pref.getString(IP_RECEIPT_PRINTER,
-//        )
+
         receipt_ip_ET.setText(configuration.receiptPrinterIP)
         kitchen_ip_ET.setText(configuration.kitchenPrinterIP)
 
@@ -53,6 +51,8 @@ class SettingsActivity : AppCompatActivity() {
 
         range_from_ET.setText(configuration.rangeFrom.toString())
         range_to_ET.setText(configuration.rangeTo.toString())
+        column_numbers_ET.setText(configuration.columns.toString())
+
     }
 
     fun loadCurrentMenu() {
@@ -62,27 +62,13 @@ class SettingsActivity : AppCompatActivity() {
         menu_ET.setText(br.readText())
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//
-//
-//        menu_ET.hideKeyboard()
-//    }
-//
-//    fun View.hideKeyboard() {
-//        val inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-//        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
-//    }
-
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         configuration.kitchenPrinterIP = kitchen_ip_ET.text.toString()
         configuration.receiptPrinterIP = receipt_ip_ET.text.toString()
         configuration.rangeFrom = range_from_ET.text.toString().toInt()
         configuration.rangeTo = range_to_ET.text.toString().toInt()
-//        val edit = pref.edit()
-//        edit.putString(IP_RECEIPT_PRINTER, receipt_ip_ET.text.toString())
-//        edit.putString(IP_KITCEN_PRINTER, kitchen_ip_ET.text.toString())
+        configuration.columns = column_numbers_ET.text.toString().toInt()
     }
 
     fun saveSettings(view: View) {
@@ -94,9 +80,6 @@ class SettingsActivity : AppCompatActivity() {
             response,
             Toast.LENGTH_LONG
         ).show()
-
-//        if (response == "SUCCESS")
-//            overrideFile(menu_ET.text.toString(), file, applicationContext)
     }
 
     fun resetMenu(view: View) {

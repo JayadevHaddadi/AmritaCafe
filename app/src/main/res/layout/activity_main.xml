@@ -87,7 +87,7 @@
             android:clipToPadding="false"
             android:gravity="center_horizontal|center_vertical"
             android:horizontalSpacing="4dp"
-            android:numColumns="@integer/columns"
+            android:numColumns="11"
             android:paddingTop="4dp"
             android:verticalSpacing="4dp"
             app:layout_constraintBottom_toBottomOf="parent"

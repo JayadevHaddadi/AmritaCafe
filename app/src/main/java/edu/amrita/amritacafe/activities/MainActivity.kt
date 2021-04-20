@@ -121,8 +121,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setMenuAdapter(menu: List<MenuItem>) {
+        menuGridView.numColumns = configuration.columns
         menuAdapter =
-            MenuAdapter(menu, applicationContext, configuration.showMenuItemNames) {
+            MenuAdapter(menu, applicationContext, configuration.showMenuItemNames, configuration) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
         runOnUiThread { menuGridView.adapter = menuAdapter }

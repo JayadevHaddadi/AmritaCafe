@@ -25,19 +25,6 @@ android {
         }
     }
 
-//    flavorDimensions "version"
-//    productFlavors {
-//        tour {
-//            dimension "version"
-////            applicationIdSuffix ".demo"
-////            versionNameSuffix "-demo"
-//        }
-//        amritapuri {
-//            dimension "version"
-////            applicationIdSuffix ".full"
-////            versionNameSuffix "-full"
-//        }
-//    }
     signingConfigs {
         release {
             storePassword 'amrita'
@@ -46,9 +33,7 @@ android {
             storeFile file('../AmritaCafeKeyStore')
         }
     }
-//    applicationVariants.all { variant ->
-//        variant.resValue "string", "versionName", variant.versionName
-//    }
+
     buildTypes {
         release {
             signingConfig signingConfigs.release
@@ -58,6 +43,7 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
     lintOptions {
         abortOnError false
     }

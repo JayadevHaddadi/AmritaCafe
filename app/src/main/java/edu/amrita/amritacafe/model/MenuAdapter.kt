@@ -21,6 +21,7 @@ class MenuAdapter(
     menu: List<MenuItem>,
     private val context: Context,
     showFullName: Boolean,
+    private val configuration: edu.amrita.amritacafe.settings.Configuration,
     private val onChanged: () -> Unit
 ) : BaseAdapter() {
 
@@ -40,11 +41,11 @@ class MenuAdapter(
         }.let { menuByCategory ->
             val colors: TypedArray = context.resources.obtainTypedArray(R.array.colors)
             colorMap = menuByCategory.keys.mapIndexed { idx, cat ->
-                cat to colors.getColor(idx + 3, 0)
+                cat to colors.getColor(idx % colors.length(), 0)
             }.toMap()
 
             colors.recycle()
-            val columns = context.resources.getInteger(R.integer.columns)
+            val columns = configuration.columns
             menuItems = menuByCategory.map { (category, items) ->
                 listOf(category) + items.sortedBy(menuItemDisplayNameHandler) +
                         Array((columns - (items.size + 1) % columns) % columns) { Unit }
@@ -56,7 +57,7 @@ class MenuAdapter(
         return menuItems.size
     }
 
-    override fun getItem(position: Int): Any? {
+    override fun getItem(position: Int): Any {
         return menuItems[position]
     }
 
