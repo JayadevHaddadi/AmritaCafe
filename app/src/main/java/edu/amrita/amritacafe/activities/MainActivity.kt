@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startNewOrder() {
         GlobalScope.launch {
-            orderNumberService.next()
+//            orderNumberService.next()
 
             runOnUiThread {
                 orderAdapter.clear()
@@ -314,6 +314,14 @@ class MainActivity : AppCompatActivity() {
             })
 
         printService.print()
+        GlobalScope.launch {
+            orderNumberService.next()
+
+//            runOnUiThread {
+//                orderAdapter.clear()
+//                order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
+//            }
+        }
 
         view.kitchen_retry_button.setOnClickListener {
             histories.forEach {
@@ -343,7 +351,7 @@ class MainActivity : AppCompatActivity() {
         LayoutInflater.from(this).inflate(R.layout.dialog_print, null).let { view ->
             AlertDialog.Builder(this)
                 .setView(view)
-                .setCancelable(true)
+                .setCancelable(false)
 //                .setIcon(R.drawable.ic_print_black_24dp)
                 .show()
                 .apply {
