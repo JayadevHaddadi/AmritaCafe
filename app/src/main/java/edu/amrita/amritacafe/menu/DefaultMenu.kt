@@ -158,7 +158,7 @@ val DEFAULT_LUNCH_DINNER_MENU: List<MenuItem> = listOf(
     MenuItem("Mustard", "MRD", 10f, "Side"),
     MenuItem("Choco Spread", "CHOC", 15f, "Side"),
     MenuItem("Peanut Butter", "PB", 10f, "Side"),
-    MenuItem("Patty", "PATTY", 20f, "Side"),
+    MenuItem("Patty", "PATTY", 30f, "Side"),
     MenuItem("Cucumber", "CUKE", 10f, "Side"),
     MenuItem("Pesto", "PSTO", 30f, "Side"),
     MenuItem("Raw Egg", "RAW EGG", 15f, "Side"),

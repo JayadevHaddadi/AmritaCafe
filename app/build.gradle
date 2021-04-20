@@ -25,19 +25,19 @@ android {
         }
     }
 
-    flavorDimensions "version"
-    productFlavors {
-        tour {
-            dimension "version"
-//            applicationIdSuffix ".demo"
-//            versionNameSuffix "-demo"
-        }
-        amritapuri {
-            dimension "version"
-//            applicationIdSuffix ".full"
-//            versionNameSuffix "-full"
-        }
-    }
+//    flavorDimensions "version"
+//    productFlavors {
+//        tour {
+//            dimension "version"
+////            applicationIdSuffix ".demo"
+////            versionNameSuffix "-demo"
+//        }
+//        amritapuri {
+//            dimension "version"
+////            applicationIdSuffix ".full"
+////            versionNameSuffix "-full"
+//        }
+//    }
     signingConfigs {
         release {
             storePassword 'amrita'
