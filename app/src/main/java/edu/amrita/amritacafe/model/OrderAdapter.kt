@@ -11,6 +11,7 @@ import android.widget.BaseAdapter
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
+import edu.amrita.amritacafe.menu.TOPPING
 import kotlinx.android.synthetic.main.item_order.view.*
 
 
@@ -41,24 +42,42 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         updateAll()
     }
 
-    fun add(addItem: MenuItem) {
-        var found = false
-        for (existingItem in orderList) {
-            if (addItem.code == existingItem.menuItem.code &&
-                addItem.category == existingItem.menuItem.category &&
-                existingItem.comment == ""
-            ) {
-                existingItem.quantity++
-                println("increasing! ${existingItem.quantity}")
-                found = true
-                break
+    fun add(addItem: MenuItem): Int {
+        try {
+            var found = false
+
+            var listToCheck = orderList
+
+            if (addItem.category == TOPPING) {
+                listToCheck = listToCheck.subList(
+                    listToCheck.indexOfLast { it.menuItem.category != TOPPING },
+                    listToCheck.size
+                )
             }
+
+            for (existingItem in listToCheck) {
+                if (addItem.code == existingItem.menuItem.code &&
+                    addItem.category == existingItem.menuItem.category &&
+                    existingItem.comment == ""
+                ) {
+                    existingItem.quantity++
+                    println("increasing! ${existingItem.quantity}")
+                    found = true
+                    break
+                }
+            }
+
+            if (!found)
+                orderList.add(RegularOrderItem(addItem))
+            else
+                orderList[0].increment()
+
+            updateAll()
+            return 1;
         }
-        if (!found)
-            orderList.add(RegularOrderItem(addItem))
-        else
-            orderList[0].increment()
-        updateAll()
+        catch (e: Exception) {
+            return -1;
+        }
     }
 
     fun clear() {

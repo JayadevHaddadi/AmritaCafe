@@ -92,7 +92,10 @@ class MainActivity : AppCompatActivity() {
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
                 is MenuItem -> {
-                    orderAdapter.add(menuItem)
+                    if(orderAdapter.add(menuItem) == -1)
+                    {
+                        makeToast("Unsupported Action!")
+                    }
                 }
             }
         }
@@ -108,16 +111,13 @@ class MainActivity : AppCompatActivity() {
 
         order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                Toast.makeText(this, order_number_ET.text, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, , Toast.LENGTH_SHORT).show()
+                makeToast(order_number_ET.text.toString())
                 orderNumberService.currentOrderNumber = order_number_ET.text.toString().toInt()
                 return@OnKeyListener true
             }
             false
         })
-
-//        order_number_ET.doOnTextChanged { text, start, before, count ->
-//
-//        }
     }
 
     private fun setMenuAdapter(menu: List<MenuItem>) {
@@ -169,6 +169,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var currentDialog: AlertDialog
+
+    override fun onBackPressed() {
+        val builder = AlertDialog.Builder(this,R.style.DialogStyle)
+        builder.setTitle("Close Amrita Cafe?")
+        builder.setCancelable(true)
+
+        builder.setPositiveButton(android.R.string.yes) { dialog, which ->
+            super.onBackPressed()
+        }
+
+        builder.setNegativeButton(android.R.string.no) { dialog, which ->
+        }
+
+        builder.show()
+    }
 
     private fun printOrder() {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
