@@ -69,9 +69,7 @@ android {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs/']
         }
-
     }
-
 }
 
 dependencies {
