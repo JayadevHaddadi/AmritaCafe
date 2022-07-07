@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
             "3ebd272118138401" -> "Kali"
             "9dc83032a79a71a8" -> "Krishna"
             "c001d62ed3579582" -> "Shani"
+            "3ec2fefa5a9e906e" -> "Saraswati"
             else -> androidId
         }
         user_TV.text = "$tabletName"
