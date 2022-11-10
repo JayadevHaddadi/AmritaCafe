@@ -54,7 +54,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         get() = "TCP:" + receiptPrinterIP
 
     var receiptPrinterIP
-        get() = preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.102")!!
+        get() = preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.116")!!
         set(value) {
             preferences.edit().putString(IP_RECEIPT_PRINTER, value).apply()
         }

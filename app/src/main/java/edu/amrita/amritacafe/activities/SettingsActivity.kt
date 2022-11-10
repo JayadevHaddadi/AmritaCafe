@@ -8,6 +8,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import edu.amrita.amritacafe.R
+import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
+import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE

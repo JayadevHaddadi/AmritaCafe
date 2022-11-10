@@ -7,7 +7,7 @@
         android:background="@color/white"
         tools:context=".activities.MainActivity">
 
-    <!--    android:background="@drawable/amma_mysore_small"-->
+<!--    android:background="@drawable/amma_mysore_small"-->
 
     <LinearLayout
             android:id="@+id/title"
@@ -96,20 +96,20 @@
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0"
-            tools:listitem="@layout/item_menu" />
+            tools:listitem="@layout/item_menu"/>
 
-    <ImageButton
-            android:id="@+id/button_cancel"
-            android:layout_width="60dp"
-            android:layout_height="0dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:background="@drawable/background_payment"
-            android:onClick="deleteOrder"
-            app:layout_constraintBottom_toBottomOf="@+id/order_button"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/order_button"
-            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
+        <ImageButton
+                android:id="@+id/button_cancel"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:layout_width="60dp"
+                android:layout_height="0dp"
+                android:onClick="deleteOrder"
+                android:background="@drawable/background_payment"
+                app:layout_constraintBottom_toBottomOf="@+id/order_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/order_button"
+                app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -124,10 +124,10 @@
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="0dp"
                 android:text="Order"
                 android:textColor="@color/black"
                 android:textSize="20sp"
+                android:padding="0dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -136,9 +136,9 @@
                 android:id="@+id/order_number_ET"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="number"
-                android:padding="0dp"
                 android:text="1"
+                android:padding="0dp"
+                android:inputType="number"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -151,17 +151,21 @@
             android:id="@+id/guideline"
             android:layout_width="1dp"
             android:layout_height="0dp"
-            app:layout_constraintGuide_percent="0.3"
+            android:layout_marginLeft="280dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@+id/menuGridView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-<!--    app:layout_constraintHeight_percent="0.08"-->
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
             android:background="@drawable/background_white_text"
             app:layout_constraintBottom_toTopOf="@+id/order_button"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
@@ -209,15 +213,13 @@
 
 
     <Button
-            app:layout_constraintHeight_percent="0.1"
             android:id="@+id/order_button"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_height="70dp"
             android:layout_marginRight="4dp"
+            android:layout_marginStart="4dp"
             android:layout_marginBottom="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/background_payment"
             android:text="Order"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -227,13 +229,13 @@
             app:layout_constraintBottom_toTopOf="@+id/history_button"
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
             app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toEndOf="@+id/button_cancel" />
+            app:layout_constraintStart_toEndOf="@+id/button_cancel"
+            android:layout_marginLeft="4dp" />
 
     <Button
             android:id="@+id/history_button"
             android:layout_width="0dp"
-            app:layout_constraintHeight_percent="0.08"
-            android:layout_height="0dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
             android:layout_marginBottom="4dp"
@@ -248,11 +250,10 @@
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
             app:layout_constraintStart_toStartOf="parent" />
 
-
     <Button
             android:id="@+id/settings_button"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="45dp"
             android:layout_margin="4dp"
             android:background="@drawable/background_other_buttons"
             android:onClick="openSettings"
@@ -262,7 +263,6 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/short_long_toggle_button"
-            app:layout_constraintHeight_percent="0.08"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title" />
@@ -270,10 +270,8 @@
     <Button
             android:id="@+id/short_long_toggle_button"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.08"
+            android:layout_height="45dp"
             android:layout_margin="4dp"
-            android:layout_marginEnd="0dp"
             android:layout_marginRight="0dp"
             android:background="@drawable/background_other_buttons"
             android:onClick="toggleShortLongName"
@@ -285,6 +283,7 @@
             app:layout_constraintEnd_toStartOf="@+id/guideline"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/settings_button"
-            app:layout_constraintTop_toBottomOf="@+id/title" />
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            android:layout_marginEnd="0dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

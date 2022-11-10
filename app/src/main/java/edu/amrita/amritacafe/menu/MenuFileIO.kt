@@ -1,24 +1,29 @@
 package edu.amrita.amritacafe.menu
 
 import android.content.Context
-import android.os.Environment
+import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
+import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
 import edu.amrita.amritacafe.activities.capitalizeWords
 import java.io.File
 import java.io.FileOutputStream
 
-val dir = File(
-    Environment.getExternalStorageDirectory().toString() + File.separator + "Amrita Cafe"
-            + File.separator + "Menus"
-)
-val BREAKFAST_FILE = File(dir.toString() + File.separator + "Breakfast.txt")
-val LUNCH_DINNER_FILE = File(dir.toString() + File.separator + "LunchDinner.txt")
+fun createDefualtFilesIfNecessary(context: Context) {
+//    val dir = File(
+//        Environment.getExternalStorageDirectory().toString() + File.separator + "Amrita Cafe"
+//                + File.separator + "Menus"
+//    )
+//    val BREAKFAST_FILE = File(dir.toString() + File.separator + "Breakfast.txt")
+//    val LUNCH_DINNER_FILE = File(dir.toString() + File.separator + "LunchDinner.txt")
+//    val dir = context.filesDir.toString()
+//    var BREAKFAST_FILE = File(context.filesDir,"Breakfast.txt")
+//    breakfast = File(context.filesDir,"Breakfast.txt")
+//    var LUNCH_DINNER_FILE = File(context.filesDir,"LunchDinner.txt")
 
-fun createDefualtFilesIfNecessary() {
-    println("Path: : $dir")
-    println("Exists? : " + dir.exists())
-    if (!dir.exists()) {
-        println("Crated: " + dir.mkdirs())
-    }
+//    println("Path: : $dir")
+//    println("Exists? : " + dir.exists())
+//    if (!dir.exists()) {
+//        println("Crated: " + dir.mkdirs())
+//    }
 
     if (!BREAKFAST_FILE.isFile) { // TODO || true
         createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
@@ -30,6 +35,8 @@ fun createDefualtFilesIfNecessary() {
 }
 
 fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
+    if (!file.getParentFile().exists())
+        file.getParentFile().mkdirs();
     file.createNewFile()
     val fos = FileOutputStream(file, false)
     var category = ""

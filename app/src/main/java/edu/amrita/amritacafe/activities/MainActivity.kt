@@ -30,11 +30,13 @@ import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.util.*
 
 
 fun String.capitalizeWords(): String =
     split(" ").map { it.toLowerCase().capitalize() }.joinToString(" ")
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var allCurrentCategories: MutableList<String>
@@ -48,6 +50,11 @@ class MainActivity : AppCompatActivity() {
 
     private val orderHistory = mutableListOf<HistoricalOrder>()
 
+    companion object {
+        lateinit var BREAKFAST_FILE: File
+        lateinit var LUNCH_DINNER_FILE: File
+    }
+
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -56,6 +63,9 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
+        LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
+
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
         pref.let { preferences ->
             configuration = Configuration(preferences)
@@ -63,6 +73,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         supportActionBar?.hide()
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE), 1)
+//        }
 
         val androidId =
             Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
@@ -93,8 +107,7 @@ class MainActivity : AppCompatActivity() {
         menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
             when (val menuItem = view.tag) {
                 is MenuItem -> {
-                    if(orderAdapter.add(menuItem) == -1)
-                    {
+                    if (orderAdapter.add(menuItem) == -1) {
                         makeToast("Unsupported Action!")
                     }
                 }
@@ -107,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
         configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
-        createDefualtFilesIfNecessary()
+        createDefualtFilesIfNecessary(baseContext)
         loadMenu() //will load on resume
 
         order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
@@ -142,7 +155,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadMenu() {
-        val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
+        val file = if (configuration.isBreakfastTime) File(
+            baseContext.filesDir,
+            "Breakfast.txt"
+        ) else File(baseContext.filesDir, "LunchDinner.txt")
         val list = getListOfMenu(file)
 
         allCurrentCategories = mutableListOf()
@@ -172,7 +188,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var currentDialog: AlertDialog
 
     override fun onBackPressed() {
-        val builder = AlertDialog.Builder(this,R.style.DialogStyle)
+        val builder = AlertDialog.Builder(this, R.style.DialogStyle)
         builder.setTitle("Close Amrita Cafe?")
         builder.setCancelable(true)
 
