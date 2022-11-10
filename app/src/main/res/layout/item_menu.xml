@@ -8,14 +8,22 @@
 
     <TextView
             android:id="@+id/name"
+            android:padding="4dp"
             android:layout_width="match_parent"
             android:layout_height="58dp"
             android:fontFamily="serif"
-            android:gravity="center_horizontal|center_vertical"
+            android:gravity="center_horizontal"
             android:textColor="@color/black"
-            android:textSize="24sp"
             android:textStyle="bold"
             android:typeface="serif"
+            android:breakStrategy="balanced"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="12sp"
+            android:autoSizeMaxTextSize="22sp"
             tools:text="Veggie" />
-
+<!--TODO adaptive size for small or big tablets-->
 </LinearLayout>
+
+
+<!--        android:textSize="24sp"-->
+

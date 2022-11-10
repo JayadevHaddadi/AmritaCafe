@@ -92,6 +92,6 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val TESTING = "testing"
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
         const val COLUMNS_AMOUNT = "COLUMNS_AMOUNT"
-        const val DEFAULT_COLUMNS_AMOUNT = 11
+        const val DEFAULT_COLUMNS_AMOUNT = 8 // TODO for tablet 11
     }
 }
