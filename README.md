@@ -1,6 +1,10 @@
 # AmritaCafe
 
+
 [![ISSUES!](https://img.shields.io/github/issues/JayadevHaddadi/AmritaCafe)](https://github.com/JayadevHaddadi/AmritaCafe/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+![ISSUES!](https://img.shields.io/github/repo-size/JayadevHaddadi/AmritaCafe)
+
+
 
 A simple android cafe order management application specifically made to connect the HP 10 TABLET with two Epson TM-m30 printers.
 It might also work for other configurations.
