@@ -7,6 +7,10 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AmritaCafe.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.iml" filepath="$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/escposprinter/AmritaCafe.escposprinter.unitTest.iml" />
     </modules>
   </component>
 </project>

@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+def libraryVersionCode = 3003000
+def libraryVersionName = "3.3.0"
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 33
+        versionCode libraryVersionCode
+        versionName libraryVersionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.zxing:core:3.4.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId = 'com.github.DantSu'
+                artifactId = 'ESCPOS-ThermalPrinter-Android'
+                version = libraryVersionName
+                pom {
+                    name = 'Android library for ESC/POS Thermal Printer'
+                    description = 'Useful library to help Android developers to print with (Bluetooth, TCP, USB) ESC/POS thermal printers.'
+                }
+                afterEvaluate {
+                    from components.release
+                }
+            }
+        }
+    }
+}

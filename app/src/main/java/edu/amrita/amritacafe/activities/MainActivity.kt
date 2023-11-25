@@ -1,8 +1,12 @@
 package edu.amrita.amritacafe.activities
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
@@ -11,11 +15,16 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
+import com.epson.epos2.printer.Printer
+import com.example.hoinprinterlib.HoinPrinter
+import com.example.hoinprinterlib.module.PrinterCallback
+import com.example.hoinprinterlib.module.PrinterEvent
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.model.*
@@ -23,6 +32,7 @@ import edu.amrita.amritacafe.printer.ErrorStatus
 import edu.amrita.amritacafe.printer.OrderNumberService
 import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
+import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_history.view.*
@@ -39,6 +49,16 @@ fun String.capitalizeWords(): String =
 
 
 class MainActivity : AppCompatActivity() {
+
+    val WIFI = 1
+    val BLUETOOTH = 2
+    var MODE = WIFI
+
+    val BT_STATE_CONNECTING = 2; //Bluetooth connecting
+    val BT_STATE_CONNECTED = 3; //Bluetooth connected
+
+    private lateinit var mHoinPrinter: HoinPrinter
+    private lateinit var devices: MutableSet<BluetoothDevice>
     private lateinit var allCurrentCategories: MutableList<String>
     private var myToast: Toast? = null
 
@@ -132,7 +152,68 @@ class MainActivity : AppCompatActivity() {
             }
             false
         })
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            println("Jayadev 2")
+            requestMultiplePermissions.launch(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            )
+        } else {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            requestBluetooth.launch(enableBtIntent)
+        }
+
+        mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
+            override fun onState(p0: Int) {
+                makeToast("state " + p0)
+                println("JAYADEV state $p0")
+            }
+
+            override fun onError(p0: Int) {
+                makeToast("onError " + p0)
+                println("JAYADEV onError $p0")
+            }
+
+            override fun onEvent(p0: PrinterEvent?) {
+                makeToast("onEvent " + p0)
+                println("JAYADEV onEvent $p0")
+            }
+        })
+
+        mHoinPrinter.switchType(true);
+        mHoinPrinter.startBtDiscovery()
+        devices = mHoinPrinter.pairedDevice
+        println("JAYADEV $devices")
+        for (x in devices) {
+            println(x)
+            println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
+        }
     }
+
+    fun connect(view: View) {
+        mHoinPrinter.connect(devices.first().address)
+        println("JAYADEV connecting to ${devices.first().address}")
+        MODE = BLUETOOTH
+    }
+
+    private var requestBluetooth =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                //granted
+            } else {
+                //deny
+            }
+        }
+
+    private val requestMultiplePermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.entries.forEach {
+//                Log.d("test006", "${it.key} = ${it.value}")
+            }
+        }
 
     private fun setMenuAdapter(menu: List<MenuItem>) {
         menuGridView.numColumns = configuration.columns
@@ -202,6 +283,7 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
+
     private fun printOrder() {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
@@ -257,12 +339,11 @@ class MainActivity : AppCompatActivity() {
             orderHistory.add(historicalOrder)
         }
 
-        val (dialog, view) = printerDialog()
-        currentDialog = dialog
+        if (MODE == WIFI) {
+            val (dialog, view) = printerDialog()
+            currentDialog = dialog
 
-        val printService = PrintService(
-            orders, configuration = configuration,
-            listener = object : PrintService.PrintServiceListener {
+            val listener = object : PrintService.PrintServiceListener {
                 override fun kitchenPrinterFinished() = runOnUiThread {
                     histories.forEach {
                         it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
@@ -344,36 +425,59 @@ class MainActivity : AppCompatActivity() {
                     startNewOrder()
                 }
 
-            })
+            }
 
-        printService.print()
+            val printService = PrintService(orders, listener, configuration = configuration)
+            printService.print()
+
+            view.kitchen_retry_button.setOnClickListener {
+                histories.forEach {
+                    it.KitchenPrinted = PrintStatus.PRINTING
+                }
+                printService.retry()
+                it.visibility = View.INVISIBLE
+                view.kitchen_error.visibility = View.INVISIBLE
+                view.kitchen_progress.visibility = View.VISIBLE
+            }
+
+            view.receipt_retry_button.setOnClickListener {
+                histories.forEach {
+                    it.RecipePrinted = PrintStatus.PRINTING
+                }
+                printService.retry()
+                it.visibility = View.INVISIBLE
+                view.receipt_error.visibility = View.INVISIBLE
+                view.receipt_progress.visibility = View.VISIBLE
+            }
+        } else if (MODE == BLUETOOTH) {
+            orders.forEach { (orderNumber, orderItems, time) ->
+                val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
+                val orderNumStr = orderNumber.toString().padStart(3, '0')
+                mHoinPrinter.printText("$orderNumStr        $time", false, false, false, false)
+
+                mHoinPrinter.printText(
+                    ReceiptWriter.orderItemsText(orderItems),
+                    false,
+                    false,
+                    false,
+                    false
+                )
+
+                mHoinPrinter.printText(
+                    "TOTAL" + orderTotalText.padStart(15),
+                    false,
+                    false,
+                    false,
+                    false
+                )
+
+                mHoinPrinter.printText("\n", false, false, false, false)
+            }
+
+        }
+
         GlobalScope.launch {
             orderNumberService.next()
-
-//            runOnUiThread {
-//                orderAdapter.clear()
-//                order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
-//            }
-        }
-
-        view.kitchen_retry_button.setOnClickListener {
-            histories.forEach {
-                it.KitchenPrinted = PrintStatus.PRINTING
-            }
-            printService.retry()
-            it.visibility = View.INVISIBLE
-            view.kitchen_error.visibility = View.INVISIBLE
-            view.kitchen_progress.visibility = View.VISIBLE
-        }
-
-        view.receipt_retry_button.setOnClickListener {
-            histories.forEach {
-                it.RecipePrinted = PrintStatus.PRINTING
-            }
-            printService.retry()
-            it.visibility = View.INVISIBLE
-            view.receipt_error.visibility = View.INVISIBLE
-            view.receipt_progress.visibility = View.VISIBLE
         }
 
         println("Started Print Job")

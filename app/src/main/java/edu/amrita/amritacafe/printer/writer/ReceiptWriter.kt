@@ -45,16 +45,11 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
         val (titleSize, textSize, lineFeed) = configuration.textConfig
 
         orders.forEach { (orderNumber, orderItems, time) ->
-//            val myOrderItems = orderItems.map {
-//                listOf(it)
-//            }.flatten()
             val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
 
             val itemCount = orderItems.map { 1 }.sum()
 
             printer.addTextSize(titleSize, titleSize)
-            //total length of this size is 16
-//            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
             val orderNumStr = orderNumber.toString().padStart(3, '0')
             printer.addText("$orderNumStr        $time")
 
@@ -78,35 +73,4 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             printer.addCut(Printer.CUT_FEED)
         }
     }
-
-//    private fun orderItemsText(orderItems: List<RegularOrderItem>) =
-//        orderItems.joinToString("\n") {
-//            "${it.quantity} ${it.code}".padEnd(17) +
-//                    it.priceWithoutToppings.toString().padStart(3) +
-//                    if (it.comment.isBlank()) ""
-//                    else {
-//                        "\n * ${it.comment}"
-//                    } +
-//                    if (it.toppings.isNotEmpty()) {
-//                        "\n" + it.toppings.joinToString("\n") { topp ->
-//                            "${topp.quantity} ${topp.code}".padEnd(17) +
-//                                    topp.priceWithoutToppings.toString().padStart(3) +
-//                                    if (topp.comment.isBlank()) ""
-//                                    else {
-//                                        "\n * ${topp.comment}"
-//                                    }
-////                            topp.quantity.toString().padEnd(2) + topp.menuItem.code //+ "+ "
-//                        }
-//                    } else {
-//                        ""
-//                    }
-//        }
-
-//    private fun orderItemsText2(orderItems: List<OrderItem>) =
-//        orderItems.joinToString("\n") {
-//            "${it.quantity} ${if (it is Topping) " with" else ""} ${it.menuItem.code}".padEnd(17) +
-//                    it.totalPrice.toString().padStart(3) +
-//                    if (it.comment.isBlank()) ""
-//                    else "\n * ${it.comment}"
-//        }
 }
