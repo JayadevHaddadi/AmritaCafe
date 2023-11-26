@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
-import com.epson.epos2.printer.Printer
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
@@ -38,6 +37,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_history.view.*
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -50,12 +50,15 @@ fun String.capitalizeWords(): String =
 
 class MainActivity : AppCompatActivity() {
 
-    val WIFI = 1
-    val BLUETOOTH = 2
+    val WIFI = 0
+    val BLUETOOTH = 1
     var MODE = WIFI
 
+    val BT_STATE_DISCONNECTED = 0; //Bluetooth disconnected
+    val BT_STATE_LISTEN = 1; //Bluetooth is listening
     val BT_STATE_CONNECTING = 2; //Bluetooth connecting
     val BT_STATE_CONNECTED = 3; //Bluetooth connected
+    var BT_STATE = BT_STATE_DISCONNECTED
 
     private lateinit var mHoinPrinter: HoinPrinter
     private lateinit var devices: MutableSet<BluetoothDevice>
@@ -168,8 +171,16 @@ class MainActivity : AppCompatActivity() {
 
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
             override fun onState(p0: Int) {
-                makeToast("state " + p0)
-                println("JAYADEV state $p0")
+                BT_STATE = p0
+                var message = when (p0) {
+                    BT_STATE_CONNECTING -> "Connecting... "
+                    BT_STATE_CONNECTED -> "Connected!"
+                    BT_STATE_LISTEN -> "Listening... "
+                    BT_STATE_DISCONNECTED -> "Disconnected!"
+                    else -> "STATUS $p0"
+                }
+                makeToast(message)
+                println(message)
             }
 
             override fun onError(p0: Int) {
@@ -182,21 +193,8 @@ class MainActivity : AppCompatActivity() {
                 println("JAYADEV onEvent $p0")
             }
         })
-
         mHoinPrinter.switchType(true);
-        mHoinPrinter.startBtDiscovery()
-        devices = mHoinPrinter.pairedDevice
-        println("JAYADEV $devices")
-        for (x in devices) {
-            println(x)
-            println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
-        }
-    }
-
-    fun connect(view: View) {
-        mHoinPrinter.connect(devices.first().address)
-        println("JAYADEV connecting to ${devices.first().address}")
-        MODE = BLUETOOTH
+        tryConnect()
     }
 
     private var requestBluetooth =
@@ -232,8 +230,52 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
         loadMenu()
+
+        MODE = configuration.mode
     }
+
+    fun tryConnect() = runBlocking() {
+        launch {
+            delay(1000L)
+            println("World")
+
+            devices = mHoinPrinter.pairedDevice
+            println("JAYADEV $devices")
+            for (x in devices) {
+                println(x)
+                println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
+            }
+
+            println("JAYADEV MODE $MODE")
+            println("JAYADEV BT_STATE $BT_STATE")
+            if (MODE == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
+                val selection = devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName}
+                mHoinPrinter.connect(selection.first().address)
+            }
+        }
+
+        println("JAYADEV MODE $MODE")
+        println("JAYADEV BT_STATE $BT_STATE")
+        if (MODE == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
+            mHoinPrinter.startBtDiscovery()
+        println("Hello")
+
+    }
+
+    val BT_NOT_AVALIBLE = 1000; //Bluetooth is not available on this device
+    val BT_UNABLE_CONNECT_TO_DEVICE = 1001; //Unable to connect to Bluetooth
+    val BT_CONNECTION_LOST = 1002; //Unable to connect Bluetooth or Bluetooth disconnect
+    val CONTEXT_ERROR = 1003; //Context error
+    val WIFI_SEND_FAILED = 1004; //WIFI failed to send data
+    val WIFI_CONNECT_ERROR = 1005; //WIFI connection failed
+    val USB_NOT_FIND_DEVICE = 1006; //USB connection failed
+    val USB_NO_PERMISSION = 1007; //USB does not have permission
+    val BT_NO_PERMISSION = 1008; //Bluetooth has no permissions
+    val DEVICE_NOT_CONNECTED = 1009; //Device not connected
+    val IMAGE_NOT_FONUD = 1010; //Device not connected
+    val NULL_POINTER_EXCEPTION = 9999; // null pointer exception
 
     fun loadMenu() {
         val file = if (configuration.isBreakfastTime) File(

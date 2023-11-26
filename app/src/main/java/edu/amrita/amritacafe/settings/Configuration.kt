@@ -59,6 +59,18 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(IP_RECEIPT_PRINTER, value).apply()
         }
 
+    var bluetoothName
+        get() = preferences.getString(BLUETOOTH_NAME, "PT-280_2A69")!!
+        set(value) {
+            preferences.edit().putString(BLUETOOTH_NAME, value).apply()
+        }
+
+    var mode
+        get() = preferences.getInt(MODE, 0)
+        set(value) {
+            preferences.edit().putInt(MODE, value).apply()
+        }
+
     val kitchenPrinterConnStr
         get() = "TCP:" + kitchenPrinterIP
 
@@ -88,6 +100,8 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val SHOW_FULL_NAMES = "show_names"
         const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
+        const val BLUETOOTH_NAME = "bluetooth name"
+        const val MODE = "mode"
         const val COLUMN_NUMBER_RANGE = "column_number_range"
         const val TESTING = "testing"
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
