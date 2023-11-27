@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -52,7 +53,6 @@ class MainActivity : AppCompatActivity() {
 
     val WIFI = 0
     val BLUETOOTH = 1
-    var MODE = WIFI
 
     val BT_STATE_DISCONNECTED = 0; //Bluetooth disconnected
     val BT_STATE_LISTEN = 1; //Bluetooth is listening
@@ -232,8 +232,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         loadMenu()
-
-        MODE = configuration.mode
+//        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
+//            tryConnect()
     }
 
     fun tryConnect() = runBlocking() {
@@ -248,17 +248,19 @@ class MainActivity : AppCompatActivity() {
                 println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
             }
 
-            println("JAYADEV MODE $MODE")
+            println("JAYADEV MODE ${configuration.mode}")
             println("JAYADEV BT_STATE $BT_STATE")
-            if (MODE == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
-                val selection = devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName}
+            if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
+                val selection =
+                    devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName }
+                println("JAYADEV SELECTION $selection")
                 mHoinPrinter.connect(selection.first().address)
             }
         }
 
-        println("JAYADEV MODE $MODE")
+        println("JAYADEV MODE ${configuration.mode}")
         println("JAYADEV BT_STATE $BT_STATE")
-        if (MODE == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
+        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
             mHoinPrinter.startBtDiscovery()
         println("Hello")
 
@@ -381,7 +383,7 @@ class MainActivity : AppCompatActivity() {
             orderHistory.add(historicalOrder)
         }
 
-        if (MODE == WIFI) {
+        if (configuration.mode == WIFI) {
             val (dialog, view) = printerDialog()
             currentDialog = dialog
 
@@ -491,11 +493,23 @@ class MainActivity : AppCompatActivity() {
                 view.receipt_error.visibility = View.INVISIBLE
                 view.receipt_progress.visibility = View.VISIBLE
             }
-        } else if (MODE == BLUETOOTH) {
+
+        } else if (configuration.mode == BLUETOOTH) {
             orders.forEach { (orderNumber, orderItems, time) ->
                 val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
                 val orderNumStr = orderNumber.toString().padStart(3, '0')
-                mHoinPrinter.printText("$orderNumStr        $time", false, false, false, false)
+
+//                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
+//                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
+//                mHoinPrinter.printImage(otherPath.toString(), true)
+                mHoinPrinter.printText(
+                    "Amrita Cafe",
+                    true, true, true, true
+                )
+                mHoinPrinter.printText(
+                    "$orderNumStr        $time",
+                    false, false, false, false
+                )
 
                 mHoinPrinter.printText(
                     ReceiptWriter.orderItemsText(orderItems),
@@ -516,6 +530,7 @@ class MainActivity : AppCompatActivity() {
                 mHoinPrinter.printText("\n", false, false, false, false)
             }
 
+            startNewOrder()
         }
 
         GlobalScope.launch {

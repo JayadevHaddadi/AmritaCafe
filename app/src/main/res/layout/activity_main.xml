@@ -286,22 +286,4 @@
             app:layout_constraintStart_toEndOf="@+id/settings_button"
             app:layout_constraintTop_toBottomOf="@+id/title" />
 
-    <Button
-            android:id="@+id/connect"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="connect"
-            android:text="connect"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/guideline"
-            app:layout_constraintHeight_percent="0.08"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/settings_button"
-            app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

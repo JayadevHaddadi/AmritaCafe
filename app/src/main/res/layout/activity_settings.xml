@@ -236,6 +236,17 @@
                     android:layout_margin="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView222" />
+
+            <Button
+                    android:id="@+id/button2"
+                    android:onClick="tryConnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Connect"
+                    app:layout_constraintBottom_toBottomOf="@+id/mode_spinner"
+                    app:layout_constraintEnd_toStartOf="@+id/mode_spinner"
+                    app:layout_constraintTop_toTopOf="@+id/mode_spinner" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 

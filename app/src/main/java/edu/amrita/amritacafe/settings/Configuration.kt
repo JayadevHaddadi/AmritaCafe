@@ -69,6 +69,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         get() = preferences.getInt(MODE, 0)
         set(value) {
             preferences.edit().putInt(MODE, value).apply()
+            println("JAYADEV set mode to " + value)
         }
 
     val kitchenPrinterConnStr
