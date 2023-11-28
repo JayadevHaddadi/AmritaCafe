@@ -4,17 +4,24 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -598,5 +605,68 @@ class MainActivity : AppCompatActivity() {
 
     fun deleteOrder(view: View) {
         orderAdapter.clear()
+    }
+
+    fun cafeOrder(view: View) {
+        showCostInputDialog(this)
+        println("JAYADEV CAFE BUTTON PRESSED")
+    }
+    private fun showCostInputDialog(context: Context) {
+        // Create an AlertDialog.Builder instance
+        val builder = AlertDialog.Builder(context)
+
+        // Set the dialog title
+        builder.setTitle("Cost")
+
+        // Set the title text color to contrast with the background
+        val title = builder.create().findViewById<TextView>(R.id.alertTitle)
+        title?.setTextColor(Color.BLACK)
+
+        // Set the layout for the dialog
+        val input = EditText(context)
+
+        // Set input type to allow only numeric values
+        input.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+
+        // Request focus on the input field
+        input.requestFocus()
+
+        builder.setView(input)
+
+        // Set the positive button and its click listener
+        builder.setPositiveButton("OK") { dialog, which ->
+            // Retrieve the entered cost from the input field
+            val cost = input.text.toString()
+
+            // Do something with the entered cost (e.g., display it)
+            // For this example, we'll just print it to the log
+            println("Entered cost: $cost")
+
+            // You can perform additional actions here based on the entered cost
+
+            // Dismiss the dialog
+            dialog.dismiss()
+        }
+
+        // Set the negative button and its click listener
+        builder.setNegativeButton("Cancel") { dialog, which ->
+            // Do something when the negative button is clicked
+            // For example, you can perform an action or dismiss the dialog
+            dialog.dismiss()
+        }
+
+        // Create and show the AlertDialog
+        val dialog: AlertDialog = builder.create()
+
+        // Show the AlertDialog
+        dialog.show()
+
+        // Get the buttons from the AlertDialog after it's shown
+        val positiveButton: Button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        val negativeButton: Button = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+        // Set contrast colors for the buttons
+        positiveButton.setTextColor(Color.BLUE)
+        negativeButton.setTextColor(Color.RED)
     }
 }
