@@ -9,7 +9,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -18,10 +17,13 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -49,6 +51,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -509,12 +513,34 @@ class MainActivity : AppCompatActivity() {
 //                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
 //                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
 //                mHoinPrinter.printImage(otherPath.toString(), true)
+
                 mHoinPrinter.printText(
-                    "Amrita Cafe",
-                    true, true, true, true
+                    "Western Cafe",
+                    true, true, false, true
+                )
+
+                mHoinPrinter.printText(
+                    "Sree Bhadra Amrita\nSelf Help Group\n" +
+                            "AMRITAPURI\n".capitalizeWords() +
+                            "KOLLAM-690546".capitalizeWords(),
+                    false,
+                    false,
+                    false,
+                    false
                 )
                 mHoinPrinter.printText(
-                    "$orderNumStr        $time",
+                    "${"".padEnd(32, '-')}",
+                    false, false, false, false
+                )
+
+                val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
+                } else {
+                    TODO("VERSION.SDK_INT < O")
+                }
+                val current = LocalDateTime.now().format(formatter)
+                mHoinPrinter.printText(
+                    "${("Order " + orderNumStr).padEnd(16)}${current.padStart(16)}",
                     false, false, false, false
                 )
 
@@ -527,14 +553,36 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 mHoinPrinter.printText(
-                    "TOTAL" + orderTotalText.padStart(15),
+                    "Total" + orderTotalText.padStart(27, '.'),
                     false,
                     false,
-                    false,
+                    true,
                     false
                 )
 
-                mHoinPrinter.printText("\n", false, false, false, false)
+//                mHoinPrinter.printText(
+//                    "${"".padEnd(32,'=')}",
+//                    false, false, false, false
+//                )
+
+                mHoinPrinter.printText(
+                    "${"".padEnd(32, '-')}",
+                    false, false, false, false
+                )
+
+                mHoinPrinter.printText(
+                    "Thank You",
+                    true, true, false, true
+                )
+
+//                mHoinPrinter.printText(
+//                    "JAG ÄLSKAR DIG MIN SOLLE!!!!!!!!!!! SÅ MYCKET!!!!:)))) <3<3<3<3<3<3",
+//                    true, true, false, true
+//                )
+
+
+
+//                mHoinPrinter.printText("\n", false, false, false, false)
             }
 
             startNewOrder()
@@ -611,52 +659,57 @@ class MainActivity : AppCompatActivity() {
         showCostInputDialog(this)
         println("JAYADEV CAFE BUTTON PRESSED")
     }
+
     private fun showCostInputDialog(context: Context) {
-        // Create an AlertDialog.Builder instance
         val builder = AlertDialog.Builder(context)
 
-        // Set the dialog title
-        builder.setTitle("Cost")
-
-        // Set the title text color to contrast with the background
-        val title = builder.create().findViewById<TextView>(R.id.alertTitle)
-        title?.setTextColor(Color.BLACK)
+        val textView = TextView(context)
+        textView.text = "Cafe Item Cost:"
+        textView.setPadding(20, 10, 5, 5)
+//        textView.textAlignment
+        textView.textSize = 30f
+//        textView.setBackgroundColor(Color.CYAN)
+        textView.setTextColor(Color.BLACK)
+        builder.setCustomTitle(textView)
 
         // Set the layout for the dialog
         val input = EditText(context)
+        input.setPadding(20, 10, 5, 5)
+//        textView.textAlignment
+        input.textSize = 30f
 
         // Set input type to allow only numeric values
-        input.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        input.inputType = InputType.TYPE_CLASS_NUMBER //or InputType.TYPE_NUMBER_FLAG_DECIMAL
 
         // Request focus on the input field
         input.requestFocus()
 
         builder.setView(input)
 
-        // Set the positive button and its click listener
-        builder.setPositiveButton("OK") { dialog, which ->
-            // Retrieve the entered cost from the input field
-            val cost = input.text.toString()
-
-            // Do something with the entered cost (e.g., display it)
-            // For this example, we'll just print it to the log
-            println("Entered cost: $cost")
-
-            // You can perform additional actions here based on the entered cost
-
-            // Dismiss the dialog
-            dialog.dismiss()
-        }
-
-        // Set the negative button and its click listener
-        builder.setNegativeButton("Cancel") { dialog, which ->
-            // Do something when the negative button is clicked
-            // For example, you can perform an action or dismiss the dialog
-            dialog.dismiss()
-        }
-
         // Create and show the AlertDialog
         val dialog: AlertDialog = builder.create()
+        fun onEnter(dialog: DialogInterface) {
+            var cost = 0f
+            try {
+                cost = input.text.toString().toFloat()
+
+                orderAdapter.add(
+                    MenuItem("", "Cafe Item", cost, ""),
+                    uniqueItem = true
+                )
+            } catch (e: Exception) {
+                makeToast("Not working")
+            }
+            dialog.dismiss()
+        }
+
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                onEnter(dialog)
+                true
+            }
+            false
+        }
 
         // Show the AlertDialog
         dialog.show()
@@ -666,7 +719,7 @@ class MainActivity : AppCompatActivity() {
         val negativeButton: Button = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
         // Set contrast colors for the buttons
-        positiveButton.setTextColor(Color.BLUE)
+        positiveButton.setTextColor(Color.DKGRAY)
         negativeButton.setTextColor(Color.RED)
     }
 }

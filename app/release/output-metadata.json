@@ -1,18 +1,20 @@
 {
-  "version": 2,
+  "version": 3,
   "artifactType": {
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "edu.amrita.amritacafe2",
-  "variantName": "processReleaseResources",
+  "applicationId": "edu.amrita.amritacafe3",
+  "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
+      "attributes": [],
       "versionCode": 1,
       "versionName": "v2",
       "outputFile": "app-release.apk"
     }
-  ]
+  ],
+  "elementType": "File"
 }

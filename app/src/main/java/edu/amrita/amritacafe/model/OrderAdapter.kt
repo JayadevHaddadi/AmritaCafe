@@ -42,7 +42,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         updateAll()
     }
 
-    fun add(addItem: MenuItem): Int {
+    fun add(addItem: MenuItem, uniqueItem: Boolean = false): Int {
         try {
             var found = false
 
@@ -58,7 +58,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             for (existingItem in listToCheck) {
                 if (addItem.code == existingItem.menuItem.code &&
                     addItem.category == existingItem.menuItem.category &&
-                    existingItem.comment == ""
+                    existingItem.comment == "" && !uniqueItem
                 ) {
                     existingItem.quantity++
                     println("increasing! ${existingItem.quantity}")

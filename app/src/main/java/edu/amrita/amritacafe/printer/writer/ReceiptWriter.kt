@@ -1,6 +1,7 @@
 package edu.amrita.amritacafe.printer.writer
 
 import com.epson.epos2.printer.Printer
+import edu.amrita.amritacafe.activities.capitalizeWords
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
@@ -18,8 +19,8 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
 
         fun orderItemsText(orderItems: List<RegularOrderItem>) =
             orderItems.joinToString("\n") {
-                "${it.quantity} ${it.code}".padEnd(17) +
-                        it.priceWithoutToppings.toString().padStart(3) +
+                "${it.quantity} ${it.code.capitalizeWords()}".padEnd(28,'.') +
+                        it.priceWithoutToppings.toString().padStart(4,'.') +
                         if (it.comment.isBlank()) ""
                         else {
                             "\n * ${it.comment}"
