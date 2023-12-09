@@ -28,6 +28,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
@@ -151,8 +152,8 @@ class MainActivity : AppCompatActivity() {
         updateNameForToggleButton()
         user_TV.text = "Amritapuri @ $tabletName"
 
-        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
-        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
+//        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
+//        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
         createDefualtFilesIfNecessary(baseContext)
         loadMenu() //will load on resume
@@ -247,6 +248,7 @@ class MainActivity : AppCompatActivity() {
 //            tryConnect()
     }
 
+
     fun tryConnect() = runBlocking() {
         launch {
             delay(1000L)
@@ -265,7 +267,8 @@ class MainActivity : AppCompatActivity() {
                 val selection =
                     devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName }
                 println("JAYADEV SELECTION $selection")
-                mHoinPrinter.connect(selection.first().address)
+                if (!selection.isEmpty())
+                    mHoinPrinter.connect(selection.first().address)
             }
         }
 
@@ -330,6 +333,7 @@ class MainActivity : AppCompatActivity() {
 
         builder.setPositiveButton(android.R.string.yes) { dialog, which ->
             super.onBackPressed()
+            mHoinPrinter.destroy()
         }
 
         builder.setNegativeButton(android.R.string.no) { dialog, which ->
@@ -341,6 +345,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun printOrder() {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
+
+        tryConnect()
 
         var pos = 0
         orderItemsCopy.forEach {
@@ -579,7 +585,6 @@ class MainActivity : AppCompatActivity() {
 //                    "JAG ÄLSKAR DIG MIN SOLLE!!!!!!!!!!! SÅ MYCKET!!!!:)))) <3<3<3<3<3<3",
 //                    true, true, false, true
 //                )
-
 
 
 //                mHoinPrinter.printText("\n", false, false, false, false)
