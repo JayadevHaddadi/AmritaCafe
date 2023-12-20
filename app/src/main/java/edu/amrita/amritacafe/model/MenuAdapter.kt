@@ -14,6 +14,7 @@ import android.widget.BaseAdapter
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import edu.amrita.amritacafe.R
+import edu.amrita.amritacafe.activities.capitalizeWords
 import edu.amrita.amritacafe.menu.MenuItem
 import kotlinx.android.synthetic.main.item_menu.view.*
 
@@ -81,7 +82,7 @@ class MenuAdapter(
             tag = menuItem
 
             when (menuItem) {
-                is String -> {
+                is String -> { //CATEGORY
                     val color = colorMap.getValue(menuItem)
                     (background as GradientDrawable).setStroke(2, color)
                     (background as GradientDrawable).setColor(color)
@@ -89,19 +90,19 @@ class MenuAdapter(
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
                     name.text = menuItem
                 }
-                is MenuItem -> {
+                is MenuItem -> { //Normal Item
                     val color = colorMap.getValue(menuItem.category)
                     val lighten = color.lighten
                     (background as GradientDrawable).setStroke(3, color)
                     (background as GradientDrawable).setColor(lighten)
                     if (showFullName)
-                        name.text = menuItem.name
+                        name.text = menuItem.name.capitalizeWords()
                     else
                         name.text = menuItem.code
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
                     name.setTypeface(SERIF, NORMAL)
                 }
-                is Unit -> {
+                is Unit -> { // Blank
                     (background as GradientDrawable).setStroke(0, Color.TRANSPARENT)
                     (background as GradientDrawable).setColor(Color.TRANSPARENT)
                     name.text = ""

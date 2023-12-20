@@ -15,9 +15,12 @@ import androidx.preference.PreferenceManager
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
 import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
+import edu.amrita.amritacafe.menu.DEFAULT_BREAKFAST_CSV
 import edu.amrita.amritacafe.menu.DEFAULT_BREAKFAST_MENU
+import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_CSV
 import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_DINNER_MENU
 import edu.amrita.amritacafe.menu.createMenuFileFromMenuList
+import edu.amrita.amritacafe.menu.overrideFile
 import edu.amrita.amritacafe.menu.saveIfValidText
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE
@@ -141,9 +144,11 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
         builder.setPositiveButton(android.R.string.yes) { dialog, which ->
             if (configuration.isBreakfastTime)
-                createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
+                overrideFile(DEFAULT_BREAKFAST_CSV,BREAKFAST_FILE)
+//                createMenuFileFromMenuList(BREAKFAST_FILE, DEFAULT_BREAKFAST_MENU)
             else
-                createMenuFileFromMenuList(LUNCH_DINNER_FILE, DEFAULT_LUNCH_DINNER_MENU)
+                overrideFile(DEFAULT_LUNCH_CSV,LUNCH_DINNER_FILE)
+//                createMenuFileFromMenuList(LUNCH_DINNER_FILE, DEFAULT_LUNCH_DINNER_MENU)
 
             loadCurrentMenu()
             Toast.makeText(

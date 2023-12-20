@@ -18,17 +18,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.epson.epos2.Epos2Exception
@@ -155,7 +152,7 @@ class MainActivity : AppCompatActivity() {
 //        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
 //        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
-        createDefualtFilesIfNecessary(baseContext)
+        createDefaultFilesIfNecessary(baseContext)
         loadMenu() //will load on resume
 
         order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
@@ -559,9 +556,9 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 mHoinPrinter.printText(
-                    "Total" + orderTotalText.padStart(27, '.'),
-                    false,
-                    false,
+                    "Total" + orderTotalText.padStart(11, '.'),
+                    true,
+                    true,
                     true,
                     false
                 )
