@@ -6,13 +6,12 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlinx-serialization'
 
 android {
-    compileSdkVersion 33
-//    buildToolsVersion "30.0.3"
+    compileSdk 34
     defaultConfig {
         multiDexEnabled true
         applicationId "edu.amrita.amritacafe3"
         minSdkVersion 18
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName "v2"
         vectorDrawables {
@@ -98,14 +97,9 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.1.1'
 
     implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0'
-//    implementation project(path: ':escposprinter')
 
     implementation 'am.util:printer:2.1.0'
     implementation 'com.inuker.bluetooth:library:1.4.0'
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
-
-
-    //multidex
-//    implementation 'androidx.multidex:multidex:2.0.1'
 }
