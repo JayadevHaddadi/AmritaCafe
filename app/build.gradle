@@ -102,4 +102,15 @@ dependencies {
     implementation 'com.inuker.bluetooth:library:1.4.0'
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
+
+
+    // for google sheets:
+    implementation 'com.google.android.gms:play-services-auth:20.7.0'
+    implementation 'pub.devrel:easypermissions:0.3.0'
+    implementation('com.google.api-client:google-api-client-android:1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-slides:v1-rev294-1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 }

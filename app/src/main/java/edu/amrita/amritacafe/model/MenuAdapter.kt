@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import edu.amrita.amritacafe.R
@@ -79,6 +80,8 @@ class MenuAdapter(
 
             val menuItem = menuItems[position]
 
+//            val name: TextView = parent.findViewById(R.id.name)
+            val name: TextView = findViewById(R.id.name) // works also without this line
             tag = menuItem
 
             when (menuItem) {
