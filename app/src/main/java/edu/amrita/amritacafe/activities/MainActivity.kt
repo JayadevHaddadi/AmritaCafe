@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +29,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.volley.AuthFailureError
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.epson.epos2.Epos2Exception
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
@@ -48,7 +54,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
+import java.io.UnsupportedEncodingException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -344,6 +353,42 @@ class MainActivity : AppCompatActivity() {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
         tryConnect()
+
+
+        val url = "" // Replace with your actual URL
+        val jsonData = JSONObject()
+        try {
+            jsonData.put("name", "John Doe324234")
+            jsonData.put("email", "john.doe@example.com")
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+        val jsonString = jsonData.toString()
+        val requestQueue: RequestQueue = Volley.newRequestQueue(applicationContext)
+        val stringRequest: StringRequest = object : StringRequest(
+            Request.Method.POST, url,
+            { response ->
+                // Handle successful response
+                Log.d("TAG", "Response: $response")
+            },
+            { error ->
+                // Handle error
+                Log.e("TAG", "Error: ")
+            }) {
+//            val bodyContentType: String?
+//                get() = "application/json; charset=utf-8"
+
+//            @get:Throws(AuthFailureError::class)
+//            val body: ByteArray?
+//                get() = try {
+//                    jsonString.toByteArray(charset("utf-8"))
+//                } catch (e: UnsupportedEncodingException) {
+//                    e.printStackTrace()
+//                    null
+//                }
+        }
+        requestQueue.add(stringRequest)
+
 
         var pos = 0
         orderItemsCopy.forEach {
