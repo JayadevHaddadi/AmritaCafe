@@ -30,8 +30,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.AuthFailureError
-import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.VolleyError
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.epson.epos2.Epos2Exception
@@ -54,6 +55,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -354,42 +356,6 @@ class MainActivity : AppCompatActivity() {
 
         tryConnect()
 
-
-        val url = "" // Replace with your actual URL
-        val jsonData = JSONObject()
-        try {
-            jsonData.put("name", "John Doe324234")
-            jsonData.put("email", "john.doe@example.com")
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-        val jsonString = jsonData.toString()
-        val requestQueue: RequestQueue = Volley.newRequestQueue(applicationContext)
-        val stringRequest: StringRequest = object : StringRequest(
-            Request.Method.POST, url,
-            { response ->
-                // Handle successful response
-                Log.d("TAG", "Response: $response")
-            },
-            { error ->
-                // Handle error
-                Log.e("TAG", "Error: ")
-            }) {
-//            val bodyContentType: String?
-//                get() = "application/json; charset=utf-8"
-
-//            @get:Throws(AuthFailureError::class)
-//            val body: ByteArray?
-//                get() = try {
-//                    jsonString.toByteArray(charset("utf-8"))
-//                } catch (e: UnsupportedEncodingException) {
-//                    e.printStackTrace()
-//                    null
-//                }
-        }
-        requestQueue.add(stringRequest)
-
-
         var pos = 0
         orderItemsCopy.forEach {
             if (it.menuItem.category == TOPPING) {
@@ -554,9 +520,16 @@ class MainActivity : AppCompatActivity() {
             }
 
         } else if (configuration.mode == BLUETOOTH) {
+            val jsonData = JSONObject()
+            val jsonArray = JSONArray()
+            var orderTime = "2"
+            var myOrderNumber = 2
+
             orders.forEach { (orderNumber, orderItems, time) ->
                 val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
                 val orderNumStr = orderNumber.toString().padStart(3, '0')
+                orderTime = time
+                myOrderNumber = orderNumber
 
 //                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
 //                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
@@ -600,6 +573,15 @@ class MainActivity : AppCompatActivity() {
                     false
                 )
 
+                orderItems.forEach { it ->
+                    val jsonItem = JSONObject()
+                    jsonItem.put("name", it.menuItem.name)
+                    jsonItem.put("quantity", it.quantity)
+                    jsonItem.put("total", it.priceWithToppings)
+                    jsonItem.put("cost", it.menuItem.price)
+                    jsonArray.put(jsonItem)
+                }
+
                 mHoinPrinter.printText(
                     "Total" + orderTotalText.padStart(11, '.'),
                     true,
@@ -607,11 +589,6 @@ class MainActivity : AppCompatActivity() {
                     true,
                     false
                 )
-
-//                mHoinPrinter.printText(
-//                    "${"".padEnd(32,'=')}",
-//                    false, false, false, false
-//                )
 
                 mHoinPrinter.printText(
                     "${"".padEnd(32, '-')}",
@@ -622,15 +599,49 @@ class MainActivity : AppCompatActivity() {
                     "Thank You",
                     true, true, false, true
                 )
-
-//                mHoinPrinter.printText(
-//                    "JAG ÄLSKAR DIG MIN SOLLE!!!!!!!!!!! SÅ MYCKET!!!!:)))) <3<3<3<3<3<3",
-//                    true, true, false, true
-//                )
-
-
-//                mHoinPrinter.printText("\n", false, false, false, false)
             }
+
+            val url =
+                "https://script.google.com/macros/s/AKfycbwlW9DNOCvPU8RH3toObonpqLe_REjpQTYKLfPAl7WmEi52-EIRToSrNlKPG_ErPFmhBQ/exec" // Replace with your actual URL
+
+            jsonData.put("items", jsonArray)
+            try {
+                jsonData.put("time", orderTime)
+                jsonData.put("tablet", "Jayadev Tablet")
+                jsonData.put("order", myOrderNumber)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+            val jsonString = jsonData.toString()
+            println("JSON STRING: " + jsonString)
+            val requestQueue = Volley.newRequestQueue(this)
+            val stringRequest = object : StringRequest(
+                Method.POST,
+                url, // Replace with your actual URL
+                { response ->
+                    // Handle successful response
+                    Log.d("JAYADEV", "Response: $response")
+                },
+                { error ->
+                    // Handle error
+                    Log.e("JAYADEV", "Error: ${error.message}")
+                }) {
+                override fun getBodyContentType(): String {
+                    return "application/json; charset=utf-8"
+                }
+
+                override fun getBody(): ByteArray {
+                    return try {
+                        jsonString.toByteArray(Charsets.UTF_8)
+                    } catch (e: UnsupportedEncodingException) {
+                        Log.e("TAG", "Error encoding JSON: $e")
+                        return ByteArray(0)
+                    }
+                }
+            }
+
+// Add the request to the queue
+            requestQueue.add(stringRequest)
 
             startNewOrder()
         }
