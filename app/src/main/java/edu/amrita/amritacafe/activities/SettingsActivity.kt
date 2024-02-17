@@ -33,6 +33,7 @@ import kotlinx.android.synthetic.main.activity_settings.mode_spinner
 import kotlinx.android.synthetic.main.activity_settings.range_from_ET
 import kotlinx.android.synthetic.main.activity_settings.range_to_ET
 import kotlinx.android.synthetic.main.activity_settings.receipt_ip_ET
+import kotlinx.android.synthetic.main.activity_settings.tabletNameET
 import kotlinx.android.synthetic.main.activity_settings.testingCheckBox
 import java.io.BufferedReader
 import java.io.FileReader
@@ -55,6 +56,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
         receipt_ip_ET.setText(configuration.receiptPrinterIP)
         kitchen_ip_ET.setText(configuration.kitchenPrinterIP)
+        tabletNameET.setText(configuration.tabletName)
 
         val column = pref.getString(COLUMN_NUMBER_RANGE, "10")
         column_numbers_ET.setText(column)
@@ -120,6 +122,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
     override fun onPause() {
         super.onPause()
+        configuration.tabletName = tabletNameET.text.toString()
         configuration.kitchenPrinterIP = kitchen_ip_ET.text.toString()
         configuration.receiptPrinterIP = receipt_ip_ET.text.toString()
         configuration.rangeFrom = range_from_ET.text.toString().toInt()

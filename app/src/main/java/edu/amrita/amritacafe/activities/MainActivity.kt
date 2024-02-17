@@ -249,6 +249,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         loadMenu()
+        tabletNameMainTV.text = configuration.tabletName
 //        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
 //            tryConnect()
     }
@@ -525,8 +526,8 @@ class MainActivity : AppCompatActivity() {
         } else if (configuration.mode == BLUETOOTH) {
             val jsonData = JSONObject()
             val jsonArray = JSONArray()
-            var orderTime = "2"
-            var myOrderNumber = 2
+            var orderTime = 0L
+            var myOrderNumber = 0
 
             orders.forEach { (orderNumber, orderItems, time) ->
                 val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
@@ -608,33 +609,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             val url =
-                "https://script.google.com/macros/s/AKfycbwWPD0LdwBOY9u68RNRG9c_5K8unejzCoLLTetPsWykhC7o-fhecrLMnb9VwpDwHgsw/exec" // Replace with your actual URL
+                "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec" // Replace with your actual URL
 
             jsonData.put("items", jsonArray)
             try {
                 jsonData.put("time", orderTime)
-                jsonData.put("tablet", "Jayadev Tablet")
+                jsonData.put("tablet", configuration.tabletName)
                 jsonData.put("order", myOrderNumber.toString())
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-            var jsonString = jsonData.toString()
-//            jsonString = """{
-//                "time": "5 oclock",
-//                "tablet": "shiva",
-//                "order": "342",
-//                "items": [{
-//                "quantity":2,
-//                "name":"burger",
-//                "cost":30,
-//                "total":60
-//            },{
-//                "quantity":1,
-//                "name":"fries",
-//                "cost":80,
-//                "total":80
-//            }]
-//            }"""
+            val jsonString = jsonData.toString()
             println("JSON STRING: " + jsonString)
             val requestQueue = Volley.newRequestQueue(this)
             val stringRequest = object : StringRequest(

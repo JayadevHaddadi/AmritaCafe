@@ -53,6 +53,11 @@ data class Configuration(private val preferences: SharedPreferences) {
     val receiptPrinterConnStr
         get() = "TCP:" + receiptPrinterIP
 
+    var tabletName
+        get() = preferences.getString(TABLET_NAME_KEY, "Unnamed Tablet")!!
+        set(value) {
+            preferences.edit().putString(TABLET_NAME_KEY, value).apply()
+        }
     var receiptPrinterIP
         get() = preferences.getString(IP_RECEIPT_PRINTER, "192.168.0.116")!!
         set(value) {
@@ -94,6 +99,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         }
 
     companion object {
+        const val TABLET_NAME_KEY = "tablet name"
         const val RANGE_FROM = "range from"
         const val RANGE_FROM_DEFAULT = 1
         const val RANGE_TO = "range to"
