@@ -99,18 +99,26 @@
             app:layout_constraintVertical_bias="0.0"
             tools:listitem="@layout/item_menu" />
 
-    <ImageButton
+    <Button
             android:id="@+id/button_cancel"
-            android:layout_width="60dp"
+            android:layout_width="0dp"
+            app:layout_constraintWidth_percent="0.15"
             android:layout_height="0dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
+            android:text="Order\nNo Print"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:onClick="orderNoPrint"
             android:background="@drawable/background_payment"
-            android:onClick="deleteOrder"
             app:layout_constraintBottom_toBottomOf="@+id/order_button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/order_button"
-            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
+            app:layout_constraintTop_toTopOf="@+id/order_button" />
+
+<!--    app:srcCompat="@drawable/ic_delete_forever_black_24dp"-->
+<!--    android:onClick="deleteOrder"-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -173,7 +181,7 @@
                 android:layout_height="wrap_content"
                 android:text="Sum"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -184,7 +192,7 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -212,7 +220,6 @@
             android:id="@+id/order_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:onClick="cafeOrder"
             android:layout_marginStart="4dp"
             android:layout_marginLeft="4dp"
             android:layout_marginEnd="4dp"

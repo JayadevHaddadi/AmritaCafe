@@ -29,10 +29,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.android.volley.AuthFailureError
-import com.android.volley.RequestQueue
-import com.android.volley.Response
-import com.android.volley.VolleyError
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.epson.epos2.Epos2Exception
@@ -350,11 +347,17 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
+    fun orderNoPrint(view: View) {
+        printOrder(false)
+        println("ORDER PRINT1")
+    }
 
-    private fun printOrder() {
+    private fun printOrder(printOrder: Boolean = true) {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
-        tryConnect()
+        if (printOrder)
+            tryConnect()
+        println("ORDER PRINT2")
 
         var pos = 0
         orderItemsCopy.forEach {
@@ -531,48 +534,6 @@ class MainActivity : AppCompatActivity() {
                 orderTime = time
                 myOrderNumber = orderNumber
 
-//                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
-//                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
-//                mHoinPrinter.printImage(otherPath.toString(), true)
-
-                mHoinPrinter.printText(
-                    "Western Cafe",
-                    true, true, false, true
-                )
-
-                mHoinPrinter.printText(
-                    "Sree Bhadra Amrita\nSelf Help Group\n" +
-                            "AMRITAPURI\n".capitalizeWords() +
-                            "KOLLAM-690546".capitalizeWords(),
-                    false,
-                    false,
-                    false,
-                    false
-                )
-                mHoinPrinter.printText(
-                    "${"".padEnd(32, '-')}",
-                    false, false, false, false
-                )
-
-                val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
-                } else {
-                    TODO("VERSION.SDK_INT < O")
-                }
-                val current = LocalDateTime.now().format(formatter)
-                mHoinPrinter.printText(
-                    "${("Order " + orderNumStr).padEnd(16)}${current.padStart(16)}",
-                    false, false, false, false
-                )
-
-                mHoinPrinter.printText(
-                    ReceiptWriter.orderItemsText(orderItems),
-                    false,
-                    false,
-                    false,
-                    false
-                )
-
                 orderItems.forEach { it ->
                     val jsonItem = JSONObject()
                     jsonItem.put("name", it.menuItem.name)
@@ -582,37 +543,98 @@ class MainActivity : AppCompatActivity() {
                     jsonArray.put(jsonItem)
                 }
 
-                mHoinPrinter.printText(
-                    "Total" + orderTotalText.padStart(11, '.'),
-                    true,
-                    true,
-                    true,
-                    false
-                )
+                if (printOrder) {
+//                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
+//                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
+//                mHoinPrinter.printImage(otherPath.toString(), true)
 
-                mHoinPrinter.printText(
-                    "${"".padEnd(32, '-')}",
-                    false, false, false, false
-                )
+                    mHoinPrinter.printText(
+                        "Western Cafe",
+                        true, true, false, true
+                    )
 
-                mHoinPrinter.printText(
-                    "Thank You",
-                    true, true, false, true
-                )
+                    mHoinPrinter.printText(
+                        "Sree Bhadra Amrita\nSelf Help Group\n" +
+                                "AMRITAPURI\n".capitalizeWords() +
+                                "KOLLAM-690546".capitalizeWords(),
+                        false,
+                        false,
+                        false,
+                        false
+                    )
+                    mHoinPrinter.printText(
+                        "${"".padEnd(32, '-')}",
+                        false, false, false, false
+                    )
+
+                    val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
+                    } else {
+                        TODO("VERSION.SDK_INT < O")
+                    }
+                    val current = LocalDateTime.now().format(formatter)
+                    mHoinPrinter.printText(
+                        "${("Order " + orderNumStr).padEnd(16)}${current.padStart(16)}",
+                        false, false, false, false
+                    )
+
+                    mHoinPrinter.printText(
+                        ReceiptWriter.orderItemsText(orderItems),
+                        false,
+                        false,
+                        false,
+                        false
+                    )
+
+
+                    mHoinPrinter.printText(
+                        "Total" + orderTotalText.padStart(11, '.'),
+                        true,
+                        true,
+                        true,
+                        false
+                    )
+
+                    mHoinPrinter.printText(
+                        "${"".padEnd(32, '-')}",
+                        false, false, false, false
+                    )
+
+                    mHoinPrinter.printText(
+                        "Thank You",
+                        true, true, false, true
+                    )
+                }
             }
 
             val url =
-                "https://script.google.com/macros/s/AKfycbwlW9DNOCvPU8RH3toObonpqLe_REjpQTYKLfPAl7WmEi52-EIRToSrNlKPG_ErPFmhBQ/exec" // Replace with your actual URL
+                "https://script.google.com/macros/s/AKfycbwWPD0LdwBOY9u68RNRG9c_5K8unejzCoLLTetPsWykhC7o-fhecrLMnb9VwpDwHgsw/exec" // Replace with your actual URL
 
             jsonData.put("items", jsonArray)
             try {
                 jsonData.put("time", orderTime)
                 jsonData.put("tablet", "Jayadev Tablet")
-                jsonData.put("order", myOrderNumber)
+                jsonData.put("order", myOrderNumber.toString())
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-            val jsonString = jsonData.toString()
+            var jsonString = jsonData.toString()
+//            jsonString = """{
+//                "time": "5 oclock",
+//                "tablet": "shiva",
+//                "order": "342",
+//                "items": [{
+//                "quantity":2,
+//                "name":"burger",
+//                "cost":30,
+//                "total":60
+//            },{
+//                "quantity":1,
+//                "name":"fries",
+//                "cost":80,
+//                "total":80
+//            }]
+//            }"""
             println("JSON STRING: " + jsonString)
             val requestQueue = Volley.newRequestQueue(this)
             val stringRequest = object : StringRequest(
@@ -620,11 +642,12 @@ class MainActivity : AppCompatActivity() {
                 url, // Replace with your actual URL
                 { response ->
                     // Handle successful response
-                    Log.d("JAYADEV", "Response: $response")
+                    Log.d("Connection", "Response: $response")
                 },
                 { error ->
                     // Handle error
-                    Log.e("JAYADEV", "Error: ${error.message}")
+                    Log.e("Connection", "Error: ${error.message}")
+                    makeToast("Sending data error: ${error.message}")
                 }) {
                 override fun getBodyContentType(): String {
                     return "application/json; charset=utf-8"
@@ -639,9 +662,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            stringRequest.setRetryPolicy(
+                DefaultRetryPolicy(
+                    0,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                ))
 
 // Add the request to the queue
+            println("ORDER PRINT2.5")
             requestQueue.add(stringRequest)
+            println("ORDER PRINT3")
 
             startNewOrder()
         }
@@ -718,6 +749,7 @@ class MainActivity : AppCompatActivity() {
         println("JAYADEV CAFE BUTTON PRESSED")
     }
 
+
     private fun showCostInputDialog(context: Context) {
         val builder = AlertDialog.Builder(context)
 
@@ -780,4 +812,5 @@ class MainActivity : AppCompatActivity() {
         positiveButton.setTextColor(Color.DKGRAY)
         negativeButton.setTextColor(Color.RED)
     }
+
 }
