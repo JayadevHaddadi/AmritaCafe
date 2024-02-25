@@ -29,7 +29,7 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
                             "  "
                         } else {
                             it.quantity.toString().padEnd(2)
-                        }  + it.menuItem.code //+ "+ "
+                        } + it.menuItem.code //+ "+ "
                     }
                 } else {
                     ""
@@ -41,13 +41,11 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
         orders.forEach { (orderNumber, itemList, time) ->
 
             val orderItemsText =
-                itemList.map (::writeLine).joinToString("\n")
+                itemList.map(::writeLine).joinToString("\n")
             val itemCount =
                 itemList.map { 1 }.sum()
 
             printer.addTextSize(titleSize, titleSize)
-            //total length of this size is 16
-//            printer.addText("$orderNumber${time.padStart(16 - orderNumber.toString().length, ' ')}")
             val orderNumStr = orderNumber.toString().padStart(3, '0')
             printer.addText("$orderNumStr        $time")
 

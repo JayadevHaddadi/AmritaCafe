@@ -44,14 +44,14 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
     private fun writeToPrinter(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
 
-        orders.forEach { (orderNumber, orderItems, time) ->
+        orders.forEach { (orderNumber, orderItems, date, timeInHours) ->
             val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
 
             val itemCount = orderItems.map { 1 }.sum()
 
             printer.addTextSize(titleSize, titleSize)
             val orderNumStr = orderNumber.toString().padStart(3, '0')
-            printer.addText("$orderNumStr        $time")
+            printer.addText("$orderNumStr        $timeInHours")
 
             printer.addFeedLine(lineFeed)
             printer.addTextSize(textSize, textSize)

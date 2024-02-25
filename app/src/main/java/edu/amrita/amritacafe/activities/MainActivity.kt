@@ -2,15 +2,18 @@ package edu.amrita.amritacafe.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.text.InputType
 import android.util.Log
@@ -27,6 +30,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.DefaultRetryPolicy
@@ -56,7 +60,10 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.UnsupportedEncodingException
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -116,6 +123,33 @@ class MainActivity : AppCompatActivity() {
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //            requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE), 1)
+//        }
+        val PERMISSIONS_STORAGE = arrayOf(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+        ActivityCompat.requestPermissions(
+            this,
+            PERMISSIONS_STORAGE,
+            PackageManager.PERMISSION_GRANTED
+        );
+
+//        private val REQUEST_EXTERNAL_STORAGE = 1
+//        private val PERMISSIONS_STORAGE = arrayOf(
+//            Manifest.permission.WRITE_EXTERNAL_STORAGE
+//        )
+//
+//        fun checkStoragePermission(activity: Activity): Boolean {
+//            val permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//
+//            if (permission != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(
+//                    activity,
+//                    PERMISSIONS_STORAGE,
+//                    REQUEST_EXTERNAL_STORAGE
+//                )
+//                return false
+//            }
+//            return true
 //        }
 
         val androidId =
@@ -212,6 +246,86 @@ class MainActivity : AppCompatActivity() {
         })
         mHoinPrinter.switchType(true);
         tryConnect()
+
+        print("PERMISSION " + checkStoragePermission(this))
+    }
+
+    private val REQUEST_EXTERNAL_STORAGE = 1
+    private val PERMISSIONS_STORAGE = arrayOf(
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+
+    fun checkStoragePermission(activity: Activity): Boolean {
+        val permission =
+            ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                activity,
+                PERMISSIONS_STORAGE,
+                REQUEST_EXTERNAL_STORAGE
+            )
+            return false
+        }
+        return true
+    }
+
+    fun addOrderToTodaysCSV(text: String) {
+        val folderName = "Amrita Cafe"
+
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val fileName = "Amrita Cafe History - $currentDate.txt"
+
+        if (isExternalStorageWritable()) {
+            // Get the directory for the user's public directory.
+            val documentsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+
+            // Create the folder if it doesn't exist
+            val folder = File(documentsDir, folderName)
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+
+            // Create or open the file within the specified folder.
+            val file = File(folder, fileName)
+
+            try {
+                // Open the file in append mode
+                val fos = FileOutputStream(file, true)
+                fos.write(text.toByteArray())
+//                fos.write("\n".toByteArray()) // Add a newline after appending the text
+                fos.close()
+                // Content successfully appended
+            } catch (e: IOException) {
+                e.printStackTrace()
+                // Error occurred while appending to the file
+            }
+        } else {
+            // External storage not writable, handle accordingly
+        }
+    }
+
+    private fun isExternalStorageWritable(): Boolean {
+        val state = Environment.getExternalStorageState()
+        return Environment.MEDIA_MOUNTED == state
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                print("WE HAVE PERMISSION")
+                // Permission granted, you can now proceed with writing to external storage
+            } else {
+                print("WE DOOOONT HAVE PERMISSION")
+                // Permission denied, handle accordingly
+            }
+        }
     }
 
     private var requestBluetooth =
@@ -249,6 +363,52 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         loadMenu()
+
+        val url =
+            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec"
+        val requestQueue = Volley.newRequestQueue(this)
+        val stringRequest = object : StringRequest(
+            Method.GET,
+            url, // Replace with your actual URL
+            { response ->
+                // Handle successful response
+                Log.d("Get Menu", "Response: $response")
+                val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
+                val response2 = saveIfValidText(response, applicationContext, file)
+                if (response2.startsWith("Successfully")) {
+                    loadMenu()
+                }
+                Log.d("Get Menu", "Response2: $response2")
+            },
+            { error ->
+                // Handle error
+                Log.e("Get Menu", "Error: ${error.message}")
+                makeToast("Sending data error: ${error.message}")
+            }) {
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getBody(): ByteArray {
+                return try {
+                    "Helloooo".toByteArray(Charsets.UTF_8)
+                } catch (e: UnsupportedEncodingException) {
+                    Log.e("TAG", "Error encoding JSON: $e")
+                    return ByteArray(0)
+                }
+            }
+        }
+        stringRequest.setRetryPolicy(
+            DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+        )
+
+// Add the request to the queue
+        requestQueue.add(stringRequest)
+
         tabletNameMainTV.text = configuration.tabletName
 //        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
 //            tryConnect()
@@ -358,7 +518,6 @@ class MainActivity : AppCompatActivity() {
 
         if (printOrder)
             tryConnect()
-        println("ORDER PRINT2")
 
         var pos = 0
         orderItemsCopy.forEach {
@@ -620,7 +779,6 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
             val jsonString = jsonData.toString()
-            println("JSON STRING: " + jsonString)
             val requestQueue = Volley.newRequestQueue(this)
             val stringRequest = object : StringRequest(
                 Method.POST,
@@ -652,15 +810,32 @@ class MainActivity : AppCompatActivity() {
                     0,
                     DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                ))
+                )
+            )
 
 // Add the request to the queue
-            println("ORDER PRINT2.5")
             requestQueue.add(stringRequest)
-            println("ORDER PRINT3")
 
             startNewOrder()
         }
+        // After blootooth
+
+        //FOR CSV FILE:
+        val lineToWrite = StringBuffer()
+        orders.forEach { (orderNumber, orderItems, time) ->
+            val date = Date(time)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val stringDate = dateFormat.format(date)
+
+            orderItems.forEach {
+                lineToWrite.append(
+                    "$stringDate, ${configuration.tabletName}, " +
+                            "${orderNumber}, ${it.quantity}, ${it.menuItem.name}, " +
+                            "${it.priceWithToppings}, ${it.menuItem.price}\n"
+                )
+            }
+        }
+        addOrderToTodaysCSV(lineToWrite.toString())
 
         GlobalScope.launch {
             orderNumberService.next()
