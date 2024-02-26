@@ -13,7 +13,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.Settings
 import android.text.InputType
 import android.util.Log
@@ -31,6 +30,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.DefaultRetryPolicy
@@ -51,6 +51,21 @@ import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_history.view.*
+import kotlinx.android.synthetic.main.dialog_payment.view.clear_money_recieved
+import kotlinx.android.synthetic.main.dialog_payment.view.recieved_1_botton
+import kotlinx.android.synthetic.main.dialog_payment.view.no_print_botton
+import kotlinx.android.synthetic.main.dialog_payment.view.print_bottom
+import kotlinx.android.synthetic.main.dialog_payment.view.received_500_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_50_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_10_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_100_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_5_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_200_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_20_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_TV
+import kotlinx.android.synthetic.main.dialog_payment.view.renunciate_botton
+import kotlinx.android.synthetic.main.dialog_payment.view.to_pay_TV
+import kotlinx.android.synthetic.main.dialog_payment.view.to_return_TV
 import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -60,8 +75,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -121,9 +134,6 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE), 1)
-//        }
         val PERMISSIONS_STORAGE = arrayOf(
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
@@ -132,25 +142,6 @@ class MainActivity : AppCompatActivity() {
             PERMISSIONS_STORAGE,
             PackageManager.PERMISSION_GRANTED
         );
-
-//        private val REQUEST_EXTERNAL_STORAGE = 1
-//        private val PERMISSIONS_STORAGE = arrayOf(
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE
-//        )
-//
-//        fun checkStoragePermission(activity: Activity): Boolean {
-//            val permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//
-//            if (permission != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(
-//                    activity,
-//                    PERMISSIONS_STORAGE,
-//                    REQUEST_EXTERNAL_STORAGE
-//                )
-//                return false
-//            }
-//            return true
-//        }
 
         val androidId =
             Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
@@ -190,9 +181,6 @@ class MainActivity : AppCompatActivity() {
 
         updateNameForToggleButton()
         user_TV.text = "Amritapuri @ $tabletName"
-
-//        println("Time: ${Calendar.getInstance().get(Calendar.HOUR_OF_DAY)}")
-//        configuration.isBreakfastTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 11
 
         createDefaultFilesIfNecessary(baseContext)
         loadMenu() //will load on resume
@@ -268,47 +256,6 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         return true
-    }
-
-    fun addOrderToTodaysCSV(text: String) {
-        val folderName = "Amrita Cafe"
-
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val fileName = "Amrita Cafe History - $currentDate.txt"
-
-        if (isExternalStorageWritable()) {
-            // Get the directory for the user's public directory.
-            val documentsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-
-            // Create the folder if it doesn't exist
-            val folder = File(documentsDir, folderName)
-            if (!folder.exists()) {
-                folder.mkdirs()
-            }
-
-            // Create or open the file within the specified folder.
-            val file = File(folder, fileName)
-
-            try {
-                // Open the file in append mode
-                val fos = FileOutputStream(file, true)
-                fos.write(text.toByteArray())
-//                fos.write("\n".toByteArray()) // Add a newline after appending the text
-                fos.close()
-                // Content successfully appended
-            } catch (e: IOException) {
-                e.printStackTrace()
-                // Error occurred while appending to the file
-            }
-        } else {
-            // External storage not writable, handle accordingly
-        }
-    }
-
-    private fun isExternalStorageWritable(): Boolean {
-        val state = Environment.getExternalStorageState()
-        return Environment.MEDIA_MOUNTED == state
     }
 
     override fun onRequestPermissionsResult(
@@ -415,6 +362,76 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    var received = 0f
+    var currentTotalCost = 0f
+    var renounciate = false
+
+    private fun openPaymentDialog() {
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment, null)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val dialog = dialogBuilder.show()
+        val check_draw = ContextCompat.getDrawable(this, R.drawable.check_image)
+        val renunciate_draw = ContextCompat.getDrawable(this, R.drawable.renunciate)
+
+        dialogView.renunciate_botton.setOnClickListener {
+            renounciate = !renounciate // Toggle the value of renounciate
+
+            // Print the current value of renounciate
+            println("renounciate: $renounciate")
+
+            // Set the appropriate drawable based on the value of renounciate
+            dialogView.renunciate_botton.setCompoundDrawablesWithIntrinsicBounds(
+                null, // left drawable
+                renunciate_draw, // top drawable
+                if (renounciate) check_draw else null, // right drawable
+                null // bottom drawable
+            )
+        }
+
+        dialogView.print_bottom.setOnClickListener {
+
+        }
+
+        dialogView.no_print_botton.setOnClickListener {
+
+        }
+
+        received = 0f
+        currentTotalCost = orderAdapter.orderItems.map { it.priceWithToppings.toFloat() }.sum()
+
+        dialogView.to_pay_TV.text = currentTotalCost.toString()
+
+        val onClickRecivedListener = View.OnClickListener { billButton ->
+            billButton as Button
+            when (billButton.text) {
+                "500₹" -> received += 500
+                "200₹" -> received += 200
+                "100₹" -> received += 100
+                "50₹" -> received += 50
+                "20₹" -> received += 20
+                "10₹" -> received += 10
+                "5₹" -> received += 5f
+                "1₹" -> received += 1f
+                "Clear" -> received = 0f
+            }
+            dialogView.received_TV.text = received.toString()
+            dialogView.to_return_TV.text = (received - currentTotalCost).toString()
+        }
+        dialogView.received_500_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_200_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_100_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_50_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_20_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_10_button.setOnClickListener(onClickRecivedListener)
+        dialogView.received_5_button.setOnClickListener(onClickRecivedListener)
+        dialogView.recieved_1_botton.setOnClickListener(onClickRecivedListener)
+        dialogView.clear_money_recieved.setOnClickListener(onClickRecivedListener)
+    }
+
     fun tryConnect() = runBlocking() {
         launch {
             delay(1000L)
@@ -514,6 +531,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun printOrder(printOrder: Boolean = true) {
+        openPaymentDialog()
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
         if (printOrder)
@@ -840,8 +858,6 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
             orderNumberService.next()
         }
-
-        println("Started Print Job")
     }
 
     @SuppressLint("InflateParams")
