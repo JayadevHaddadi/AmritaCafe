@@ -6,7 +6,6 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -24,6 +23,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -415,11 +415,13 @@ class MainActivity : AppCompatActivity() {
         dialogView.print_bottom.setOnClickListener {
             sendToSheetAndPrint(orders, true)
             orderDone(orders)
+            dialog.dismiss()
         }
 
         dialogView.no_print_botton.setOnClickListener {
             sendToSheetAndPrint(orders, false)
             orderDone(orders)
+            dialog.dismiss()
         }
 
         received = 0f
@@ -547,9 +549,8 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    fun orderNoPrint(view: View) {
-        printOrder(false)
-        println("ORDER PRINT1")
+    fun orderButtonPressed(view: View) {
+        printOrder()
     }
 
     private fun printOrder(printOrder: Boolean = true) {
@@ -879,71 +880,83 @@ class MainActivity : AppCompatActivity() {
 
     fun cafeOrder(view: View) {
         showCostInputDialog(this)
-        println("JAYADEV CAFE BUTTON PRESSED")
     }
 
 
     private fun showCostInputDialog(context: Context) {
         val builder = AlertDialog.Builder(context)
+        val layout = LinearLayout(context)
+        layout.orientation = LinearLayout.VERTICAL
 
-        val textView = TextView(context)
-        textView.text = "Cafe Item Cost:"
-        textView.setPadding(20, 10, 5, 5)
-//        textView.textAlignment
-        textView.textSize = 30f
-//        textView.setBackgroundColor(Color.CYAN)
-        textView.setTextColor(Color.BLACK)
-        builder.setCustomTitle(textView)
+        val cafeOrderNumberTV = TextView(context)
+        cafeOrderNumberTV.text = "Cafe Order Number:"
+        cafeOrderNumberTV.setPadding(20, 10, 5, 5)
+        cafeOrderNumberTV.textSize = 30f
+        cafeOrderNumberTV.setTextColor(Color.BLACK)
+        layout.addView(cafeOrderNumberTV)
 
-        // Set the layout for the dialog
-        val input = EditText(context)
-        input.setPadding(20, 10, 5, 5)
-//        textView.textAlignment
-        input.textSize = 30f
+        val cafeOrderNumberET = EditText(context)
+        cafeOrderNumberET.setPadding(20, 10, 5, 5)
+        cafeOrderNumberET.textSize = 30f
+        cafeOrderNumberET.inputType = InputType.TYPE_CLASS_NUMBER
+        cafeOrderNumberET.requestFocus()
+        layout.addView(cafeOrderNumberET)
 
-        // Set input type to allow only numeric values
-        input.inputType = InputType.TYPE_CLASS_NUMBER //or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        val cafeOrderCostTV = TextView(context)
+        cafeOrderCostTV.text = "Cafe Order Cost:"
+        cafeOrderCostTV.setPadding(20, 10, 5, 5)
+        cafeOrderCostTV.textSize = 30f
+        cafeOrderCostTV.setTextColor(Color.BLACK)
+        layout.addView(cafeOrderCostTV)
 
-        // Request focus on the input field
-        input.requestFocus()
+        val cafeOrderCostET = EditText(context)
+        cafeOrderCostET.setPadding(20, 10, 5, 5)
+        cafeOrderCostET.textSize = 30f
+        cafeOrderCostET.inputType = InputType.TYPE_CLASS_NUMBER
+        layout.addView(cafeOrderCostET)
 
-        builder.setView(input)
+        builder.setView(layout)
+        builder.setPositiveButton("OK", null)
+        builder.setNegativeButton("Cancel", null)
 
-        // Create and show the AlertDialog
-        val dialog: AlertDialog = builder.create()
-        fun onEnter(dialog: DialogInterface) {
-            var cost = 0f
-            try {
-                cost = input.text.toString().toFloat()
+        val dialog = builder.create()
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
-                orderAdapter.add(
-                    MenuItem("", "Cafe Item", cost, ""),
-                    uniqueItem = true
-                )
-            } catch (e: Exception) {
-                makeToast("Not working")
+            positiveButton.setTextColor(Color.DKGRAY)
+            negativeButton.setTextColor(Color.RED)
+
+            positiveButton.setOnClickListener {
+                try {
+                    orderAdapter.add(
+                        MenuItem(
+                            "Cafe Order " + cafeOrderCostTV.text,
+                            "Cafe Order " + cafeOrderCostTV.text,
+                            cafeOrderCostET.text.toString().toFloat(),
+                            "Cafe Order"
+                        ),
+                        uniqueItem = true
+                    )
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    makeToast("Not working")
+                }
             }
-            dialog.dismiss()
         }
 
-        input.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                onEnter(dialog)
-                true
-            }
-            false
-        }
-
-        // Show the AlertDialog
         dialog.show()
 
-        // Get the buttons from the AlertDialog after it's shown
-        val positiveButton: Button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-        val negativeButton: Button = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-
-        // Set contrast colors for the buttons
-        positiveButton.setTextColor(Color.DKGRAY)
-        negativeButton.setTextColor(Color.RED)
+        cafeOrderCostET.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                positiveButton.performClick()
+                true
+            } else {
+                false
+            }
+        }
     }
+
 
 }
