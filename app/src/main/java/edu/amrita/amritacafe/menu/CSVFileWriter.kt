@@ -1,6 +1,8 @@
 package edu.amrita.amritacafe.menu
 
 import android.os.Environment
+import edu.amrita.amritacafe.model.Order
+import edu.amrita.amritacafe.settings.Configuration
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -15,7 +17,24 @@ private fun isExternalStorageWritable(): Boolean {
     val state = Environment.getExternalStorageState()
     return Environment.MEDIA_MOUNTED == state
 }
-fun addOrderToTodaysCSV(text: String) {
+
+fun writeToCSV(orders: List<Order>, configuration: Configuration) {
+    val lineToWrite = StringBuffer()
+    orders.forEach { (orderNumber, orderItems, time) ->
+        val date = Date(time)
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val stringDate = dateFormat.format(date)
+
+        orderItems.forEach {
+            lineToWrite.append(
+                "$stringDate, ${configuration.tabletName}, " +
+                        "${orderNumber}, ${it.quantity}, ${it.menuItem.name}, " +
+                        "${it.totalPrice}, ${it.menuItem.price}\n"
+            )
+        }
+    }
+
+    val text = lineToWrite.toString()
     val parentFolderName = "Amrita Cafe"
     val subFolderName = "History"
 

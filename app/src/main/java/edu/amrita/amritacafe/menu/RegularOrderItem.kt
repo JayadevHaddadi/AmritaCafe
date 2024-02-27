@@ -6,16 +6,23 @@ data class RegularOrderItem(
     var comment: String = "",
     var toppings: MutableList<RegularOrderItem> = mutableListOf()
 ) {
-    val priceWithoutToppings: Int by lazy {
+    val priceWithoutExtras: Int by lazy {
         (quantity * menuItem.price).toInt()
     }
 
-    val priceWithToppings: Int by lazy {
-        priceWithoutToppings + if (toppings.isEmpty()) 0 else toppings.map { it.priceWithoutToppings }.sum()
+    val extrasPrice: Int by lazy {
+        toppings.map { it.priceWithoutExtras }.sum()
     }
 
+    val totalPrice: Int by lazy {
+        priceWithoutExtras + extrasPrice// if (toppings.isEmpty()) 0 else toppingsPrice
+    }
+
+//    val totalForRenunciates: Int by lazy {
+//        if(menuItem.category.equals("LUNCH/DINNER",true)) ((quantity-1) * menuItem.price).toInt() + toppingsPrice else totalPrice
+//    }
+
     val code: String by lazy {
-//        (if(menuItem.category.equals(TOPPING,true)) " + " else "") +
          menuItem.code
     }
 

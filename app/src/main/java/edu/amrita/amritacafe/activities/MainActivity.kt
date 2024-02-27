@@ -47,7 +47,7 @@ import edu.amrita.amritacafe.printer.ErrorStatus
 import edu.amrita.amritacafe.printer.OrderNumberService
 import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
-import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrint
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_history.view.*
@@ -76,9 +76,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -160,7 +157,7 @@ class MainActivity : AppCompatActivity() {
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
             total_cost_TV.text =
-                orderAdapter.orderItems.map { it.priceWithoutToppings }.sum().toString()
+                orderAdapter.orderItems.map { it.priceWithoutExtras }.sum().toString()
         }
 
         order_ListView.adapter = orderAdapter
@@ -366,7 +363,8 @@ class MainActivity : AppCompatActivity() {
     var currentTotalCost = 0f
     var renounciate = false
 
-    private fun openPaymentDialog() {
+    private fun openPaymentDialog(orders: List<Order>) {
+        renounciate = false
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment, null)
         val dialogBuilder = AlertDialog.Builder(this)
@@ -390,18 +388,42 @@ class MainActivity : AppCompatActivity() {
                 if (renounciate) check_draw else null, // right drawable
                 null // bottom drawable
             )
+
+            var totalRenunciateItems = 0
+
+            currentTotalCost = orderAdapter.orderItems.map {
+                if (renounciate) {
+                    if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
+                        ((it.quantity - 1) * it.menuItem.price)
+                    else if (it.menuItem.category.equals("LUNCH/DINNER") && totalRenunciateItems < 3) {
+                        totalRenunciateItems += 1
+                        (it.quantity - 1) * it.menuItem.price
+                    } else {
+                        it.totalPrice.toFloat()
+                    }
+                } else {
+                    it.totalPrice.toFloat()
+                }
+            }.sum()
+
+
+            dialogView.to_pay_TV.text = currentTotalCost.toString()
+            dialogView.received_TV.text = received.toString()
+            dialogView.to_return_TV.text = (received - currentTotalCost).toString()
         }
 
         dialogView.print_bottom.setOnClickListener {
-
+            sendToSheetAndPrint(orders, true)
+            orderDone(orders)
         }
 
         dialogView.no_print_botton.setOnClickListener {
-
+            sendToSheetAndPrint(orders, false)
+            orderDone(orders)
         }
 
         received = 0f
-        currentTotalCost = orderAdapter.orderItems.map { it.priceWithToppings.toFloat() }.sum()
+        currentTotalCost = orderAdapter.orderItems.map { it.totalPrice.toFloat() }.sum()
 
         dialogView.to_pay_TV.text = currentTotalCost.toString()
 
@@ -531,7 +553,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun printOrder(printOrder: Boolean = true) {
-        openPaymentDialog()
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
         if (printOrder)
@@ -700,165 +721,101 @@ class MainActivity : AppCompatActivity() {
                 view.receipt_progress.visibility = View.VISIBLE
             }
 
+            orderDone(orders)
         } else if (configuration.mode == BLUETOOTH) {
-            val jsonData = JSONObject()
-            val jsonArray = JSONArray()
-            var orderTime = 0L
-            var myOrderNumber = 0
-
-            orders.forEach { (orderNumber, orderItems, time) ->
-                val orderTotalText = orderItems.map { it.priceWithToppings }.sum().toString()
-                val orderNumStr = orderNumber.toString().padStart(3, '0')
-                orderTime = time
-                myOrderNumber = orderNumber
-
-                orderItems.forEach { it ->
-                    val jsonItem = JSONObject()
-                    jsonItem.put("name", it.menuItem.name)
-                    jsonItem.put("quantity", it.quantity)
-                    jsonItem.put("total", it.priceWithToppings)
-                    jsonItem.put("cost", it.menuItem.price)
-                    jsonArray.put(jsonItem)
-                }
-
-                if (printOrder) {
-//                val path = Uri.parse("android.resource://edu.amrita.amritacafe3/" + R.drawable.logo)
-//                val otherPath = Uri.parse("android.resource://edu.amrita.amritacafe3/drawable/logo")
-//                mHoinPrinter.printImage(otherPath.toString(), true)
-
-                    mHoinPrinter.printText(
-                        "Western Cafe",
-                        true, true, false, true
-                    )
-
-                    mHoinPrinter.printText(
-                        "Sree Bhadra Amrita\nSelf Help Group\n" +
-                                "AMRITAPURI\n".capitalizeWords() +
-                                "KOLLAM-690546".capitalizeWords(),
-                        false,
-                        false,
-                        false,
-                        false
-                    )
-                    mHoinPrinter.printText(
-                        "${"".padEnd(32, '-')}",
-                        false, false, false, false
-                    )
-
-                    val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
-                    } else {
-                        TODO("VERSION.SDK_INT < O")
-                    }
-                    val current = LocalDateTime.now().format(formatter)
-                    mHoinPrinter.printText(
-                        "${("Order " + orderNumStr).padEnd(16)}${current.padStart(16)}",
-                        false, false, false, false
-                    )
-
-                    mHoinPrinter.printText(
-                        ReceiptWriter.orderItemsText(orderItems),
-                        false,
-                        false,
-                        false,
-                        false
-                    )
-
-
-                    mHoinPrinter.printText(
-                        "Total" + orderTotalText.padStart(11, '.'),
-                        true,
-                        true,
-                        true,
-                        false
-                    )
-
-                    mHoinPrinter.printText(
-                        "${"".padEnd(32, '-')}",
-                        false, false, false, false
-                    )
-
-                    mHoinPrinter.printText(
-                        "Thank You",
-                        true, true, false, true
-                    )
-                }
-            }
-
-            val url =
-                "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec" // Replace with your actual URL
-
-            jsonData.put("items", jsonArray)
-            try {
-                jsonData.put("time", orderTime)
-                jsonData.put("tablet", configuration.tabletName)
-                jsonData.put("order", myOrderNumber.toString())
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-            val jsonString = jsonData.toString()
-            val requestQueue = Volley.newRequestQueue(this)
-            val stringRequest = object : StringRequest(
-                Method.POST,
-                url, // Replace with your actual URL
-                { response ->
-                    // Handle successful response
-                    Log.d("Connection", "Response: $response")
-                },
-                { error ->
-                    // Handle error
-                    Log.e("Connection", "Error: ${error.message}")
-                    makeToast("Sending data error: ${error.message}")
-                }) {
-                override fun getBodyContentType(): String {
-                    return "application/json; charset=utf-8"
-                }
-
-                override fun getBody(): ByteArray {
-                    return try {
-                        jsonString.toByteArray(Charsets.UTF_8)
-                    } catch (e: UnsupportedEncodingException) {
-                        Log.e("TAG", "Error encoding JSON: $e")
-                        return ByteArray(0)
-                    }
-                }
-            }
-            stringRequest.setRetryPolicy(
-                DefaultRetryPolicy(
-                    0,
-                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                )
-            )
-
-// Add the request to the queue
-            requestQueue.add(stringRequest)
-
-            startNewOrder()
+            openPaymentDialog(orders)
         }
-        // After blootooth
 
-        //FOR CSV FILE:
-        val lineToWrite = StringBuffer()
-        orders.forEach { (orderNumber, orderItems, time) ->
-            val date = Date(time)
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            val stringDate = dateFormat.format(date)
+    }
 
-            orderItems.forEach {
-                lineToWrite.append(
-                    "$stringDate, ${configuration.tabletName}, " +
-                            "${orderNumber}, ${it.quantity}, ${it.menuItem.name}, " +
-                            "${it.priceWithToppings}, ${it.menuItem.price}\n"
-                )
-            }
-        }
-        addOrderToTodaysCSV(lineToWrite.toString())
+    private fun orderDone(orders: List<Order>) {
+        writeToCSV(orders, configuration)
 
         GlobalScope.launch {
             orderNumberService.next()
         }
     }
+
+    private fun sendToSheetAndPrint(
+        orders: List<Order>,
+        printOrder: Boolean
+    ) {
+        val jsonData = JSONObject()
+        val jsonArray = JSONArray()
+        var orderTime = 0L
+        var myOrderNumber = 0
+
+        orders.forEach { (orderNumber, orderItems, time) ->
+            val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
+            val orderNumStr = orderNumber.toString().padStart(3, '0')
+            orderTime = time
+            myOrderNumber = orderNumber
+
+            orderItems.forEach {
+                val jsonItem = JSONObject()
+                jsonItem.put("name", it.menuItem.name)
+                jsonItem.put("quantity", it.quantity)
+                jsonItem.put("total", it.totalPrice)
+                jsonItem.put("cost", it.menuItem.price)
+                jsonArray.put(jsonItem)
+            }
+            if (printOrder) {
+                bluetoothPrint(mHoinPrinter, orderNumStr, orderItems, orderTotalText)
+            }
+        }
+
+        val url =
+            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec" // Replace with your actual URL
+
+        jsonData.put("items", jsonArray)
+        try {
+            jsonData.put("time", orderTime)
+            jsonData.put("tablet", configuration.tabletName)
+            jsonData.put("order", myOrderNumber.toString())
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+        val jsonString = jsonData.toString()
+        val requestQueue = Volley.newRequestQueue(this)
+        val stringRequest = object : StringRequest(
+            Method.POST,
+            url, // Replace with your actual URL
+            { response ->
+                // Handle successful response
+                Log.d("Connection", "Response: $response")
+            },
+            { error ->
+                // Handle error
+                Log.e("Connection", "Error: ${error.message}")
+                makeToast("Sending data error: ${error.message}")
+            }) {
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getBody(): ByteArray {
+                return try {
+                    jsonString.toByteArray(Charsets.UTF_8)
+                } catch (e: UnsupportedEncodingException) {
+                    Log.e("TAG", "Error encoding JSON: $e")
+                    return ByteArray(0)
+                }
+            }
+        }
+        stringRequest.setRetryPolicy(
+            DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+        )
+
+        // Add the request to the queue
+        requestQueue.add(stringRequest)
+
+        startNewOrder()
+    }
+
 
     @SuppressLint("InflateParams")
     private fun printerDialog() =
