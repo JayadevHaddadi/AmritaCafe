@@ -77,6 +77,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.util.*
+import kotlin.math.max
 
 
 fun String.capitalizeWords(): String =
@@ -308,8 +309,12 @@ class MainActivity : AppCompatActivity() {
 
         loadMenu()
 
+        val menu = if (configuration.isBreakfastTime) "Cafe Drinks" else "Canteen Menu"
+        val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
         val url =
-            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec"
+            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_" +
+                    "TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec?menu=" + menu
+
         val requestQueue = Volley.newRequestQueue(this)
         val stringRequest = object : StringRequest(
             Method.GET,
@@ -317,7 +322,7 @@ class MainActivity : AppCompatActivity() {
             { response ->
                 // Handle successful response
                 Log.d("Get Menu", "Response: $response")
-                val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
+
                 val response2 = saveIfValidText(response, applicationContext, file)
                 if (response2.startsWith("Successfully")) {
                     loadMenu()
@@ -350,12 +355,12 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-// Add the request to the queue
+        Log.d("Get Menu", "Response2: $stringRequest")
+
+        // Add the request to the queue
         requestQueue.add(stringRequest)
 
         tabletNameMainTV.text = configuration.tabletName
-//        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
-//            tryConnect()
     }
 
 
@@ -390,13 +395,30 @@ class MainActivity : AppCompatActivity() {
             )
 
             var totalRenunciateItems = 0
+            var hasMilkCurdEgg = false
 
+            // TODO STORE the renunciate indication on sheets
             currentTotalCost = orderAdapter.orderItems.map {
                 if (renounciate) {
                     if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
                         ((it.quantity - 1) * it.menuItem.price)
-                    else if (it.menuItem.category.equals("LUNCH/DINNER") && totalRenunciateItems < 3) {
+                    else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
                         totalRenunciateItems += 1
+                        (it.quantity - 1) * it.menuItem.price
+                    }
+                    // 5 iddly or dosa are free for renunciates
+                    else if ((it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) && totalRenunciateItems < 3) {
+                        (max(it.quantity - 5, 0)) * it.menuItem.price
+                    } else if (it.menuItem.name.equals("Sambar Only/Ex")) {
+                        0f
+                    } else if (it.menuItem.name.equals("Upma")) {
+                        (max(it.quantity - 2, 0)) * it.menuItem.price
+                    } else if (it.menuItem.name.equals("Sprouts")) {
+                        (max(it.quantity - 1, 0)) * it.menuItem.price
+                    } else if ((it.menuItem.name.equals("Milk") || it.menuItem.name.equals("Curd") ||
+                                it.menuItem.name.equals("Egg")) && !hasMilkCurdEgg
+                    ) {
+                        hasMilkCurdEgg = true
                         (it.quantity - 1) * it.menuItem.price
                     } else {
                         it.totalPrice.toFloat()
@@ -730,7 +752,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun orderDone(orders: List<Order>) {
-        writeToCSV(orders, configuration)
+//        writeToCSV(orders, configuration)
 
         GlobalScope.launch {
             orderNumberService.next()
@@ -931,8 +953,8 @@ class MainActivity : AppCompatActivity() {
                 try {
                     orderAdapter.add(
                         MenuItem(
-                            "Cafe Order " + cafeOrderCostTV.text,
-                            "Cafe Order " + cafeOrderCostTV.text,
+                            "Cafe Order " + cafeOrderNumberET.text,
+                            "Cafe Order " + cafeOrderNumberET.text,
                             cafeOrderCostET.text.toString().toFloat(),
                             "Cafe Order"
                         ),

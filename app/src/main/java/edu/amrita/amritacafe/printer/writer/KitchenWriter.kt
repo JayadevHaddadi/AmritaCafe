@@ -38,7 +38,7 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
 
     private fun writeTo(printer: Printer) {
         val (titleSize, textSize, lineFeed) = configuration.textConfig
-        orders.forEach { (orderNumber, itemList, time) ->
+        orders.forEach { (orderNumber, itemList, date, time) ->
 
             val orderItemsText =
                 itemList.map(::writeLine).joinToString("\n")
