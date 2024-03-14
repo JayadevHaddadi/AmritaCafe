@@ -1,9 +1,11 @@
-package edu.amrita.amritacafe.menu
+package edu.amrita.amritacafe.IO
 
 import android.os.Environment
+import android.util.Log
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -42,37 +44,46 @@ fun writeToCSV(orders: List<Order>, configuration: Configuration) {
     val fileName = "Amrita Cafe History - $currentDate.txt"
 
     if (isExternalStorageWritable()) {
-        // Get the directory for the user's public directory.
-        val documentsDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
-        // Create the parent folder if it doesn't exist
+// Create the parent folder if it doesn't exist
         val parentFolder = File(documentsDir, parentFolderName)
-//        if (!parentFolder.exists()) {
-//            parentFolder.mkdirs()
-//        }
-//
-//        // Create the subfolder if it doesn't exist
+        if (!parentFolder.exists()) {
+            val worked = parentFolder.mkdirs()
+            if (worked) {
+                Log.d("FileCreation", "File created successfully")
+            } else {
+                Log.d("FileCreation", "Failed to create file")
+            }
+        }
+
+// Create the subfolder if it doesn't exist
         val subFolder = File(parentFolder, subFolderName)
         if (!subFolder.exists()) {
             subFolder.mkdirs()
         }
 
-        // Create or open the file within the specified folder.
+// Create or open the file within the specified folder.
         val file = File(subFolder, fileName)
 
         try {
+            // Create the file if it doesn't exist
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+
             // Open the file in append mode
             val fos = FileOutputStream(file, true)
+            // Write data to the file if needed
             fos.write(text.toByteArray())
-//                fos.write("\n".toByteArray()) // Add a newline after appending the text
             fos.close()
-            // Content successfully appended
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
         } catch (e: IOException) {
             e.printStackTrace()
-            // Error occurred while appending to the file
         }
     } else {
+        println("no write permissions")
         // External storage not writable, handle accordingly
     }
 }

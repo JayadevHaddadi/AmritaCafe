@@ -40,6 +40,10 @@ import com.epson.epos2.Epos2Exception
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
+import edu.amrita.amritacafe.IO.createDefaultFilesIfNecessary
+import edu.amrita.amritacafe.IO.getListOfMenu
+import edu.amrita.amritacafe.IO.saveIfValidText
+import edu.amrita.amritacafe.IO.writeToCSV
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.model.*
@@ -752,7 +756,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun orderDone(orders: List<Order>) {
-//        writeToCSV(orders, configuration)
+        if(configuration.printToFile)
+            writeToCSV(orders, configuration)
 
         GlobalScope.launch {
             orderNumberService.next()

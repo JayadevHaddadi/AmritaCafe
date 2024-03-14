@@ -15,13 +15,10 @@ import androidx.preference.PreferenceManager
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
 import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
-import edu.amrita.amritacafe.menu.DEFAULT_BREAKFAST_CSV
-import edu.amrita.amritacafe.menu.DEFAULT_BREAKFAST_MENU
-import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_CSV
-import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_DINNER_MENU
-import edu.amrita.amritacafe.menu.createMenuFileFromMenuList
-import edu.amrita.amritacafe.menu.overrideFile
-import edu.amrita.amritacafe.menu.saveIfValidText
+import edu.amrita.amritacafe.IO.DEFAULT_BREAKFAST_CSV
+import edu.amrita.amritacafe.IO.DEFAULT_LUNCH_CSV
+import edu.amrita.amritacafe.IO.overrideFile
+import edu.amrita.amritacafe.IO.saveIfValidText
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE
 import kotlinx.android.synthetic.main.activity_settings.bluetooth_ET
@@ -30,6 +27,7 @@ import kotlinx.android.synthetic.main.activity_settings.kitchen_ip_ET
 import kotlinx.android.synthetic.main.activity_settings.menu_ET
 import kotlinx.android.synthetic.main.activity_settings.menu_toggle_button
 import kotlinx.android.synthetic.main.activity_settings.mode_spinner
+import kotlinx.android.synthetic.main.activity_settings.printToCSVCheckBox
 import kotlinx.android.synthetic.main.activity_settings.range_from_ET
 import kotlinx.android.synthetic.main.activity_settings.range_to_ET
 import kotlinx.android.synthetic.main.activity_settings.receipt_ip_ET
@@ -73,6 +71,13 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         testingCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
             configuration.testing = isChecked
         }
+
+        printToCSVCheckBox.isChecked = configuration.printToFile
+        printToCSVCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
+            configuration.printToFile = isChecked
+        }
+
+
 
         range_from_ET.setText(configuration.rangeFrom.toString())
         range_to_ET.setText(configuration.rangeTo.toString())

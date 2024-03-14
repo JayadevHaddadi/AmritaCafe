@@ -17,6 +17,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        ndk{
+            abiFilters "armeabi", "x86" // for WIFI printer to work
+        }
     }
 
     signingConfigs {

@@ -8,6 +8,15 @@ data class Configuration(private val preferences: SharedPreferences) {
 
     data class TextConfig(val titleSize: Int, val textSize: Int, val lineFeed: Int)
 
+    var printToFile
+        get() = preferences.getBoolean(DO_PRINT_CSV_HISTORY, false)
+        set(value) {
+            preferences.edit {
+                putBoolean(DO_PRINT_CSV_HISTORY, value)
+                apply()
+            }
+        }
+
     var isBreakfastTime
         get() = preferences.getBoolean(IS_BREAKFAST_MENU_KEY, true)
         set(value) {
@@ -101,6 +110,7 @@ data class Configuration(private val preferences: SharedPreferences) {
     companion object {
         const val TABLET_NAME_KEY = "tablet name"
         const val RANGE_FROM = "range from"
+        const val DO_PRINT_CSV_HISTORY = "DO_PRINT_CSV_HISTORY"
         const val RANGE_FROM_DEFAULT = 1
         const val RANGE_TO = "range to"
         const val RANGE_TO_DEFAULT = 999

@@ -57,7 +57,8 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 tools:context="edu.amrita.amritacafe.activities.SettingsActivity">
 
             <TextView
@@ -240,8 +241,20 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/range_from_ET" />
 
+
+            <CheckBox
+                    android:id="@+id/printToCSVCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Print Daily CSV"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/testingCheckBox" />
+
+
             <TextView
-                    android:id="@+id/textView222"
+                    android:id="@+id/modeTV"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="8dp"
@@ -255,7 +268,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView222" />
+                    app:layout_constraintTop_toBottomOf="@id/modeTV" />
 
             <Button
                     android:id="@+id/button2"

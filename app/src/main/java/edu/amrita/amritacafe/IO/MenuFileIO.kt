@@ -1,9 +1,12 @@
-package edu.amrita.amritacafe.menu
+package edu.amrita.amritacafe.IO
 
 import android.content.Context
 import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
 import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
 import edu.amrita.amritacafe.activities.capitalizeWords
+import edu.amrita.amritacafe.menu.DEFAULT_BREAKFAST_MENU
+import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_DINNER_MENU
+import edu.amrita.amritacafe.menu.MenuItem
 import java.io.File
 import java.io.FileOutputStream
 

@@ -19,7 +19,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
 
         fun orderItemsText(orderItems: List<RegularOrderItem>) =
             orderItems.joinToString("\n") {
-                "${it.quantity} ${it.code.capitalizeWords()}".padEnd(28, '.') +
+                "${it.quantity} ${it.code.capitalizeWords()}".padEnd(17, '.') +//28
                         it.priceWithoutExtras.toString().padStart(4, '.') +
                         if (it.comment.isBlank()) ""
                         else {
