@@ -4,6 +4,7 @@ import android.os.Build
 import com.example.hoinprinterlib.HoinPrinter
 import edu.amrita.amritacafe.activities.capitalizeWords
 import edu.amrita.amritacafe.menu.RegularOrderItem
+import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -13,7 +14,15 @@ class BluetoothPrinter {
 }
 
 
-fun bluetoothPrint(
+ fun bluetoothPrint(mHoinPrinter: HoinPrinter, orders: List<Order>) {
+    orders.forEach { (orderNumber, orderItems, time) ->
+        val orderTotalText = orderItems.map { it.totalPrice() }.sum().toString()
+        val orderNumStr = orderNumber.toString().padStart(3, '0')
+        bluetoothPrint(mHoinPrinter, orderNumStr, orderItems, orderTotalText)
+    }
+}
+
+private fun bluetoothPrint(
     printer: HoinPrinter,
     orderNumStr: String,
     orderItems: List<RegularOrderItem>,

@@ -18,9 +18,9 @@ android {
             useSupportLibrary = true
         }
 
-        ndk{
-            abiFilters "armeabi", "x86" // for WIFI printer to work
-        }
+//        ndk{
+//            abiFilters "armeabi", "x86" // for WIFI printer to work
+//        }
     }
 
     signingConfigs {

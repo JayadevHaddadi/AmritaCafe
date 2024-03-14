@@ -6,9 +6,3 @@ data class MenuItem(
     val price: Float,
     val category: String
 )
-//{
-//    var code: String = category + code
-//asdasd
-//    sasd
-//}
-//sad

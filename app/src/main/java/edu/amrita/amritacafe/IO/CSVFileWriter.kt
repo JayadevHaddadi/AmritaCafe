@@ -12,8 +12,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CSVFileWriter {
-}
 
 private fun isExternalStorageWritable(): Boolean {
     val state = Environment.getExternalStorageState()
@@ -31,7 +29,7 @@ fun writeToCSV(orders: List<Order>, configuration: Configuration) {
             lineToWrite.append(
                 "$stringDate, ${configuration.tabletName}, " +
                         "${orderNumber}, ${it.quantity}, ${it.menuItem.name}, " +
-                        "${it.totalPrice}, ${it.menuItem.price}\n"
+                        "${it.totalPrice()}, ${it.menuItem.price}\n"
             )
         }
     }

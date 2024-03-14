@@ -368,9 +368,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    var received = 0f
-    var currentTotalCost = 0f
-    var renounciate = false
+    private var received = 0f
+    private var currentTotalCost: Float = 0f
+    private var renounciate = false
 
     private fun openPaymentDialog(orders: List<Order>) {
         renounciate = false
@@ -401,57 +401,82 @@ class MainActivity : AppCompatActivity() {
             var totalRenunciateItems = 0
             var hasMilkCurdEgg = false
 
-            // TODO STORE the renunciate indication on sheets
-            currentTotalCost = orderAdapter.orderItems.map {
+            fun discountOne(string: String) {
+                orderAdapter.orderItems.forEach {
+                    if (it.menuItem.name == string && !hasMilkCurdEgg) {
+                        hasMilkCurdEgg = true
+                        it.quantityAsRenounciate = it.quantity - 1
+                        it.renounciateEffected = true
+                    }
+                }
+            }
+
+            arrayOf("Curd", "Milk", "Egg").forEach {
+                discountOne(it)
+            }
+
+            orderAdapter.orderItems.forEach {
                 if (renounciate) {
                     if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
-                        ((it.quantity - 1) * it.menuItem.price)
+                        it.quantityAsRenounciate = it.quantity - 1
                     else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
                         totalRenunciateItems += 1
-                        (it.quantity - 1) * it.menuItem.price
+                        it.quantityAsRenounciate = it.quantity - 1
                     }
                     // 5 iddly or dosa are free for renunciates
-                    else if ((it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) && totalRenunciateItems < 3) {
-                        (max(it.quantity - 5, 0)) * it.menuItem.price
+                    else if (it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) {
+                        it.quantityAsRenounciate = max(it.quantity - 5, 0)
                     } else if (it.menuItem.name.equals("Sambar Only/Ex")) {
-                        0f
+                        it.quantityAsRenounciate = 0
                     } else if (it.menuItem.name.equals("Upma")) {
-                        (max(it.quantity - 2, 0)) * it.menuItem.price
+                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
                     } else if (it.menuItem.name.equals("Sprouts")) {
-                        (max(it.quantity - 1, 0)) * it.menuItem.price
-                    } else if ((it.menuItem.name.equals("Milk") || it.menuItem.name.equals("Curd") ||
-                                it.menuItem.name.equals("Egg")) && !hasMilkCurdEgg
-                    ) {
-                        hasMilkCurdEgg = true
-                        (it.quantity - 1) * it.menuItem.price
-                    } else {
-                        it.totalPrice.toFloat()
+                        it.quantityAsRenounciate = max(it.quantity - 1, 0)
                     }
+                    if (it.quantityAsRenounciate != it.quantity)
+                        it.renounciateEffected = true
                 } else {
-                    it.totalPrice.toFloat()
+                    it.quantityAsRenounciate = it.quantity
+                    it.renounciateEffected = false
                 }
-            }.sum()
+                println(" it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
+                println("it.renounciateEffected: ${it.renounciateEffected}")
+                println("it.menuItem.name: ${it.menuItem.name}")
+            }
 
+            println("PRICE")
+            // TODO STORE the renunciate indication on sheets
+            currentTotalCost = orderAdapter.orderItems.map {
+//                println("it.menuItem.name: ${it.menuItem.name}")
+//                println("it.renounciateEffected: ${it.renounciateEffected}")
+//                println(" it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
+//                println("it.totalPrice: ${it.totalPrice()}")
+//                println("it: ${it}")
+                it.totalPrice().toFloat()
+            }.sum()
 
             dialogView.to_pay_TV.text = currentTotalCost.toString()
             dialogView.received_TV.text = received.toString()
             dialogView.to_return_TV.text = (received - currentTotalCost).toString()
         }
 
-        dialogView.print_bottom.setOnClickListener {
-            sendToSheetAndPrint(orders, true)
+        fun done() {
+            sendToSheets(orders)
             orderDone(orders)
             dialog.dismiss()
+        }
+
+        dialogView.print_bottom.setOnClickListener {
+            bluetoothPrint(mHoinPrinter, orders)
+            done()
         }
 
         dialogView.no_print_botton.setOnClickListener {
-            sendToSheetAndPrint(orders, false)
-            orderDone(orders)
-            dialog.dismiss()
+            done()
         }
 
         received = 0f
-        currentTotalCost = orderAdapter.orderItems.map { it.totalPrice.toFloat() }.sum()
+        currentTotalCost = orderAdapter.orderItems.map { it.totalPrice().toFloat() }.sum()
 
         dialogView.to_pay_TV.text = currentTotalCost.toString()
 
@@ -752,11 +777,10 @@ class MainActivity : AppCompatActivity() {
         } else if (configuration.mode == BLUETOOTH) {
             openPaymentDialog(orders)
         }
-
     }
 
     private fun orderDone(orders: List<Order>) {
-        if(configuration.printToFile)
+        if (configuration.printToFile)
             writeToCSV(orders, configuration)
 
         GlobalScope.launch {
@@ -764,9 +788,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendToSheetAndPrint(
-        orders: List<Order>,
-        printOrder: Boolean
+
+    private fun sendToSheets(
+        orders: List<Order>
     ) {
         val jsonData = JSONObject()
         val jsonArray = JSONArray()
@@ -774,21 +798,18 @@ class MainActivity : AppCompatActivity() {
         var myOrderNumber = 0
 
         orders.forEach { (orderNumber, orderItems, time) ->
-            val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
-            val orderNumStr = orderNumber.toString().padStart(3, '0')
             orderTime = time
             myOrderNumber = orderNumber
 
             orderItems.forEach {
                 val jsonItem = JSONObject()
+//                val r = if(it.renounciateEffected)  "R" else ""
                 jsonItem.put("name", it.menuItem.name)
                 jsonItem.put("quantity", it.quantity)
-                jsonItem.put("total", it.totalPrice)
+                jsonItem.put("total", it.totalPrice())
                 jsonItem.put("cost", it.menuItem.price)
+                jsonItem.put("renounciate", if(it.renounciateEffected)  "R" else "normal")
                 jsonArray.put(jsonItem)
-            }
-            if (printOrder) {
-                bluetoothPrint(mHoinPrinter, orderNumStr, orderItems, orderTotalText)
             }
         }
 

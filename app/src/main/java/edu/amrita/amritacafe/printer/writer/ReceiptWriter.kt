@@ -45,7 +45,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
         val (titleSize, textSize, lineFeed) = configuration.textConfig
 
         orders.forEach { (orderNumber, orderItems, date, timeInHours) ->
-            val orderTotalText = orderItems.map { it.totalPrice }.sum().toString()
+            val orderTotalText = orderItems.map { it.totalPrice() }.sum().toString()
 
             val itemCount = orderItems.map { 1 }.sum()
 
