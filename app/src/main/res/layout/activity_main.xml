@@ -9,6 +9,7 @@
 
     <!--    android:background="@drawable/amma_mysore_small"-->
 
+
     <LinearLayout
             android:id="@+id/title"
             android:layout_width="wrap_content"
@@ -117,24 +118,24 @@
 
     <ImageButton
             android:id="@+id/button_cancel"
-            app:srcCompat="@drawable/ic_delete_forever_black_24dp"
             android:layout_width="0dp"
-            app:layout_constraintWidth_percent="0.05"
             android:layout_height="0dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
+            android:background="@drawable/background_payment"
+            android:onClick="deleteOrder"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:onClick="deleteOrder"
-            android:background="@drawable/background_payment"
             app:layout_constraintBottom_toBottomOf="@+id/order_button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/order_button" />
+            app:layout_constraintTop_toTopOf="@+id/order_button"
+            app:layout_constraintWidth_percent="0.05"
+            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
 
-<!--    app:srcCompat="@drawable/ic_delete_forever_black_24dp"-->
-<!--    android:onClick="deleteOrder"-->
+    <!--    app:srcCompat="@drawable/ic_delete_forever_black_24dp"-->
+    <!--    android:onClick="deleteOrder"-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -176,13 +177,13 @@
             android:id="@+id/guideline"
             android:layout_width="1dp"
             android:layout_height="0dp"
-            app:layout_constraintGuide_percent="0.3"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@+id/menuGridView"
+            app:layout_constraintGuide_percent="0.3"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-<!--    app:layout_constraintHeight_percent="0.08"-->
+    <!--    app:layout_constraintHeight_percent="0.08"-->
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout2"
             android:layout_width="0dp"
@@ -232,7 +233,6 @@
 
 
     <Button
-            app:layout_constraintHeight_percent="0.1"
             android:id="@+id/order_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -242,14 +242,15 @@
             android:layout_marginRight="4dp"
             android:layout_marginBottom="4dp"
             android:background="@drawable/background_payment"
-            android:text="Order"
             android:onClick="orderButtonPressed"
+            android:text="Order"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/history_button"
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHeight_percent="0.1"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toEndOf="@+id/button_cancel" />
 
@@ -258,10 +259,10 @@
             android:layout_width="200dp"
             android:layout_height="0dp"
             android:layout_marginEnd="16dp"
-            android:padding="10dp"
-            android:onClick="cafeOrder"
             android:layout_marginBottom="16dp"
             android:background="@drawable/background_payment"
+            android:onClick="cafeOrder"
+            android:padding="10dp"
             android:text="Cafe Item"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/black"
@@ -274,7 +275,6 @@
     <Button
             android:id="@+id/history_button"
             android:layout_width="0dp"
-            app:layout_constraintHeight_percent="0.08"
             android:layout_height="0dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
@@ -288,6 +288,7 @@
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHeight_percent="0.08"
             app:layout_constraintStart_toStartOf="parent" />
 
 
@@ -313,7 +314,6 @@
             android:id="@+id/short_long_toggle_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.08"
             android:layout_margin="4dp"
             android:layout_marginEnd="0dp"
             android:layout_marginRight="0dp"
@@ -325,8 +325,36 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
+            app:layout_constraintHeight_percent="0.08"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/settings_button"
             app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <View
+            android:id="@+id/background_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="dismissPopupDialog"
+            android:visibility="invisible" />
+
+    <include
+            android:id="@+id/include_payment"
+            layout="@layout/dialog_payment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

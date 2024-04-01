@@ -3,6 +3,7 @@ package edu.amrita.amritacafe.activities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
@@ -210,6 +211,20 @@ class MainActivity : AppCompatActivity() {
             requestBluetooth.launch(enableBtIntent)
         }
 
+// Check if the permission is already granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permission is not granted, request it from the user
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                BLUETOOTH_CONNECT_REQUEST_CODE
+            )
+        } else {
+            // Permission has already been granted, proceed with accessing Bluetooth functionalities
+        }
+
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
             override fun onState(p0: Int) {
                 BT_STATE = p0
@@ -241,6 +256,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val REQUEST_EXTERNAL_STORAGE = 1
+    private val BLUETOOTH_CONNECT_REQUEST_CODE = 101
     private val PERMISSIONS_STORAGE = arrayOf(
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
@@ -273,6 +289,21 @@ class MainActivity : AppCompatActivity() {
             } else {
                 print("WE DOOOONT HAVE PERMISSION")
                 // Permission denied, handle accordingly
+            }
+        }
+        when (requestCode) {
+            BLUETOOTH_CONNECT_REQUEST_CODE -> {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, proceed with accessing Bluetooth functionalities
+                } else {
+                    // Permission denied, handle accordingly (e.g., show an explanation or disable Bluetooth features)
+                }
+                return
+            }
+            // Add other permission request codes if needed
+            else -> {
+                // Handle other permission requests
             }
         }
     }
@@ -375,10 +406,19 @@ class MainActivity : AppCompatActivity() {
     private fun openPaymentDialog(orders: List<Order>) {
         renounciate = false
 
+//        val dialogView = findViewById<View>(R.id.include_payment)
+//        dialogView.visibility = View.VISIBLE
+////        val dialogBuilder = Dialog(this, R.layout.dialog_payment);
+//
+//        val overlay = findViewById<View>(R.id.background_overlay)
+//        overlay.visibility = View.VISIBLE
+
+
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment, null)
         val dialogBuilder = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(true)
+
 
         val dialog = dialogBuilder.show()
         val check_draw = ContextCompat.getDrawable(this, R.drawable.check_image)
@@ -808,7 +848,7 @@ class MainActivity : AppCompatActivity() {
                 jsonItem.put("quantity", it.quantity)
                 jsonItem.put("total", it.totalPrice())
                 jsonItem.put("cost", it.menuItem.price)
-                jsonItem.put("renounciate", if(it.renounciateEffected)  "R" else "normal")
+                jsonItem.put("renounciate", if (it.renounciateEffected) "R" else "normal")
                 jsonArray.put(jsonItem)
             }
         }
@@ -936,19 +976,19 @@ class MainActivity : AppCompatActivity() {
         val layout = LinearLayout(context)
         layout.orientation = LinearLayout.VERTICAL
 
-        val cafeOrderNumberTV = TextView(context)
-        cafeOrderNumberTV.text = "Cafe Order Number:"
-        cafeOrderNumberTV.setPadding(20, 10, 5, 5)
-        cafeOrderNumberTV.textSize = 30f
-        cafeOrderNumberTV.setTextColor(Color.BLACK)
-        layout.addView(cafeOrderNumberTV)
-
-        val cafeOrderNumberET = EditText(context)
-        cafeOrderNumberET.setPadding(20, 10, 5, 5)
-        cafeOrderNumberET.textSize = 30f
-        cafeOrderNumberET.inputType = InputType.TYPE_CLASS_NUMBER
-        cafeOrderNumberET.requestFocus()
-        layout.addView(cafeOrderNumberET)
+//        val cafeOrderNumberTV = TextView(context)
+//        cafeOrderNumberTV.text = "Cafe Order Number:"
+//        cafeOrderNumberTV.setPadding(20, 10, 5, 5)
+//        cafeOrderNumberTV.textSize = 30f
+//        cafeOrderNumberTV.setTextColor(Color.BLACK)
+//        layout.addView(cafeOrderNumberTV)
+//
+//        val cafeOrderNumberET = EditText(context)
+//        cafeOrderNumberET.setPadding(20, 10, 5, 5)
+//        cafeOrderNumberET.textSize = 30f
+//        cafeOrderNumberET.inputType = InputType.TYPE_CLASS_NUMBER
+//        cafeOrderNumberET.requestFocus()
+//        layout.addView(cafeOrderNumberET)
 
         val cafeOrderCostTV = TextView(context)
         cafeOrderCostTV.text = "Cafe Order Cost:"
@@ -961,6 +1001,7 @@ class MainActivity : AppCompatActivity() {
         cafeOrderCostET.setPadding(20, 10, 5, 5)
         cafeOrderCostET.textSize = 30f
         cafeOrderCostET.inputType = InputType.TYPE_CLASS_NUMBER
+        cafeOrderCostET.requestFocus()
         layout.addView(cafeOrderCostET)
 
         builder.setView(layout)
@@ -979,8 +1020,8 @@ class MainActivity : AppCompatActivity() {
                 try {
                     orderAdapter.add(
                         MenuItem(
-                            "Cafe Order " + cafeOrderNumberET.text,
-                            "Cafe Order " + cafeOrderNumberET.text,
+                            "Cafe Order ", //+ cafeOrderNumberET.text,
+                            "Cafe Order ", //+ cafeOrderNumberET.text,
                             cafeOrderCostET.text.toString().toFloat(),
                             "Cafe Order"
                         ),
@@ -1004,6 +1045,15 @@ class MainActivity : AppCompatActivity() {
                 false
             }
         }
+    }
+
+    fun dismissPopupDialog(view: View) {
+        val backgroundOverlay = findViewById<View>(R.id.background_overlay)
+        backgroundOverlay.visibility = View.INVISIBLE
+
+        // Dismiss the popup dialog
+        val includePayment = findViewById<View>(R.id.include_payment)
+        includePayment.visibility = View.INVISIBLE
     }
 
 

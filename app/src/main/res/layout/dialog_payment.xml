@@ -4,6 +4,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTintMode="screen"
+        android:backgroundTint="@color/white"
         android:background="@drawable/background_white_text"
         android:orientation="horizontal">
 
@@ -108,11 +110,10 @@
             android:id="@+id/textView13"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:text="Total to pay:"
             android:textColor="@color/black"
-            android:textSize="34sp"
-            app:layout_constraintEnd_toStartOf="@+id/to_pay_TV"
+            android:textSize="50sp"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -159,9 +160,9 @@
             android:text="0"
             android:textAlignment="textEnd"
             android:textColor="@color/black"
-            android:textSize="34sp"
+            android:textSize="50sp"
 
-            app:layout_constraintStart_toStartOf="@+id/received_TV"
+            app:layout_constraintStart_toEndOf="@+id/textView13"
             app:layout_constraintTop_toTopOf="@+id/textView13" />
 
     <TextView
