@@ -3,7 +3,6 @@ package edu.amrita.amritacafe.activities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
@@ -13,6 +12,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.text.InputType
 import android.util.Log
@@ -57,17 +57,17 @@ import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_history.view.*
 import kotlinx.android.synthetic.main.dialog_payment.view.clear_money_recieved
-import kotlinx.android.synthetic.main.dialog_payment.view.recieved_1_botton
 import kotlinx.android.synthetic.main.dialog_payment.view.no_print_botton
 import kotlinx.android.synthetic.main.dialog_payment.view.print_bottom
-import kotlinx.android.synthetic.main.dialog_payment.view.received_500_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_50_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_10_button
 import kotlinx.android.synthetic.main.dialog_payment.view.received_100_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_5_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_10_button
 import kotlinx.android.synthetic.main.dialog_payment.view.received_200_button
 import kotlinx.android.synthetic.main.dialog_payment.view.received_20_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_500_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_50_button
+import kotlinx.android.synthetic.main.dialog_payment.view.received_5_button
 import kotlinx.android.synthetic.main.dialog_payment.view.received_TV
+import kotlinx.android.synthetic.main.dialog_payment.view.recieved_1_botton
 import kotlinx.android.synthetic.main.dialog_payment.view.renunciate_botton
 import kotlinx.android.synthetic.main.dialog_payment.view.to_pay_TV
 import kotlinx.android.synthetic.main.dialog_payment.view.to_return_TV
@@ -80,6 +80,8 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.util.*
 import kotlin.math.max
@@ -91,6 +93,9 @@ fun String.capitalizeWords(): String =
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var backGround: View
+    private lateinit var dialogView: View
+    private lateinit var overlay: View
     val WIFI = 0
     val BLUETOOTH = 1
 
@@ -129,10 +134,28 @@ class MainActivity : AppCompatActivity() {
         BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
         LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
 
+//        dialogView = findViewById<View>(R.id.include_payment)
+//        overlay = findViewById<View>(R.id.background_overlay)
+//        backGround = findViewById<View>(R.id.payment_background)
+
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
         pref.let { preferences ->
             configuration = Configuration(preferences)
             orderNumberService = OrderNumberService(preferences)
+        }
+
+        if (isExternalStorageWritable()) {
+            // Get the documents directory
+            val documentsDir: File = getDocumentsDirectory()
+
+            // Create a file within the documents directory
+            val file = File(documentsDir, "example.txt")
+
+            // Write some text to the file
+            writeToFile(file, "Hello, World!")
+        } else {
+            // External storage not writable, show an error message
+            Toast.makeText(this, "External storage not available", Toast.LENGTH_SHORT).show()
         }
 
         supportActionBar?.hide()
@@ -144,21 +167,7 @@ class MainActivity : AppCompatActivity() {
             this,
             PERMISSIONS_STORAGE,
             PackageManager.PERMISSION_GRANTED
-        );
-
-        val androidId =
-            Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-        println("Unique device: $androidId")
-        tabletName = when (androidId) {
-            "f6ec19ab2b07a2f2" -> "Siva"
-            "b3f76281fb4a42aa" -> "Amma"
-            "3ebd272118138401" -> "Kali"
-            "9dc83032a79a71a8" -> "Krishna"
-            "c001d62ed3579582" -> "Shani"
-            "3ec2fefa5a9e906e" -> "Saraswati"
-            else -> androidId
-        }
-        user_TV.text = "$tabletName"
+        )
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
@@ -183,6 +192,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         updateNameForToggleButton()
+        tabletName = "Unknown Tablet"
         user_TV.text = "Amritapuri @ $tabletName"
 
         createDefaultFilesIfNecessary(baseContext)
@@ -253,6 +263,38 @@ class MainActivity : AppCompatActivity() {
         tryConnect()
 
         print("PERMISSION " + checkStoragePermission(this))
+    }
+
+    // Check if external storage is writable
+    private fun isExternalStorageWritable(): Boolean {
+        val state = Environment.getExternalStorageState()
+        return Environment.MEDIA_MOUNTED == state
+    }
+
+    // Get the documents directory
+    private fun getDocumentsDirectory(): File {
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+    }
+
+    // Write text to a file
+    private fun writeToFile(file: File, text: String) {
+        var fos: FileOutputStream? = null
+        try {
+            fos = FileOutputStream(file)
+            fos.write(text.toByteArray())
+            Toast.makeText(this, "File saved to: " + file.absolutePath, Toast.LENGTH_SHORT).show()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(this, "Error writing to file", Toast.LENGTH_SHORT).show()
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private val REQUEST_EXTERNAL_STORAGE = 1
@@ -406,21 +448,16 @@ class MainActivity : AppCompatActivity() {
     private fun openPaymentDialog(orders: List<Order>) {
         renounciate = false
 
-//        val dialogView = findViewById<View>(R.id.include_payment)
 //        dialogView.visibility = View.VISIBLE
-////        val dialogBuilder = Dialog(this, R.layout.dialog_payment);
-//
-//        val overlay = findViewById<View>(R.id.background_overlay)
 //        overlay.visibility = View.VISIBLE
-
+//        backGround.visibility = View.VISIBLE
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment, null)
         val dialogBuilder = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(true)
-
-
         val dialog = dialogBuilder.show()
+
         val check_draw = ContextCompat.getDrawable(this, R.drawable.check_image)
         val renunciate_draw = ContextCompat.getDrawable(this, R.drawable.renunciate)
 
@@ -472,6 +509,8 @@ class MainActivity : AppCompatActivity() {
                         it.quantityAsRenounciate = max(it.quantity - 2, 0)
                     } else if (it.menuItem.name.equals("Sprouts")) {
                         it.quantityAsRenounciate = max(it.quantity - 1, 0)
+                    } else if (it.menuItem.name.equals("Bread")) {
+                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
                     }
                     if (it.quantityAsRenounciate != it.quantity)
                         it.renounciateEffected = true
@@ -647,7 +686,7 @@ class MainActivity : AppCompatActivity() {
     private fun printOrder(printOrder: Boolean = true) {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
-        if (printOrder)
+        if (printOrder && BT_STATE != BT_STATE_CONNECTED)
             tryConnect()
 
         var pos = 0
@@ -1047,14 +1086,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun dismissPopupDialog(view: View) {
-        val backgroundOverlay = findViewById<View>(R.id.background_overlay)
-        backgroundOverlay.visibility = View.INVISIBLE
-
-        // Dismiss the popup dialog
-        val includePayment = findViewById<View>(R.id.include_payment)
-        includePayment.visibility = View.INVISIBLE
-    }
+//    fun dismissPopupDialog(view: View) {
+////        val backgroundOverlay = findViewById<View>(R.id.background_overlay)
+////        backgroundOverlay.visibility = View.INVISIBLE
+//
+//        val backGround = findViewById<View>(R.id.payment_background)
+//        backGround.visibility = View.INVISIBLE
+//
+//        // Dismiss the popup dialog
+//        val includePayment = findViewById<View>(R.id.include_payment)
+//        includePayment.visibility = View.INVISIBLE
+//    }
 
 
 }

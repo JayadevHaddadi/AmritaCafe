@@ -42,7 +42,7 @@ fun writeToCSV(orders: List<Order>, configuration: Configuration) {
     val fileName = "Amrita Cafe History - $currentDate.txt"
 
     if (isExternalStorageWritable()) {
-        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
 
 // Create the parent folder if it doesn't exist
         val parentFolder = File(documentsDir, parentFolderName)
