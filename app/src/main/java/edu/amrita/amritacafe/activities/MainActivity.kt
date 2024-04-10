@@ -13,7 +13,6 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
@@ -41,6 +40,7 @@ import com.epson.epos2.Epos2Exception
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
+import edu.amrita.amritacafe.CloudStorage.sendToSheets
 import edu.amrita.amritacafe.IO.createDefaultFilesIfNecessary
 import edu.amrita.amritacafe.IO.getListOfMenu
 import edu.amrita.amritacafe.IO.saveIfValidText
@@ -236,14 +236,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
-            override fun onState(p0: Int) {
-                BT_STATE = p0
-                var message = when (p0) {
+            override fun onState(newStateCode: Int) {
+                BT_STATE = newStateCode
+                var message = when (newStateCode) {
                     BT_STATE_CONNECTING -> "Connecting... "
                     BT_STATE_CONNECTED -> "Connected!"
                     BT_STATE_LISTEN -> "Listening... "
                     BT_STATE_DISCONNECTED -> "Disconnected!"
-                    else -> "STATUS $p0"
+                    else -> "STATUS $newStateCode"
                 }
                 makeToast(message)
                 println(message)
@@ -443,10 +443,10 @@ class MainActivity : AppCompatActivity() {
 
     private var received = 0f
     private var currentTotalCost: Float = 0f
-    private var renounciate = false
+    private var renunciate = false
 
     private fun openPaymentDialog(orders: List<Order>) {
-        renounciate = false
+        renunciate = false
 
 //        dialogView.visibility = View.VISIBLE
 //        overlay.visibility = View.VISIBLE
@@ -462,16 +462,19 @@ class MainActivity : AppCompatActivity() {
         val renunciate_draw = ContextCompat.getDrawable(this, R.drawable.renunciate)
 
         dialogView.renunciate_botton.setOnClickListener {
-            renounciate = !renounciate // Toggle the value of renounciate
+            renunciate = !renunciate // Toggle the value of renounciate
+            orderAdapter.orderItems.forEach {
+                it.quantityAsRenounciate = it.quantity
+            }
 
             // Print the current value of renounciate
-            println("renounciate: $renounciate")
+            println("renunciate: $renunciate")
 
             // Set the appropriate drawable based on the value of renounciate
             dialogView.renunciate_botton.setCompoundDrawablesWithIntrinsicBounds(
                 null, // left drawable
                 renunciate_draw, // top drawable
-                if (renounciate) check_draw else null, // right drawable
+                if (renunciate) check_draw else null, // right drawable
                 null // bottom drawable
             )
 
@@ -493,7 +496,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             orderAdapter.orderItems.forEach {
-                if (renounciate) {
+                if (renunciate) {
                     if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
                         it.quantityAsRenounciate = it.quantity - 1
                     else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
@@ -518,7 +521,7 @@ class MainActivity : AppCompatActivity() {
                     it.quantityAsRenounciate = it.quantity
                     it.renounciateEffected = false
                 }
-                println(" it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
+                println("it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
                 println("it.renounciateEffected: ${it.renounciateEffected}")
                 println("it.menuItem.name: ${it.menuItem.name}")
             }
@@ -526,11 +529,6 @@ class MainActivity : AppCompatActivity() {
             println("PRICE")
             // TODO STORE the renunciate indication on sheets
             currentTotalCost = orderAdapter.orderItems.map {
-//                println("it.menuItem.name: ${it.menuItem.name}")
-//                println("it.renounciateEffected: ${it.renounciateEffected}")
-//                println(" it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
-//                println("it.totalPrice: ${it.totalPrice()}")
-//                println("it: ${it}")
                 it.totalPrice().toFloat()
             }.sum()
 
@@ -540,7 +538,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         fun done() {
-            sendToSheets(orders)
+            sendToSheets(orders,configuration,this)
+            startNewOrder()
             orderDone(orders)
             dialog.dismiss()
         }
@@ -868,81 +867,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun sendToSheets(
-        orders: List<Order>
-    ) {
-        val jsonData = JSONObject()
-        val jsonArray = JSONArray()
-        var orderTime = 0L
-        var myOrderNumber = 0
-
-        orders.forEach { (orderNumber, orderItems, time) ->
-            orderTime = time
-            myOrderNumber = orderNumber
-
-            orderItems.forEach {
-                val jsonItem = JSONObject()
-//                val r = if(it.renounciateEffected)  "R" else ""
-                jsonItem.put("name", it.menuItem.name)
-                jsonItem.put("quantity", it.quantity)
-                jsonItem.put("total", it.totalPrice())
-                jsonItem.put("cost", it.menuItem.price)
-                jsonItem.put("renounciate", if (it.renounciateEffected) "R" else "normal")
-                jsonArray.put(jsonItem)
-            }
-        }
-
-        val url =
-            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec" // Replace with your actual URL
-
-        jsonData.put("items", jsonArray)
-        try {
-            jsonData.put("time", orderTime)
-            jsonData.put("tablet", configuration.tabletName)
-            jsonData.put("order", myOrderNumber.toString())
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-        val jsonString = jsonData.toString()
-        val requestQueue = Volley.newRequestQueue(this)
-        val stringRequest = object : StringRequest(
-            Method.POST,
-            url, // Replace with your actual URL
-            { response ->
-                // Handle successful response
-                Log.d("Connection", "Response: $response")
-            },
-            { error ->
-                // Handle error
-                Log.e("Connection", "Error: ${error.message}")
-                makeToast("Sending data error: ${error.message}")
-            }) {
-            override fun getBodyContentType(): String {
-                return "application/json; charset=utf-8"
-            }
-
-            override fun getBody(): ByteArray {
-                return try {
-                    jsonString.toByteArray(Charsets.UTF_8)
-                } catch (e: UnsupportedEncodingException) {
-                    Log.e("TAG", "Error encoding JSON: $e")
-                    return ByteArray(0)
-                }
-            }
-        }
-        stringRequest.setRetryPolicy(
-            DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-            )
-        )
-
-        // Add the request to the queue
-        requestQueue.add(stringRequest)
-
-        startNewOrder()
-    }
 
 
     @SuppressLint("InflateParams")

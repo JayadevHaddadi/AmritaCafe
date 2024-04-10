@@ -29,7 +29,7 @@ fun writeToCSV(orders: List<Order>, configuration: Configuration) {
             lineToWrite.append(
                 "$stringDate, ${configuration.tabletName}, " +
                         "${orderNumber}, ${it.quantity}, ${it.menuItem.name}, " +
-                        "${it.totalPrice()}, ${it.menuItem.price}\n"
+                        "${it.menuItem.price.toInt()}, ${it.totalPrice()}\n"
             )
         }
     }

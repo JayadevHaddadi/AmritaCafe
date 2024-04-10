@@ -98,7 +98,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
                 println("increasing amount of bla bla")
                 val position = tag as Int
 
-                orderList[position] = orderList[position].increment()
+                orderList[position].increment()
                 notifyDataSetChanged()
                 orderChanged()
             }
