@@ -8,12 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
-import edu.amrita.amritacafe.R
+import edu.amrita.amritacafe.databinding.ItemOrderBinding
 import edu.amrita.amritacafe.menu.MenuItem
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.menu.TOPPING
-import kotlinx.android.synthetic.main.item_order.view.*
-
 
 class OrderAdapter(context: Context) : BaseAdapter() {
 
@@ -23,7 +21,7 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
     val orderItems: List<RegularOrderItem> = orderList
 
-    var orderChanged: () -> Unit = {} // Replaced by correct callback in mainactivity
+    var orderChanged: () -> Unit = {} // Replaced by correct callback in MainActivity
 
     override fun getCount(): Int {
         return orderList.size
@@ -45,7 +43,6 @@ class OrderAdapter(context: Context) : BaseAdapter() {
     fun add(addItem: MenuItem, uniqueItem: Boolean = false): Int {
         try {
             var found = false
-
             var listToCheck = orderList
 
             if (addItem.category == TOPPING) {
@@ -61,7 +58,6 @@ class OrderAdapter(context: Context) : BaseAdapter() {
                     existingItem.comment == "" && !uniqueItem
                 ) {
                     existingItem.quantity++
-                    println("increasing! ${existingItem.quantity}")
                     found = true
                     break
                 }
@@ -73,10 +69,9 @@ class OrderAdapter(context: Context) : BaseAdapter() {
                 orderList[0].increment()
 
             updateAll()
-            return 1;
-        }
-        catch (e: Exception) {
-            return -1;
+            return 1
+        } catch (e: Exception) {
+            return -1
         }
     }
 
@@ -90,57 +85,64 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         orderChanged()
     }
 
-    private fun reuseOrInflate(view: View?, parent: ViewGroup) =
-        view ?: inflater.inflate(R.layout.item_order, parent, false).apply {
+    private fun reuseOrInflate(view: View?, parent: ViewGroup): View {
+        val binding: ItemOrderBinding = if (view == null) {
+            // Inflate the layout with ViewBinding
+            ItemOrderBinding.inflate(inflater, parent, false)
+        } else {
+            ItemOrderBinding.bind(view)
+        }
 
-            val orderItemView = this
-            amount_TV.setOnClickListener {
-                println("increasing amount of bla bla")
-                val position = tag as Int
-
+        with(binding) {
+            amountTV.setOnClickListener {
+                val position = root.tag as Int
                 orderList[position].increment()
                 notifyDataSetChanged()
                 orderChanged()
             }
 
-            setOnClickListener {
-                comment_ET.run {
+            root.setOnClickListener {
+                commentET.run {
                     visibility = View.VISIBLE
                     requestFocus()
-                    context.getSystemService(Context.INPUT_METHOD_SERVICE).also {
+                    context.getSystemService(Context.INPUT_METHOD_SERVICE)?.let {
                         (it as InputMethodManager).showSoftInput(this, 0)
                     }
                 }
             }
 
-            cancel_button.setOnClickListener {
-                remove(orderList[tag as Int])
+            cancelButton.setOnClickListener {
+                remove(orderList[root.tag as Int])
             }
 
-            comment_ET.addTextChangedListener(object : TextWatcher {
+            commentET.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(p0: Editable?) {}
 
                 override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
                 override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                    val position = orderItemView.tag as Int
+                    val position = root.tag as Int
                     orderList[position] = orderItems[position].editComment(p0.toString())
                 }
             })
         }
 
+        return binding.root
+    }
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         return reuseOrInflate(convertView, parent).apply {
             tag = position
 
-            orderList[position].let { orderItem ->
+            val orderItem = orderList[position]
+            val binding = ItemOrderBinding.bind(this)
+
+            with(binding) {
                 label.text = orderItem.menuItem.code
-                amount_TV.text = orderItem.quantity.toString()
-                price_TV.text = orderItem.priceWithoutExtras.toString()
-                comment_ET.setText(orderItem.comment)
-                comment_ET.visibility =
-                    if (orderItem.comment.isNotBlank()) View.VISIBLE
-                    else View.GONE
+                amountTV.text = orderItem.quantity.toString()
+                priceTV.text = orderItem.priceWithoutExtras.toString()
+                commentET.setText(orderItem.comment)
+                commentET.visibility = if (orderItem.comment.isNotBlank()) View.VISIBLE else View.GONE
             }
         }
     }

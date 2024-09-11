@@ -1,16 +1,16 @@
-apply plugin: 'com.android.application'
-
-apply plugin: 'kotlin-android'
-
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlinx-serialization'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlinx-serialization'
+}
 
 android {
     compileSdk 34
+
     defaultConfig {
         multiDexEnabled true
         applicationId "edu.amrita.amritacafe3"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 34
         versionCode 1
         versionName "v4"
@@ -18,8 +18,8 @@ android {
             useSupportLibrary = true
         }
 
-        ndk{
-            abiFilters "armeabi", "x86" // for WIFI printer to work
+        ndk {
+            abiFilters 'x86_64','armeabi-v7a', 'arm64-v8a', 'x86'// for WIFI printer to work
         }
     }
 
@@ -45,14 +45,16 @@ android {
     lintOptions {
         abortOnError false
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = '1.8'
     }
+
     configurations {
         all*.exclude group: 'com.google.guava', module: 'listenablefuture'
         all*.exclude module: 'guava-jdk5'
@@ -68,6 +70,11 @@ android {
             jniLibs.srcDirs = ['src/main/jniLibs/']
         }
     }
+
+    viewBinding {
+        enabled = true
+    }
+
     namespace 'edu.amrita.amritacafe'
 }
 
@@ -75,33 +82,39 @@ repositories {
     flatDir {
         dirs 'libs'   // aar directory
     }
+    maven { url 'https://jitpack.io' }
 }
-
-
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation files('libs/ePOS2.jar')
 
-    //kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0'
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.1"
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0"
 
-    //androidx
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.preference:preference-ktx:1.1.1'
+    // AndroidX
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
 
+    // Additional Dependencies
     implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0'
-
-    implementation 'am.util:printer:2.1.0'
-    implementation 'com.inuker.bluetooth:library:1.4.0'
+//    implementation 'am.util:printer:2.1.0'
+//    implementation 'com.inuker.bluetooth:library:1.4.0'
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
 
-    // for calling google app scripts
+    // Volley for Google App Scripts calls
     implementation 'com.android.volley:volley:1.2.1'
+
+    // MultiDex support for older devices
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // new ones
+    implementation 'com.google.guava:guava:31.1-android'
+    implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
 }

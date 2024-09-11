@@ -46,6 +46,10 @@ import edu.amrita.amritacafe.IO.getListOfMenu
 import edu.amrita.amritacafe.IO.saveIfValidText
 import edu.amrita.amritacafe.IO.writeToCSV
 import edu.amrita.amritacafe.R
+import edu.amrita.amritacafe.databinding.ActivityMainBinding
+import edu.amrita.amritacafe.databinding.DialogHistoryBinding
+import edu.amrita.amritacafe.databinding.DialogPaymentBinding
+import edu.amrita.amritacafe.databinding.DialogPrintBinding
 import edu.amrita.amritacafe.menu.*
 import edu.amrita.amritacafe.model.*
 import edu.amrita.amritacafe.printer.ErrorStatus
@@ -54,31 +58,10 @@ import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
 import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrint
 import edu.amrita.amritacafe.settings.Configuration
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_history.view.*
-import kotlinx.android.synthetic.main.dialog_payment.view.clear_money_recieved
-import kotlinx.android.synthetic.main.dialog_payment.view.no_print_botton
-import kotlinx.android.synthetic.main.dialog_payment.view.print_bottom
-import kotlinx.android.synthetic.main.dialog_payment.view.received_100_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_10_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_200_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_20_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_500_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_50_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_5_button
-import kotlinx.android.synthetic.main.dialog_payment.view.received_TV
-import kotlinx.android.synthetic.main.dialog_payment.view.recieved_1_botton
-import kotlinx.android.synthetic.main.dialog_payment.view.renunciate_botton
-import kotlinx.android.synthetic.main.dialog_payment.view.to_pay_TV
-import kotlinx.android.synthetic.main.dialog_payment.view.to_return_TV
-import kotlinx.android.synthetic.main.include_print.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -123,6 +106,8 @@ class MainActivity : AppCompatActivity() {
         lateinit var LUNCH_DINNER_FILE: File
     }
 
+    private lateinit var binding: ActivityMainBinding
+
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -133,6 +118,9 @@ class MainActivity : AppCompatActivity() {
 
         BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
         LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
 //        dialogView = findViewById<View>(R.id.include_payment)
 //        overlay = findViewById<View>(R.id.background_overlay)
@@ -171,38 +159,40 @@ class MainActivity : AppCompatActivity() {
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
-            total_cost_TV.text =
+            binding.totalCostTV.text =
                 orderAdapter.orderItems.map { it.priceWithoutExtras }.sum().toString()
         }
 
-        order_ListView.adapter = orderAdapter
+        binding.orderListView.adapter = orderAdapter
 
-        order_button.setOnClickListener {
+        binding.orderButton.setOnClickListener {
             printOrder() // just for testing history
         }
 
-        menuGridView.onItemClickListener = AdapterView.OnItemClickListener { _, view, _, _ ->
-            when (val menuItem = view.tag) {
-                is MenuItem -> {
-                    if (orderAdapter.add(menuItem) == -1) {
-                        makeToast("Unsupported Action!")
+        binding.menuGridView.onItemClickListener =
+            AdapterView.OnItemClickListener { _, view, _, _ ->
+                when (val menuItem = view.tag) {
+                    is MenuItem -> {
+                        if (orderAdapter.add(menuItem) == -1) {
+                            makeToast("Unsupported Action!")
+                        }
                     }
                 }
             }
-        }
 
         updateNameForToggleButton()
         tabletName = "Unknown Tablet"
-        user_TV.text = "Amritapuri @ $tabletName"
+        binding.userTV.text = "Amritapuri @ $tabletName"
 
         createDefaultFilesIfNecessary(baseContext)
         loadMenu() //will load on resume
 
-        order_number_ET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+        binding.orderNumberET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
 //                Toast.makeText(this, , Toast.LENGTH_SHORT).show()
-                makeToast(order_number_ET.text.toString())
-                orderNumberService.currentOrderNumber = order_number_ET.text.toString().toInt()
+                makeToast(binding.orderNumberET.text.toString())
+                orderNumberService.currentOrderNumber =
+                    binding.orderNumberET.text.toString().toInt()
                 return@OnKeyListener true
             }
             false
@@ -367,12 +357,12 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun setMenuAdapter(menu: List<MenuItem>) {
-        menuGridView.numColumns = configuration.columns
+        binding.menuGridView.numColumns = configuration.columns
         menuAdapter =
             MenuAdapter(menu, applicationContext, configuration.showMenuItemNames, configuration) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
-        runOnUiThread { menuGridView.adapter = menuAdapter }
+        runOnUiThread { binding.menuGridView.adapter = menuAdapter }
     }
 
     private fun makeToast(text: String) {
@@ -437,7 +427,7 @@ class MainActivity : AppCompatActivity() {
         // Add the request to the queue
         requestQueue.add(stringRequest)
 
-        tabletNameMainTV.text = configuration.tabletName
+        binding.tabletNameMainTV.text = configuration.tabletName
     }
 
 
@@ -448,21 +438,19 @@ class MainActivity : AppCompatActivity() {
     private fun openPaymentDialog(orders: List<Order>) {
         renunciate = false
 
-//        dialogView.visibility = View.VISIBLE
-//        overlay.visibility = View.VISIBLE
-//        backGround.visibility = View.VISIBLE
+        // Use the generated binding class for dialog_payment.xml
+        val binding = DialogPaymentBinding.inflate(LayoutInflater.from(this))
 
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment, null)
         val dialogBuilder = AlertDialog.Builder(this)
-            .setView(dialogView)
+            .setView(binding.root) // Set the root view from the binding
             .setCancelable(true)
         val dialog = dialogBuilder.show()
 
-        val check_draw = ContextCompat.getDrawable(this, R.drawable.check_image)
-        val renunciate_draw = ContextCompat.getDrawable(this, R.drawable.renunciate)
+        val checkDraw = ContextCompat.getDrawable(this, R.drawable.check_image)
+        val renunciateDraw = ContextCompat.getDrawable(this, R.drawable.renunciate)
 
-        dialogView.renunciate_botton.setOnClickListener {
-            renunciate = !renunciate // Toggle the value of renounciate
+        binding.renunciateBotton.setOnClickListener {
+            renunciate = !renunciate // Toggle the value of renunciate
             orderAdapter.orderItems.forEach {
                 it.quantityAsRenounciate = it.quantity
             }
@@ -471,10 +459,10 @@ class MainActivity : AppCompatActivity() {
             println("renunciate: $renunciate")
 
             // Set the appropriate drawable based on the value of renounciate
-            dialogView.renunciate_botton.setCompoundDrawablesWithIntrinsicBounds(
+            binding.renunciateBotton.setCompoundDrawablesWithIntrinsicBounds(
                 null, // left drawable
-                renunciate_draw, // top drawable
-                if (renunciate) check_draw else null, // right drawable
+                renunciateDraw, // top drawable
+                if (renunciate) checkDraw else null, // right drawable
                 null // bottom drawable
             )
 
@@ -532,31 +520,31 @@ class MainActivity : AppCompatActivity() {
                 it.totalPrice().toFloat()
             }.sum()
 
-            dialogView.to_pay_TV.text = currentTotalCost.toString()
-            dialogView.received_TV.text = received.toString()
-            dialogView.to_return_TV.text = (received - currentTotalCost).toString()
+            binding.toPayTV.text = currentTotalCost.toString()
+            binding.receivedTV.text = received.toString()
+            binding.toReturnTV.text = (received - currentTotalCost).toString()
         }
 
         fun done() {
-            sendToSheets(orders,configuration,this)
+            sendToSheets(orders, configuration, this)
             startNewOrder()
             orderDone(orders)
             dialog.dismiss()
         }
 
-        dialogView.print_bottom.setOnClickListener {
+        binding.printBottom.setOnClickListener {
             bluetoothPrint(mHoinPrinter, orders)
             done()
         }
 
-        dialogView.no_print_botton.setOnClickListener {
+        binding.noPrintBotton.setOnClickListener {
             done()
         }
 
         received = 0f
         currentTotalCost = orderAdapter.orderItems.map { it.totalPrice().toFloat() }.sum()
 
-        dialogView.to_pay_TV.text = currentTotalCost.toString()
+        binding.toPayTV.text = currentTotalCost.toString()
 
         val onClickRecivedListener = View.OnClickListener { billButton ->
             billButton as Button
@@ -569,20 +557,20 @@ class MainActivity : AppCompatActivity() {
                 "10₹" -> received += 10
                 "5₹" -> received += 5f
                 "1₹" -> received += 1f
-                "Clear" -> received = 0f
+                "Clear" -> received
             }
-            dialogView.received_TV.text = received.toString()
-            dialogView.to_return_TV.text = (received - currentTotalCost).toString()
+            binding.receivedTV.text = received.toString()
+            binding.toReturnTV.text = (received - currentTotalCost).toString()
         }
-        dialogView.received_500_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_200_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_100_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_50_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_20_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_10_button.setOnClickListener(onClickRecivedListener)
-        dialogView.received_5_button.setOnClickListener(onClickRecivedListener)
-        dialogView.recieved_1_botton.setOnClickListener(onClickRecivedListener)
-        dialogView.clear_money_recieved.setOnClickListener(onClickRecivedListener)
+        binding.received500Button.setOnClickListener(onClickRecivedListener)
+        binding.received200Button.setOnClickListener(onClickRecivedListener)
+        binding.received100Button.setOnClickListener(onClickRecivedListener)
+        binding.received50Button.setOnClickListener(onClickRecivedListener)
+        binding.received20Button.setOnClickListener(onClickRecivedListener)
+        binding.received10Button.setOnClickListener(onClickRecivedListener)
+        binding.received5Button.setOnClickListener(onClickRecivedListener)
+        binding.recieved1Botton.setOnClickListener(onClickRecivedListener)
+        binding.clearMoneyRecieved.setOnClickListener(onClickRecivedListener)
     }
 
     fun tryConnect() = runBlocking() {
@@ -644,7 +632,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         orderNumberService.updateRange()
-        order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
+        binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
 
         setMenuAdapter(list)
     }
@@ -655,13 +643,14 @@ class MainActivity : AppCompatActivity() {
 
             runOnUiThread {
                 orderAdapter.clear()
-                order_number_ET.setText(orderNumberService.currentOrderNumber.toString())
+                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
             }
         }
     }
 
     private lateinit var currentDialog: AlertDialog
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val builder = AlertDialog.Builder(this, R.style.DialogStyle)
         builder.setTitle("Close Amrita Cafe?")
@@ -682,6 +671,7 @@ class MainActivity : AppCompatActivity() {
         printOrder()
     }
 
+
     private fun printOrder(printOrder: Boolean = true) {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
@@ -700,6 +690,7 @@ class MainActivity : AppCompatActivity() {
             }
             pos++
         }
+
         val orderList = orderItemsCopy.filter {
             it.menuItem.category != TOPPING
         }
@@ -713,16 +704,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val orders = if (hasPizza and hasGrill) {
+        val orders = if (hasPizza && hasGrill) {
             listOf(
                 Order(
                     orderNumberService.currentOrderNumber,
-                    orderList.filter { it.menuItem.category != PIZZA }
-                ),
+                    orderList.filter { it.menuItem.category != PIZZA }),
                 Order(
                     runBlocking { orderNumberService.next() },
-                    orderList.filter { it.menuItem.category == PIZZA }
-                )
+                    orderList.filter { it.menuItem.category == PIZZA })
             )
         } else {
             listOf(Order(orderNumberService.currentOrderNumber, orderList))
@@ -741,7 +730,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (configuration.mode == WIFI) {
-            val (dialog, view) = printerDialog()
+            // Use the binding class generated for dialog_print.xml
+            val dialogBinding = DialogPrintBinding.inflate(LayoutInflater.from(this))
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogBinding.root) // Set the root view from the binding
+                .setCancelable(false)
+                .show()
+                .apply {
+                    setCanceledOnTouchOutside(false)
+                }
+
             currentDialog = dialog
 
             val listener = object : PrintService.PrintServiceListener {
@@ -749,11 +748,11 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
                     }
-                    view.run {
-                        kitchen_progress.visibility = View.INVISIBLE
-                        kitchen_error.visibility = View.INVISIBLE
-                        kitchen_done.visibility = View.VISIBLE
-                        kitchen_retry_button.visibility = View.INVISIBLE
+                    dialogBinding.run {
+                        include2.kitchenProgress.visibility = View.INVISIBLE
+                        include2.kitchenError.visibility = View.INVISIBLE
+                        include2.kitchenDone.visibility = View.VISIBLE
+                        include2.kitchenRetryButton.visibility = View.INVISIBLE
                     }
                 }
 
@@ -761,10 +760,10 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.KitchenPrinted = PrintStatus.FAILED_PRINT
                     }
-                    view.run {
-                        kitchen_progress.visibility = View.INVISIBLE
-                        kitchen_error.visibility = View.VISIBLE
-                        kitchen_retry_button.visibility = View.VISIBLE
+                    dialogBinding.run {
+                        include2.kitchenProgress.visibility = View.INVISIBLE
+                        include2.kitchenError.visibility = View.VISIBLE
+                        include2.kitchenRetryButton.visibility = View.VISIBLE
                     }
                 }
 
@@ -775,10 +774,10 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.KitchenPrinted = PrintStatus.FAILED_PRINT
                     }
-                    view.run {
-                        kitchen_progress.visibility = View.INVISIBLE
-                        kitchen_error.visibility = View.VISIBLE
-                        kitchen_retry_button.visibility = View.VISIBLE
+                    dialogBinding.run {
+                        include2.kitchenProgress.visibility = View.INVISIBLE
+                        include2.kitchenError.visibility = View.VISIBLE
+                        include2.kitchenRetryButton.visibility = View.VISIBLE
                     }
                 }
 
@@ -786,11 +785,11 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                     }
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        receipt_error.visibility = View.INVISIBLE
-                        receipt_done.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.INVISIBLE
+                    dialogBinding.run {
+                        include2.receiptProgress.visibility = View.INVISIBLE
+                        include2.receiptError.visibility = View.INVISIBLE
+                        include2.receiptDone.visibility = View.VISIBLE
+                        include2.receiptRetryButton.visibility = View.INVISIBLE
                     }
                 }
 
@@ -798,10 +797,10 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.RecipePrinted = PrintStatus.FAILED_PRINT
                     }
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        receipt_error.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.VISIBLE
+                    dialogBinding.run {
+                        include2.receiptProgress.visibility = View.INVISIBLE
+                        include2.receiptError.visibility = View.VISIBLE
+                        include2.receiptRetryButton.visibility = View.VISIBLE
                     }
                 }
 
@@ -812,10 +811,10 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.RecipePrinted = PrintStatus.FAILED_PRINT
                     }
-                    view.run {
-                        receipt_progress.visibility = View.INVISIBLE
-                        receipt_error.visibility = View.VISIBLE
-                        receipt_retry_button.visibility = View.VISIBLE
+                    dialogBinding.run {
+                        include2.receiptProgress.visibility = View.INVISIBLE
+                        include2.receiptError.visibility = View.VISIBLE
+                        include2.receiptRetryButton.visibility = View.VISIBLE
                     }
                 }
 
@@ -825,30 +824,29 @@ class MainActivity : AppCompatActivity() {
                     }
                     startNewOrder()
                 }
-
             }
 
             val printService = PrintService(orders, listener, configuration = configuration)
             printService.print()
 
-            view.kitchen_retry_button.setOnClickListener {
+            dialogBinding.include2.kitchenRetryButton.setOnClickListener {
                 histories.forEach {
                     it.KitchenPrinted = PrintStatus.PRINTING
                 }
                 printService.retry()
                 it.visibility = View.INVISIBLE
-                view.kitchen_error.visibility = View.INVISIBLE
-                view.kitchen_progress.visibility = View.VISIBLE
+                dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
+                dialogBinding.include2.kitchenProgress.visibility = View.VISIBLE
             }
 
-            view.receipt_retry_button.setOnClickListener {
+            dialogBinding.include2.receiptRetryButton.setOnClickListener {
                 histories.forEach {
                     it.RecipePrinted = PrintStatus.PRINTING
                 }
                 printService.retry()
                 it.visibility = View.INVISIBLE
-                view.receipt_error.visibility = View.INVISIBLE
-                view.receipt_progress.visibility = View.VISIBLE
+                dialogBinding.include2.receiptError.visibility = View.INVISIBLE
+                dialogBinding.include2.receiptProgress.visibility = View.VISIBLE
             }
 
             orderDone(orders)
@@ -856,6 +854,7 @@ class MainActivity : AppCompatActivity() {
             openPaymentDialog(orders)
         }
     }
+
 
     private fun orderDone(orders: List<Order>) {
         if (configuration.printToFile)
@@ -867,15 +866,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-
     @SuppressLint("InflateParams")
     private fun printerDialog() =
         LayoutInflater.from(this).inflate(R.layout.dialog_print, null).let { view ->
             AlertDialog.Builder(this)
                 .setView(view)
                 .setCancelable(false)
-//                .setIcon(R.drawable.ic_print_black_24dp)
                 .show()
                 .apply {
                     setCanceledOnTouchOutside(false)
@@ -889,7 +885,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNameForToggleButton() {
-        short_long_toggle_button.text =
+        binding.shortLongToggleButton.text =
             if (configuration.showMenuItemNames) "Short Names" else "Long Names"
     }
 
@@ -899,24 +895,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun openHistoryDialog(historyButton: View) {
-//        makeToast("So many old orders: ${orderHistory.size}")
-        val (dialog, root) =
-            LayoutInflater.from(this).inflate(R.layout.dialog_history, null).let { view ->
-                AlertDialog.Builder(this)
-                    .setView(view)
-                    .setCancelable(true)
-                    .show()
-                    .to(view)
-            }
+        // Inflate the dialog layout with view binding
+        val binding = DialogHistoryBinding.inflate(LayoutInflater.from(this))
 
+        // Create and show the dialog
+        val dialog = AlertDialog.Builder(this)
+            .setView(binding.root)
+            .setCancelable(true)
+            .show()
+
+        // Set up the RecyclerView with the appropriate layout manager and adapter
         val layoutManager = LinearLayoutManager(this)
-//        layoutManager.reverseLayout = true
-        root.history_RV.layoutManager = layoutManager
+        binding.historyRV.layoutManager = layoutManager
 
         val historyAdapter = HistoryAdapter(orderHistory, configuration, this)
-        root.history_RV.adapter = historyAdapter
-        root.history_RV.scrollToPosition(orderHistory.size - 1)
+        binding.historyRV.adapter = historyAdapter
+
+        // Scroll to the last position
+        binding.historyRV.scrollToPosition(orderHistory.size - 1)
     }
+
 
     fun nextOrder(view: View) {
         runOnUiThread {
@@ -938,20 +936,6 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(context)
         val layout = LinearLayout(context)
         layout.orientation = LinearLayout.VERTICAL
-
-//        val cafeOrderNumberTV = TextView(context)
-//        cafeOrderNumberTV.text = "Cafe Order Number:"
-//        cafeOrderNumberTV.setPadding(20, 10, 5, 5)
-//        cafeOrderNumberTV.textSize = 30f
-//        cafeOrderNumberTV.setTextColor(Color.BLACK)
-//        layout.addView(cafeOrderNumberTV)
-//
-//        val cafeOrderNumberET = EditText(context)
-//        cafeOrderNumberET.setPadding(20, 10, 5, 5)
-//        cafeOrderNumberET.textSize = 30f
-//        cafeOrderNumberET.inputType = InputType.TYPE_CLASS_NUMBER
-//        cafeOrderNumberET.requestFocus()
-//        layout.addView(cafeOrderNumberET)
 
         val cafeOrderCostTV = TextView(context)
         cafeOrderCostTV.text = "Cafe Order Cost:"
@@ -1009,18 +993,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-//    fun dismissPopupDialog(view: View) {
-////        val backgroundOverlay = findViewById<View>(R.id.background_overlay)
-////        backgroundOverlay.visibility = View.INVISIBLE
-//
-//        val backGround = findViewById<View>(R.id.payment_background)
-//        backGround.visibility = View.INVISIBLE
-//
-//        // Dismiss the popup dialog
-//        val includePayment = findViewById<View>(R.id.include_payment)
-//        includePayment.visibility = View.INVISIBLE
-//    }
-
-
 }

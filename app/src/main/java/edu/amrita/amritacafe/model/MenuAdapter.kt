@@ -17,7 +17,6 @@ import androidx.core.graphics.ColorUtils
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.activities.capitalizeWords
 import edu.amrita.amritacafe.menu.MenuItem
-import kotlinx.android.synthetic.main.item_menu.view.*
 
 class MenuAdapter(
     menu: List<MenuItem>,

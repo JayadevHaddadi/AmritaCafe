@@ -16,17 +16,4 @@
             app:layout_constraintStart_toStartOf="parent"
             tool:itemCount="10"
             tool:listitem="@layout/item_history" />
-
-<!--    app:layout_constraintTop_toBottomOf="@+id/history_order_nr_TV"-->
-<!--    <TextView-->
-<!--            android:id="@+id/history_order_nr_TV"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="History"-->
-<!--            android:textColorHint="@color/white"-->
-<!--            android:textSize="100sp"-->
-<!--            android:visibility="gone"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="parent" />-->
 </LinearLayout>
