@@ -42,9 +42,6 @@ android {
         }
     }
 
-    lintOptions {
-        abortOnError false
-    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -59,11 +56,12 @@ android {
         all*.exclude group: 'com.google.guava', module: 'listenablefuture'
         all*.exclude module: 'guava-jdk5'
     }
-
     packagingOptions {
-        exclude 'META-INF/androidx.preference_preference.version'
-        exclude 'kotlin/collections/MapWithDefault.kotlin_metadata'
+        resources {
+            excludes += ['META-INF/androidx.preference_preference.version', 'kotlin/collections/MapWithDefault.kotlin_metadata']
+        }
     }
+
 
     sourceSets {
         main {
@@ -76,6 +74,9 @@ android {
     }
 
     namespace 'edu.amrita.amritacafe'
+    lint {
+        abortOnError false
+    }
 }
 
 repositories {
