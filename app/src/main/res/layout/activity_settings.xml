@@ -6,19 +6,28 @@
         android:layout_height="match_parent"
         tools:context="edu.amrita.amritacafe.activities.SettingsActivity">
 
-
-    <EditText
-            android:id="@+id/menu_ET"
-            android:editable="false"
+    <ScrollView
+            android:id="@+id/left_scroll"
             android:layout_width="400dp"
             android:layout_height="0dp"
-            android:inputType="textMultiLine"
-            android:text="Menu items"
-            android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+                android:id="@+id/menu_ET"
+                android:layout_width="400dp"
+                android:layout_height="0dp"
+                android:editable="false"
+                android:inputType="textMultiLine"
+                android:text="Menu items"
+                android:textSize="20sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+    </ScrollView>
 
     <TextView
             android:id="@+id/textViewLabel"
@@ -26,7 +35,7 @@
             android:layout_height="wrap_content"
             android:text="Select Sheet:"
             android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@+id/menu_ET"
+            app:layout_constraintStart_toEndOf="@+id/left_scroll"
             app:layout_constraintTop_toTopOf="parent" />
 
     <Spinner
@@ -45,11 +54,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            tools:visibility="visible"
             app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
             app:layout_constraintEnd_toEndOf="@+id/sheetSpinner"
             app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
-            app:layout_constraintTop_toTopOf="@+id/sheetSpinner" />
+            app:layout_constraintTop_toTopOf="@+id/sheetSpinner"
+            tools:visibility="visible" />
 
     <TextView
             android:id="@+id/textViewError"
@@ -62,25 +71,6 @@
             app:layout_constraintTop_toBottomOf="@+id/sheetSpinner"
             tools:text="Error loading sheets"
             tools:visibility="visible" />
-
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="resetMenu"
-            android:padding="20dp"
-            android:text="Reset"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/menu_ET" />
-
-<!--    <ToggleButton-->
-<!--            android:id="@+id/menu_toggle_button"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:textOff="Lunch/Dinner"-->
-<!--            android:textOn="Breakfast menu"-->
-<!--            app:layout_constraintStart_toEndOf="@+id/menu_ET"-->
-<!--            app:layout_constraintTop_toTopOf="parent" />-->
 
     <ScrollView
             android:layout_width="0dp"
@@ -305,11 +295,12 @@
 
             <Button
                     android:id="@+id/button2"
-                    android:onClick="tryConnect"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
+                    android:onClick="tryConnect"
                     android:text="Connect"
+                    android:visibility="invisible"
                     app:layout_constraintBottom_toBottomOf="@+id/mode_spinner"
                     app:layout_constraintEnd_toStartOf="@+id/mode_spinner"
                     app:layout_constraintTop_toTopOf="@+id/mode_spinner" />

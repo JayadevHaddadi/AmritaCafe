@@ -81,6 +81,7 @@ class MenuAdapter(
 
 //            val name: TextView = parent.findViewById(R.id.name)
             val name: TextView = findViewById(R.id.name) // works also without this line
+            val cost: TextView = findViewById(R.id.cost) // works also without this line
             tag = menuItem
 
             when (menuItem) {
@@ -91,6 +92,7 @@ class MenuAdapter(
                     name.setTypeface(SANS_SERIF, NORMAL)
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
                     name.text = menuItem
+                    cost.text = ""
                 }
                 is MenuItem -> { //Normal Item
                     val color = colorMap.getValue(menuItem.category)
@@ -101,6 +103,7 @@ class MenuAdapter(
                         name.text = menuItem.name.capitalizeWords()
                     else
                         name.text = menuItem.code
+                    cost.text = ""+menuItem.price
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
                     name.setTypeface(SERIF, NORMAL)
                 }
@@ -108,6 +111,7 @@ class MenuAdapter(
                     (background as GradientDrawable).setStroke(0, Color.TRANSPARENT)
                     (background as GradientDrawable).setColor(Color.TRANSPARENT)
                     name.text = ""
+                    cost.text = ""
                 }
 
             }

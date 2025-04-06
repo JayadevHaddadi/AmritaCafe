@@ -4,7 +4,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background_menu_item"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
     <TextView
             android:id="@+id/name"
@@ -20,6 +20,22 @@
             android:autoSizeTextType="uniform"
             android:autoSizeMinTextSize="12sp"
             android:autoSizeMaxTextSize="22sp"
+            tools:text="Veggie" />
+    <TextView
+            android:visibility="gone"
+            android:id="@+id/cost"
+            android:padding="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:gravity="center_horizontal"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:typeface="serif"
+            android:breakStrategy="balanced"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="8sp"
+            android:autoSizeMaxTextSize="12sp"
             tools:text="Veggie" />
 <!--TODO adaptive size for small or big tablets-->
 </LinearLayout>

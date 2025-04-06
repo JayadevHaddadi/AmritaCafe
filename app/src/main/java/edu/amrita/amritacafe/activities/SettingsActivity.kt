@@ -196,33 +196,29 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     // --- Listener for the Sheet Name Spinner ---
     private val sheetSpinnerListener = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            if (parent != null && position > 0) { // Check parent is not null and avoid acting on the initial prompt ("Select a Sheet")
+            if (parent != null && position > 0) { // Skip the initial prompt
                 val selectedSheetName = parent.getItemAtPosition(position) as String
-                if (selectedSheetName != "No sheets found") { // Also avoid acting on error messages
-                    Toast.makeText(
-                        this@SettingsActivity,
-                        "Fetching content for: $selectedSheetName",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    fetchSheetContent(selectedSheetName) // Call the new function
-                    // binding.menuET.visibility = View.GONE // Hide old content while loading
-//                    binding.menuET.setText("") // Clear old content
+                if (selectedSheetName != "No sheets found") {
+                    if (isUsingLocalFallback) {
+                        loadLocalSheetContent(selectedSheetName)
+                    } else {
+                        Toast.makeText(
+                            this@SettingsActivity,
+                            "Fetching content for: $selectedSheetName",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        fetchSheetContent(selectedSheetName)
+                    }
                     textViewError.visibility = View.GONE // Hide previous errors
                 }
-            } else {
-                // Item at position 0 ("Select a Sheet") or null parent, do nothing or hide EditText
-                // binding.menuET.visibility = View.GONE
-//                binding.menuET.setText("")
             }
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
-            // Optional: Handle case where nothing is selected
-            // binding.menuET.visibility = View.GONE
             binding.menuET.setText("")
         }
     }
+
     // --- End of Listener ---
 
 
@@ -265,6 +261,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                                 "SettingsActivity: fetchSheetNames error: missing 'sheetNames'"
                             ) // Added log
                             showError("Script Error: Response format incorrect (missing 'sheetNames').")
+
+                            fallbackLocalSheetNames()
                             updateSpinner(listOf("Select a Sheet", "Error loading"))
                         }
                     } else {
@@ -274,6 +272,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                             "SettingsActivity: fetchSheetNames error: script returned error - $message"
                         ) // Added log
                         showError("Script Error: $message")
+                        fallbackLocalSheetNames()
                         updateSpinner(listOf("Select a Sheet", "Error loading"))
                     }
                 } catch (e: JSONException) {
@@ -282,6 +281,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                         "SettingsActivity: fetchSheetNames error: JSON parsing - ${e.message}"
                     ) // Added log
                     showError("Error: Could not parse sheet list response.")
+                    fallbackLocalSheetNames()
                     updateSpinner(listOf("Select a Sheet", "Error loading"))
                 } finally {
                     showLoading(false)
@@ -294,6 +294,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 ) // Added log
                 showError("Network Error fetching sheet list: ${error.message}")
                 updateSpinner(listOf("Select a Sheet", "Network Error"))
+                fallbackLocalSheetNames()
                 showLoading(false)
             })
         stringRequest.setRetryPolicy(
@@ -441,6 +442,42 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             }
         }
     }
+
+    private var isUsingLocalFallback = false
+
+    private fun fallbackLocalSheetNames() {
+        // List all files in internal storage ending with ".csv"
+        Log.d("Get Menu", "Fallback to local files")
+        val localFiles = applicationContext.filesDir.listFiles { file ->
+            file.name.endsWith(".csv")
+        }?.map { it.name.removeSuffix(".csv") } ?: emptyList()
+
+        if (localFiles.isEmpty()) {
+            updateSpinner(listOf("No sheets found"))
+            sheetSpinner.isEnabled = false
+        } else {
+            val sheetNamesList = mutableListOf("Select a Sheet")
+            sheetNamesList.addAll(localFiles)
+            updateSpinner(sheetNamesList)
+            sheetSpinner.visibility = View.VISIBLE
+            isUsingLocalFallback = true  // Mark that we are using the fallback
+            Log.d("Get Menu", "Using local fallback with files: $localFiles")
+        }
+    }
+
+    private fun loadLocalSheetContent(sheetName: String) {
+        // Save the selected name as a preference
+        pref.edit().putString("selected_menu_name", sheetName).apply()
+        val fileName = "$sheetName.csv"
+        val csvData = edu.amrita.amritacafe.IO.CSVFileManager.readCSV(applicationContext, fileName)
+        if (csvData != null) {
+            binding.menuET.setText(csvData)
+            Log.d("Get Menu", "Loaded local CSV content for $sheetName from file: $fileName")
+        } else {
+            showError("Local CSV file not found for: $sheetName")
+        }
+    }
+
 
     fun tryConnect(view: View) {
         // Connection logic here

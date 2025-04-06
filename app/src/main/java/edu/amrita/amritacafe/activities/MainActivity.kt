@@ -34,6 +34,7 @@ import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.DefaultRetryPolicy
+import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.epson.epos2.Epos2Exception
@@ -62,10 +63,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.UnsupportedEncodingException
+import java.net.URLEncoder
 import java.util.*
 import kotlin.math.max
 
@@ -367,64 +371,77 @@ class MainActivity : AppCompatActivity() {
         myToast?.show()
     }
 
+    private val APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec" // <--- ****** PASTE YOUR URL HERE ******
+
+
     override fun onResume() {
         super.onResume()
 
+        // First, load the saved (local) menu.
         loadMenu()
 
-        val menu = if (configuration.isBreakfastTime) "Cafe Drinks" else "Canteen Menu"
-        val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
-        val url =
-            "https://script.google.com/macros/s/AKfycbzYTDthdR5kebKwuqz7M2IOB_" +
-                    "TqauCRcxTs8vtb7rt8giHhhVTNqgYe5aSpzMQX6-fTOQ/exec?menu=" + menu
+        // Then check if there's a preferred menu and try to update it.
+        val pref = PreferenceManager.getDefaultSharedPreferences(this)
+        val selectedMenuName = pref.getString("selected_menu_name", null)
+        if (selectedMenuName != null) {
+            try {
+                val encodedMenuName = URLEncoder.encode(selectedMenuName, "UTF-8")
+                val url = "$APPS_SCRIPT_URL?sheetName=$encodedMenuName"
+                Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
 
-        val requestQueue = Volley.newRequestQueue(this)
-        val stringRequest = object : StringRequest(
-            Method.GET,
-            url, // Replace with your actual URL
-            { response ->
-                // Handle successful response
-                Log.d("Get Menu", "Response: $response")
-
-                val response2 = saveIfValidText(response, applicationContext, file)
-                if (response2.startsWith("Successfully")) {
-                    loadMenu()
+                val requestQueue = Volley.newRequestQueue(this)
+                val stringRequest = object : StringRequest(
+                    Request.Method.GET,
+                    url,
+                    { response ->
+                        try {
+                            val jsonResponse = JSONObject(response)
+                            val status = jsonResponse.optString("status", "error")
+                            if (status == "success") {
+                                val csvData = jsonResponse.optString("data", "")
+                                // Save the updated CSV file using the new FileIO system.
+                                val fileName = "$selectedMenuName.csv"
+                                val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
+                                if (saved) {
+                                    Log.d("MainActivity", "Updated CSV saved successfully as $fileName")
+                                    // Refresh the UI with the updated menu.
+                                    loadMenu()
+                                } else {
+                                    Log.e("MainActivity", "Failed to save updated CSV as $fileName")
+                                }
+                            } else {
+                                Log.e("MainActivity", "Server returned error: ${jsonResponse.optString("message")}")
+                            }
+                        } catch (e: JSONException) {
+                            e.printStackTrace()
+                        }
+                    },
+                    { error ->
+                        Log.e("MainActivity", "Error fetching updated menu: ${error.message}")
+                        // Optionally, show a toast or log that the update failed.
+                    }
+                ) {
+                    override fun getBodyContentType(): String {
+                        return "application/json; charset=utf-8"
+                    }
                 }
-                Log.d("Get Menu", "Response2: $response2")
-            },
-            { error ->
-                // Handle error
-                Log.e("Get Menu", "Error: ${error.message}")
-                makeToast("Sending data error: ${error.message}")
-            }) {
-            override fun getBodyContentType(): String {
-                return "application/json; charset=utf-8"
+                stringRequest.retryPolicy = DefaultRetryPolicy(
+                    10000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+                requestQueue.add(stringRequest)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-
-            override fun getBody(): ByteArray {
-                return try {
-                    "Helloooo".toByteArray(Charsets.UTF_8)
-                } catch (e: UnsupportedEncodingException) {
-                    Log.e("TAG", "Error encoding JSON: $e")
-                    return ByteArray(0)
-                }
-            }
+        } else {
+            Log.d("MainActivity", "No preferred menu name found in preferences.")
         }
-        stringRequest.setRetryPolicy(
-            DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-            )
-        )
-
-        Log.d("Get Menu", "Response2: $stringRequest")
-
-        // Add the request to the queue
-        requestQueue.add(stringRequest)
 
         binding.tabletNameMainTV.text = configuration.tabletName
     }
+
 
 
     private var received = 0f
