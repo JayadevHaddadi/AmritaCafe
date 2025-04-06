@@ -9,6 +9,7 @@
 
     <EditText
             android:id="@+id/menu_ET"
+            android:editable="false"
             android:layout_width="400dp"
             android:layout_height="0dp"
             android:inputType="textMultiLine"
@@ -19,16 +20,48 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-    <Button
-            android:id="@+id/button"
+    <TextView
+            android:id="@+id/textViewLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="saveSettings"
-            android:padding="20dp"
-            android:text="Save\nChanges\nIn\nMenu"
+            android:text="Select Sheet:"
+            android:textSize="18sp"
             app:layout_constraintStart_toEndOf="@+id/menu_ET"
-            app:layout_constraintTop_toBottomOf="@+id/menu_toggle_button" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+            android:id="@+id/sheetSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:minHeight="48dp"
+            app:layout_constraintStart_toStartOf="@+id/textViewLabel"
+            app:layout_constraintTop_toBottomOf="@+id/textViewLabel" />
+
+    <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
+            app:layout_constraintEnd_toEndOf="@+id/sheetSpinner"
+            app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
+            app:layout_constraintTop_toTopOf="@+id/sheetSpinner" />
+
+    <TextView
+            android:id="@+id/textViewError"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@android:color/holo_red_dark"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
+            app:layout_constraintTop_toBottomOf="@+id/sheetSpinner"
+            tools:text="Error loading sheets"
+            tools:visibility="visible" />
 
     <Button
             android:layout_width="wrap_content"
@@ -40,14 +73,14 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/menu_ET" />
 
-    <ToggleButton
-            android:id="@+id/menu_toggle_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textOff="Lunch/Dinner"
-            android:textOn="Breakfast menu"
-            app:layout_constraintStart_toEndOf="@+id/menu_ET"
-            app:layout_constraintTop_toTopOf="parent" />
+<!--    <ToggleButton-->
+<!--            android:id="@+id/menu_toggle_button"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textOff="Lunch/Dinner"-->
+<!--            android:textOn="Breakfast menu"-->
+<!--            app:layout_constraintStart_toEndOf="@+id/menu_ET"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
 
     <ScrollView
             android:layout_width="0dp"
