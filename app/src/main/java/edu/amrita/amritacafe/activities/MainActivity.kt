@@ -122,10 +122,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        dialogView = findViewById<View>(R.id.include_payment)
-//        overlay = findViewById<View>(R.id.background_overlay)
-//        backGround = findViewById<View>(R.id.payment_background)
-
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
         pref.let { preferences ->
             configuration = Configuration(preferences)
@@ -185,7 +181,7 @@ class MainActivity : AppCompatActivity() {
         binding.userTV.text = "Amritapuri @ $tabletName"
 
         createDefaultFilesIfNecessary(baseContext)
-        loadMenu() //will load on resume
+//        loadMenu() //will load on resume
 
         binding.orderNumberET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -617,25 +613,59 @@ class MainActivity : AppCompatActivity() {
     val IMAGE_NOT_FONUD = 1010; //Device not connected
     val NULL_POINTER_EXCEPTION = 9999; // null pointer exception
 
+
     fun loadMenu() {
-        val file = if (configuration.isBreakfastTime) File(
-            baseContext.filesDir,
-            "Breakfast.txt"
-        ) else File(baseContext.filesDir, "LunchDinner.txt")
-        val list = getListOfMenu(file)
-
-        allCurrentCategories = mutableListOf()
-
-        list.forEach {
-            if (!allCurrentCategories.contains(it.category))
-                allCurrentCategories.add(it.category)
+        // Retrieve the saved preferred menu name
+        val selectedMenuName = PreferenceManager.getDefaultSharedPreferences(this)
+            .getString("selected_menu_name", null)
+        if (selectedMenuName != null) {
+            // Build the file name (e.g., "BreakfastMenu.csv")
+            val fileName = "$selectedMenuName.csv"
+            // Create a File object from internal storage using getFileStreamPath
+            val file = getFileStreamPath(fileName)
+            if (file.exists()) {
+                // Parse the CSV file using your existing parser
+                val list = getListOfMenu(file)
+                // Build the list of unique categories
+                allCurrentCategories = mutableListOf()
+                list.forEach {
+                    if (!allCurrentCategories.contains(it.category))
+                        allCurrentCategories.add(it.category)
+                }
+                orderNumberService.updateRange()
+                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+                setMenuAdapter(list)
+                Log.d("MainActivity", "Loaded menu from file: $fileName")
+            } else {
+                Toast.makeText(this, "Menu file not found: $fileName", Toast.LENGTH_SHORT).show()
+                Log.d("MainActivity", "File $fileName does not exist")
+            }
+        } else {
+            Toast.makeText(this, "No preferred menu selected", Toast.LENGTH_SHORT).show()
+            Log.d("MainActivity", "Preferred menu name not set in preferences")
         }
-
-        orderNumberService.updateRange()
-        binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
-
-        setMenuAdapter(list)
     }
+
+
+//    fun loadMenu() {
+//        val file = if (configuration.isBreakfastTime) File(
+//            baseContext.filesDir,
+//            "Breakfast.txt"
+//        ) else File(baseContext.filesDir, "LunchDinner.txt")
+//        val list = getListOfMenu(file)
+//
+//        allCurrentCategories = mutableListOf()
+//
+//        list.forEach {
+//            if (!allCurrentCategories.contains(it.category))
+//                allCurrentCategories.add(it.category)
+//        }
+//
+//        orderNumberService.updateRange()
+//        binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+//
+//        setMenuAdapter(list)
+//    }
 
     private fun startNewOrder() {
         GlobalScope.launch {

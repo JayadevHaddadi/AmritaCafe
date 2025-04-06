@@ -15,12 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import edu.amrita.amritacafe.IO.DEFAULT_BREAKFAST_CSV
-import edu.amrita.amritacafe.IO.DEFAULT_LUNCH_CSV
 import edu.amrita.amritacafe.IO.overrideFile
-import edu.amrita.amritacafe.IO.saveIfValidText
-import edu.amrita.amritacafe.activities.MainActivity.Companion.BREAKFAST_FILE
-import edu.amrita.amritacafe.activities.MainActivity.Companion.LUNCH_DINNER_FILE
 import edu.amrita.amritacafe.databinding.ActivitySettingsBinding
 import edu.amrita.amritacafe.settings.Configuration
 import edu.amrita.amritacafe.settings.Configuration.Companion.COLUMN_NUMBER_RANGE
@@ -154,6 +149,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = dataAdapter
             spinner.setSelection(configuration.mode)
+
+            loadCurrentMenu()
         }
     }
 
@@ -207,21 +204,22 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                         "Fetching content for: $selectedSheetName",
                         Toast.LENGTH_SHORT
                     ).show()
+
                     fetchSheetContent(selectedSheetName) // Call the new function
-                    binding.menuET.visibility = View.GONE // Hide old content while loading
-                    binding.menuET.setText("") // Clear old content
+                    // binding.menuET.visibility = View.GONE // Hide old content while loading
+//                    binding.menuET.setText("") // Clear old content
                     textViewError.visibility = View.GONE // Hide previous errors
                 }
             } else {
                 // Item at position 0 ("Select a Sheet") or null parent, do nothing or hide EditText
-                binding.menuET.visibility = View.GONE
-                binding.menuET.setText("")
+                // binding.menuET.visibility = View.GONE
+//                binding.menuET.setText("")
             }
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
             // Optional: Handle case where nothing is selected
-            binding.menuET.visibility = View.GONE
+            // binding.menuET.visibility = View.GONE
             binding.menuET.setText("")
         }
     }
@@ -339,10 +337,24 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
                     if (status == "success") {
                         val csvData = jsonResponse.optString("data", "") // Get the CSV data string
-                        val processedCsv = processCsv(csvData)
-                        binding.menuET.setText(processedCsv)
+//                        val processedCsv = processCsv(csvData)
+                        val editor = pref.edit()
+                        editor.putString("selected_menu_name", sheetName)
+                        editor.apply()
+
+                        binding.menuET.setText(csvData)
 //                        binding.menuET.setText(csvData) // Set the text in the EditText
-                        binding.menuET.visibility = View.VISIBLE // Show the EditText
+                        // binding.menuET.visibility = View.VISIBLE // Show the EditText
+
+                        val fileName = "$sheetName.csv"
+
+                        // Save the CSV content using the new FileIO system.
+                        val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
+                        if (saved) {
+                            Log.d("Get Menu", "CSV saved successfully as $fileName")
+                        } else {
+                            Log.d("Get Menu", "Failed to save CSV as $fileName")
+                        }
                         Log.d("Get Menu", "Successfully got content for $sheetName") // Use Log.d
                     } else {
                         // Handle error status from the script (e.g., sheet not found)
@@ -351,7 +363,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                             "Unknown script error fetching content"
                         )
                         showError("Script Error: $message")
-                        binding.menuET.visibility = View.GONE // Hide EditText on error
+                        // binding.menuET.visibility = View.GONE // Hide EditText on error
                     }
                 } catch (e: JSONException) {
                     Log.d(
@@ -359,7 +371,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                         "BAD: JSON Parsing Error (Content): ${e.message}"
                     ) // Use Log.e
                     showError("Error: Could not parse content response from server.")
-                    binding.menuET.visibility = View.GONE
+                    // binding.menuET.visibility = View.GONE
                 } finally {
                     showLoading(false) // Hide loading indicator
                 }
@@ -376,7 +388,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                     showError("Network Error: ${error.message} (Code: ${error.networkResponse.statusCode})")
                 }
                 showLoading(false) // Hide loading indicator
-                binding.menuET.visibility = View.GONE
+                // binding.menuET.visibility = View.GONE
             }
         )
 
@@ -392,31 +404,28 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         // Add request to queue
         requestQueue.add(stringRequest)
     }
-    // --- End of New Function ---
-//    private fun processCsv(csv: String): String {
-//        // Split into lines
-//        val lines = csv.split("\n")
-//        // Process each line: remove trailing commas.
-//        val processedLines = lines.map { line ->
-//            // Remove trailing commas. (If the line consists solely of commas, this returns an empty string.)
-//            line.trimEnd(',')
-//        }
-//        return processedLines.joinToString("\n")
-//    }
-    private fun processCsv(csv: String): String {
-        return csv.split("\n")
-            .map { it.trimEnd(',') }
-            .filter { it.isNotEmpty() }  // This line drops lines that become empty.
-            .joinToString("\n")
-    }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {}
 
+
     private fun loadCurrentMenu() {
-        println("Loading is breakfast: ${configuration.isBreakfastTime}")
-        val file = if (configuration.isBreakfastTime) BREAKFAST_FILE else LUNCH_DINNER_FILE
-        val br = BufferedReader(FileReader(file))
-        binding.menuET.setText(br.readText())
+        // Check if a preferred menu was saved in SharedPreferences
+        val selectedMenuName = pref.getString("selected_menu_name", null)
+        if (selectedMenuName != null) {
+            // Construct the file name based on the saved menu name.
+            val fileName = "$selectedMenuName.csv"
+            // Read the CSV content from local storage using CSVFileManager.
+            val csvContent = edu.amrita.amritacafe.IO.CSVFileManager.readCSV(applicationContext, fileName)
+            if (csvContent != null) {
+                // Set the CSV content into the EditText without changing its visibility.
+                binding.menuET.setText(csvContent)
+                Log.d("Get Menu", "Loaded CSV content from file: $fileName")
+            } else {
+                Log.d("Get Menu", "No CSV file found for: $fileName")
+            }
+        } else {
+            Log.d("Get Menu", "No preferred menu selected in preferences.")
+        }
     }
 
     override fun onPause() {
@@ -431,36 +440,6 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 columns = columnNumbersET.text.toString().toInt()
             }
         }
-    }
-
-    fun saveSettings(view: View) {
-        val sheetName = sheetSpinner.selectedItem?.toString()
-        if (sheetName == null || sheetName == "Select a Sheet" || sheetName == "No sheets found") {
-            Toast.makeText(applicationContext, "Please select a valid sheet name before saving.", Toast.LENGTH_LONG).show()
-            return
-        }
-        val fileName = "$sheetName.csv"
-        val response = saveIfValidText(binding.menuET.text.toString(), applicationContext, fileName)
-        Toast.makeText(applicationContext, response, Toast.LENGTH_LONG).show()
-    }
-
-    fun resetMenu(view: View) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Reset current menu?")
-        builder.setPositiveButton(android.R.string.yes) { _, _ ->
-            if (configuration.isBreakfastTime)
-                overrideFile(DEFAULT_BREAKFAST_CSV, BREAKFAST_FILE)
-            else
-                overrideFile(DEFAULT_LUNCH_CSV, LUNCH_DINNER_FILE)
-
-            loadCurrentMenu()
-            Toast.makeText(
-                applicationContext,
-                "Current menu reset to default", Toast.LENGTH_SHORT
-            ).show()
-        }
-        builder.setNegativeButton(android.R.string.no, null)
-        builder.show()
     }
 
     fun tryConnect(view: View) {

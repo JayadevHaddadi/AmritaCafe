@@ -213,20 +213,24 @@ private fun readMenuFromText(
     allText: String
 ): Pair<String, List<MenuItem>> {
     val lineByLine = allText.split("\n")
-
     val menu = mutableListOf<MenuItem>()
-
     var category = ""
     var itemNr = 1
     try {
         for (line in lineByLine) {
-            val columns = line.split(",").map { it.trim() }
+            // Trim the line and skip if it's empty
+            val trimmedLine = line.trim()
+            if (trimmedLine.isEmpty()) continue
+
+            // Split by comma, trim each cell, and filter out empties
+            val columns = line.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            if (columns.isEmpty()) continue
+
+            // If there's only one non-empty value, treat it as a category row
             if (columns.size == 1) {
-                if (columns[0].isEmpty()) //skip empty lines
-                    continue
                 category = columns[0].toUpperCase()
                 itemNr = 1
-            } else if (columns.size == 3)
+            } else if (columns.size == 3) {
                 menu.add(
                     MenuItem(
                         columns[0].capitalizeWords(),
@@ -235,7 +239,7 @@ private fun readMenuFromText(
                         category
                     )
                 )
-            else if (columns.size == 2)
+            } else if (columns.size == 2) {
                 menu.add(
                     MenuItem(
                         columns[0].capitalizeWords(),
@@ -244,21 +248,15 @@ private fun readMenuFromText(
                         category
                     )
                 )
-
+            }
             itemNr++
-        }
-        for (item in menu) {
-            println("${item.name},${item.code},${item.price},${item.category}")
         }
         return Pair("Successfully saved", menu.toList())
     } catch (e: Exception) {
         throw BadMenuException("Save failed at:\nCategory: ${category}\nItem in category: ${itemNr}")
-//        return Pair(
-//            ,
-//            menu.toList()
-//        )
     }
 }
+
 
 class BadMenuException(message: String) : Throwable(message)
 
