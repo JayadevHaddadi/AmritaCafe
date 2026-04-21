@@ -530,7 +530,9 @@ class MainActivity : AppCompatActivity() {
                 if (renunciate) {
                     if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
                         it.quantityAsRenounciate = it.quantity - 1
-                    else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
+                    else if (it.menuItem.name.equals("Bread")) {
+                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
+                    } else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
                         totalRenunciateItems += 1
                         it.quantityAsRenounciate = it.quantity - 1
                     }
@@ -543,8 +545,6 @@ class MainActivity : AppCompatActivity() {
                         it.quantityAsRenounciate = max(it.quantity - 2, 0)
                     } else if (it.menuItem.name.equals("Sprouts")) {
                         it.quantityAsRenounciate = max(it.quantity - 1, 0)
-                    } else if (it.menuItem.name.equals("Bread")) {
-                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
                     }
                     if (it.quantityAsRenounciate != it.quantity)
                         it.renounciateEffected = true

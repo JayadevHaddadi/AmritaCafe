@@ -62,13 +62,9 @@ private fun bluetoothPrint(
         false, false, false, false
     )
 
-    printer.printText(
-        ReceiptWriter.orderItemsText(orderItems),
-        false,
-        false,
-        false,
-        false
-    )
+    ReceiptWriter.orderItemsText(orderItems).split("\n").forEach {
+        printer.printText(it, false, false, false, false)
+    }
 
     printer.printText(
         "Total" + orderTotalText.padStart(11, '.'),

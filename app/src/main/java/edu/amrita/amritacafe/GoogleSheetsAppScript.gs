@@ -72,7 +72,7 @@ function doPost(e) {
 
   for (var i = 0; i < items.length; i++) {
     var gpayAmount = isGpay ? items[i].total : 0;
-    sheet.appendRow([timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount]);
+    sheet.appendRow([timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].renounciate, items[i].cost, items[i].total, gpayAmount]);
   }
   // sheet.appendRow([time,tablet,order,items[0].quantity,items[0].name,items[0].cost,items[0].total]);
 
