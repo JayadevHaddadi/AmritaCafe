@@ -447,9 +447,11 @@ class MainActivity : AppCompatActivity() {
     private var received = 0f
     private var currentTotalCost: Float = 0f
     private var renunciate = false
+    private var isGpay = false
 
     private fun openPaymentDialog(orders: List<Order>) {
         renunciate = false
+        isGpay = false
 
         // Use the generated binding class for dialog_payment.xml
         val binding = DialogPaymentBinding.inflate(LayoutInflater.from(this))
@@ -461,9 +463,37 @@ class MainActivity : AppCompatActivity() {
 
         val checkDraw = ContextCompat.getDrawable(this, R.drawable.check_image)
         val renunciateDraw = ContextCompat.getDrawable(this, R.drawable.renunciate)
+        val rupeeDraw = ContextCompat.getDrawable(this, R.drawable.rupee_image)
+
+        binding.gpayButton.setOnClickListener {
+            isGpay = !isGpay
+            if (isGpay) {
+                if (renunciate) {
+                    binding.renunciateBotton.performClick()
+                }
+            }
+
+            binding.gpayButton.setCompoundDrawablesWithIntrinsicBounds(
+                null,
+                rupeeDraw,
+                if (isGpay) checkDraw else null,
+                null
+            )
+        }
 
         binding.renunciateBotton.setOnClickListener {
             renunciate = !renunciate // Toggle the value of renunciate
+            if (renunciate) {
+                if (isGpay) {
+                    isGpay = false
+                    binding.gpayButton.setCompoundDrawablesWithIntrinsicBounds(
+                        null,
+                        rupeeDraw,
+                        null,
+                        null
+                    )
+                }
+            }
             orderAdapter.orderItems.forEach {
                 it.quantityAsRenounciate = it.quantity
             }
@@ -539,6 +569,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         fun done() {
+            orders.forEach { it.isGpay = isGpay }
             sendToSheets(orders, configuration, this)
             startNewOrder()
             orderDone(orders)

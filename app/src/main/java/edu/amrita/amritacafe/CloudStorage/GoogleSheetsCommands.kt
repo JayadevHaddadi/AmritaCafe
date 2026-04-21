@@ -44,6 +44,7 @@ fun sendToSheets(
         jsonData.put("time", orderTime)
         jsonData.put("tablet", configuration.tabletName)
         jsonData.put("order", myOrderNumber.toString())
+        jsonData.put("isGpay", orders.any { it.isGpay })
     } catch (e: JSONException) {
         e.printStackTrace()
     }

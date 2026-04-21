@@ -12,5 +12,6 @@ data class Order(
     val orderTime: String = Calendar.getInstance(TimeZone.getDefault()).time.run {
         hours.toString().padStart(2) + ":" + minutes.toString().padStart(2, '0')
     },
-    val sum: Int = orderItems.map { it.totalPrice()}.sum()
+    val sum: Int = orderItems.map { it.totalPrice()}.sum(),
+    var isGpay: Boolean = false
 )
