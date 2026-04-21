@@ -1,15 +1,3 @@
-
-// function doGet(e) {
-//   var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
-//   var sheet = ss.getSheetByName('Canteen Menu');
-//   var toPrint = sheet.getDataRange().getValues()
-//   Logger.log(toPrint)
-//   var text = convertRangeToCsvFile_("he",sheet)
-//   Logger.log(text)
-
-//   return ContentService.createTextOutput(text); //"toPrint"
-// }
-
 function doGet(e) {
   var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
 
@@ -84,14 +72,13 @@ function doPost(e) {
 
   for (var i = 0; i < items.length; i++) {
     var gpayAmount = isGpay ? items[i].total : 0;
-    sheet.appendRow([timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, items[i].renounciate, gpayAmount]);
+    sheet.appendRow([timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount]);
   }
   // sheet.appendRow([time,tablet,order,items[0].quantity,items[0].name,items[0].cost,items[0].total]);
 
   // Return a success message (optional)
   return ContentService.createTextOutput("Name inserted successfully!");
 }
-
 
 function getLastRow(sheet) {
   var lastRow = sheet.getLastRow();
@@ -104,8 +91,6 @@ function getLastRow(sheet) {
   }
   return emptyRow;
 }
-
-
 
 function insertRowAtTop_v1(data, sheetName, targetRow) {
 
@@ -123,11 +108,6 @@ function insertRowAtTop_v1(data, sheetName, targetRow) {
   SpreadsheetApp.flush();
 }
 
-
-/**
- * Runs example1.
- * This function simulates how the insertRowAtTop funciton can be used.
- */
 function runsies_example1(){
   const targetRow = 2;
   const sheetName = "Sheet1"
@@ -158,32 +138,8 @@ function insertRow(data) {
   Logger.log("My function is working!2");
 }
 
-
 function myFunction() {
   // ... your code here ...
   var sheet = SpreadsheetApp.getActiveSheet();
   sheet.getRange("A1").setValue("Function worked!");
 }
-
-  // This function can be left empty for now
-  // Logger.log("My function is working!");
-  // var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
-  // runsies_example1();
-  // Logger.log(ss.getName());
-  // var myJson = {
-  //   "time": "5 oclock",
-  //   "tablet": "shiva",
-  //   "order": 342,
-  //   "items": [{
-  //       "quantity":2,
-  //       "name":"burger",
-  //       "cost":30,
-  //       "total":60
-  //   },{
-  //       "quantity":1,
-  //       "name":"fries",
-  //       "cost":80,
-  //       "total":80
-  //   }]
-  // }
-  // doPost(myJson)
