@@ -18,9 +18,16 @@ android {
             useSupportLibrary = true
         }
 
-//        ndk {
-//            abiFilters 'x86_64','armeabi-v7a', 'arm64-v8a', 'x86'// for WIFI printer to work
-//        }
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(new FileInputStream(localPropertiesFile))
+        }
+
+        buildConfigField "String", "ORDER_SCRIPT_URL", localProperties['google.script.order.url'] ?: "\"\""
+        buildConfigField "String", "UPDATE_SCRIPT_URL", localProperties['google.script.update.url'] ?: "\"\""
+        buildConfigField "String", "MENU_SCRIPT_URL", localProperties['google.script.menu.url'] ?: "\"\""
+
         ndk{
             abiFilters "armeabi", "x86" // for WIFI printer to work FFS DO NOT REMOVE!!!!
         }
@@ -74,6 +81,10 @@ android {
 
     viewBinding {
         enabled = true
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     namespace 'edu.amrita.amritacafe'

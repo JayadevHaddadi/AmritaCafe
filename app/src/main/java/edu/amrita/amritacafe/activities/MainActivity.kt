@@ -47,6 +47,7 @@ import edu.amrita.amritacafe.IO.getListOfMenu
 import edu.amrita.amritacafe.IO.saveIfValidText
 import edu.amrita.amritacafe.IO.writeToCSV
 import edu.amrita.amritacafe.R
+import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.databinding.ActivityMainBinding
 import edu.amrita.amritacafe.databinding.DialogHistoryBinding
 import edu.amrita.amritacafe.databinding.DialogPaymentBinding
@@ -253,6 +254,9 @@ class MainActivity : AppCompatActivity() {
         tryConnect()
 
         print("PERMISSION " + checkStoragePermission(this))
+
+        // Check for updates once on startup
+        UpdateChecker.checkForUpdates(this)
     }
 
     // Check if external storage is writable
@@ -387,7 +391,7 @@ class MainActivity : AppCompatActivity() {
         if (selectedMenuName != null) {
             try {
                 val encodedMenuName = URLEncoder.encode(selectedMenuName, "UTF-8")
-                val url = "$APPS_SCRIPT_URL?sheetName=$encodedMenuName"
+                val url = "${BuildConfig.MENU_SCRIPT_URL}?menu=$encodedMenuName"
                 Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
 
                 val requestQueue = Volley.newRequestQueue(this)
@@ -398,8 +402,9 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val jsonResponse = JSONObject(response)
                             val status = jsonResponse.optString("status", "error")
-                            if (status == "success") {
-                                val csvData = jsonResponse.optString("data", "")
+                            val csvData = jsonResponse.optString("data", "")
+                            
+                            if (status == "success" && csvData.isNotEmpty()) {
                                 // Save the updated CSV file using the new FileIO system.
                                 val fileName = "$selectedMenuName.csv"
                                 val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
@@ -411,7 +416,8 @@ class MainActivity : AppCompatActivity() {
                                     Log.e("MainActivity", "Failed to save updated CSV as $fileName")
                                 }
                             } else {
-                                Log.e("MainActivity", "Server returned error: ${jsonResponse.optString("message")}")
+                                val msg = jsonResponse.optString("message", "Empty data received")
+                                Log.e("MainActivity", "Update skipped: $msg")
                             }
                         } catch (e: JSONException) {
                             e.printStackTrace()
