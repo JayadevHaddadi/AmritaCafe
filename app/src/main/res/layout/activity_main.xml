@@ -121,6 +121,7 @@
             android:horizontalSpacing="4dp"
             android:numColumns="11"
             android:paddingTop="4dp"
+            android:paddingBottom="72dp"
             android:verticalSpacing="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

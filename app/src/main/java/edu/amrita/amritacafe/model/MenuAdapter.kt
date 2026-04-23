@@ -103,7 +103,8 @@ class MenuAdapter(
                         name.text = menuItem.name.capitalizeWords()
                     else
                         name.text = menuItem.code
-                    cost.text = ""+menuItem.price
+                    
+                    cost.text = "₹${menuItem.price}"
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
                     name.setTypeface(SERIF, NORMAL)
                 }
