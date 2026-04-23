@@ -133,30 +133,7 @@ class MainActivity : AppCompatActivity() {
             orderNumberService = OrderNumberService(preferences)
         }
 
-        if (isExternalStorageWritable()) {
-            // Get the documents directory
-            val documentsDir: File = getDocumentsDirectory()
-
-            // Create a file within the documents directory
-            val file = File(documentsDir, "example.txt")
-
-            // Write some text to the file
-            writeToFile(file, "Hello, World!")
-        } else {
-            // External storage not writable, show an error message
-            Toast.makeText(this, "External storage not available", Toast.LENGTH_SHORT).show()
-        }
-
         supportActionBar?.hide()
-
-        val PERMISSIONS_STORAGE = arrayOf(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-        ActivityCompat.requestPermissions(
-            this,
-            PERMISSIONS_STORAGE,
-            PackageManager.PERMISSION_GRANTED
-        )
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
@@ -167,7 +144,7 @@ class MainActivity : AppCompatActivity() {
         binding.orderListView.adapter = orderAdapter
 
         binding.orderButton.setOnClickListener {
-            printOrder() // just for testing history
+            printOrder()
         }
 
         binding.menuGridView.onItemClickListener =
@@ -212,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             requestBluetooth.launch(enableBtIntent)
         }
 
-// Check if the permission is already granted
+        // Check if the permission is already granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -224,6 +201,7 @@ class MainActivity : AppCompatActivity() {
             )
         } else {
             // Permission has already been granted, proceed with accessing Bluetooth functionalities
+            tryConnect()
         }
 
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
@@ -246,68 +224,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onEvent(p0: PrinterEvent?) {
-                makeToast("onEvent " + p0)
+                makeToast("onEvent $p0")
                 println("JAYADEV onEvent $p0")
             }
         })
         mHoinPrinter.switchType(true);
-        tryConnect()
-
-        print("PERMISSION " + checkStoragePermission(this))
     }
 
-    // Check if external storage is writable
-    private fun isExternalStorageWritable(): Boolean {
-        val state = Environment.getExternalStorageState()
-        return Environment.MEDIA_MOUNTED == state
-    }
-
-    // Get the documents directory
-    private fun getDocumentsDirectory(): File {
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-    }
-
-    // Write text to a file
-    private fun writeToFile(file: File, text: String) {
-        var fos: FileOutputStream? = null
-        try {
-            fos = FileOutputStream(file)
-            fos.write(text.toByteArray())
-            Toast.makeText(this, "File saved to: " + file.absolutePath, Toast.LENGTH_SHORT).show()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Error writing to file", Toast.LENGTH_SHORT).show()
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    private val REQUEST_EXTERNAL_STORAGE = 1
     private val BLUETOOTH_CONNECT_REQUEST_CODE = 101
-    private val PERMISSIONS_STORAGE = arrayOf(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
-
-    fun checkStoragePermission(activity: Activity): Boolean {
-        val permission =
-            ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                activity,
-                PERMISSIONS_STORAGE,
-                REQUEST_EXTERNAL_STORAGE
-            )
-            return false
-        }
-        return true
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -315,28 +239,18 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                print("WE HAVE PERMISSION")
-                // Permission granted, you can now proceed with writing to external storage
-            } else {
-                print("WE DOOOONT HAVE PERMISSION")
-                // Permission denied, handle accordingly
-            }
-        }
         when (requestCode) {
             BLUETOOTH_CONNECT_REQUEST_CODE -> {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted, proceed with accessing Bluetooth functionalities
+                    tryConnect()
                 } else {
-                    // Permission denied, handle accordingly (e.g., show an explanation or disable Bluetooth features)
+                    makeToast("Bluetooth permission denied")
                 }
-                return
             }
-            // Add other permission request codes if needed
-            else -> {
-                // Handle other permission requests
+            2 -> { // REQUEST_EXTERNAL_STORAGE
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    UpdateChecker.checkForUpdates(this)
+                }
             }
         }
     }
@@ -443,7 +357,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.tabletNameMainTV.text = configuration.tabletName
-        UpdateChecker.checkForUpdates(this)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+             UpdateChecker.checkForUpdates(this)
+        } else if (checkStoragePermission(this)) {
+             UpdateChecker.checkForUpdates(this)
+        }
+    }
+
+    private fun checkStoragePermission(activity: Activity): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) return true
+        
+        val permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                2 // REQUEST_EXTERNAL_STORAGE
+            )
+            return false
+        }
+        return true
     }
 
 

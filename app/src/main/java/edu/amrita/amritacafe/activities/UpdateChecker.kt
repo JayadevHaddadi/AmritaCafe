@@ -100,7 +100,7 @@ object UpdateChecker {
     }
 
     private fun startDownload(context: Context, url: String) {
-        val destination = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "AmritaCafe_update.apk")
+        val destination = File(context.filesDir, "AmritaCafe_update.apk")
         if (destination.exists()) destination.delete()
 
         val request = DownloadManager.Request(Uri.parse(url))
