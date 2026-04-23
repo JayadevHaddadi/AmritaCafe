@@ -305,13 +305,13 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         super.onPause()
         with(binding) {
             configuration.apply {
-                kitchenPrinterIP = kitchenIpET.text.toString()
-                receiptPrinterIP = receiptIpET.text.toString()
-                rangeFrom = rangeFromET.text.toString().toIntOrNull() ?: 1
-                rangeTo = rangeToET.text.toString().toIntOrNull() ?: 999
-                columns = columnNumbersET.text.toString().toIntOrNull() ?: 8
-                wifiKeywords = wifiKeywordsET.text.toString()
-                bluetoothKeywords = btKeywordsET.text.toString()
+                kitchenPrinterIP = kitchenIpET.text.toString().trim()
+                receiptPrinterIP = receiptIpET.text.toString().trim()
+                rangeFrom = rangeFromET.text.toString().trim().toIntOrNull() ?: 1
+                rangeTo = rangeToET.text.toString().trim().toIntOrNull() ?: 999
+                columns = columnNumbersET.text.toString().trim().toIntOrNull() ?: 8
+                wifiKeywords = wifiKeywordsET.text.toString().trim()
+                bluetoothKeywords = btKeywordsET.text.toString().trim()
             }
         }
     }
