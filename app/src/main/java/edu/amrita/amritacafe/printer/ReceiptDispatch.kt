@@ -54,8 +54,12 @@ class ReceiptDispatch(
         }
     }
 
-    fun dispatchPrint(orders: List<Order>): Job = GlobalScope.launch(Dispatchers.IO) {
-        print(orders)
+    fun dispatchPrint(orders: List<Order>): Job = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            print(orders)
+        } catch (e: Exception) {
+            logger.severe("Dispatch print failed: ${e.message}")
+        }
     }
 
     private suspend fun executePrintJob(orders: List<Order>) = buildPrinter().let { printer ->
@@ -74,13 +78,15 @@ class ReceiptDispatch(
 
                 receiptWriter.writeToPrinter(orders, printer, configuration)
 
-                GlobalScope.launch(Dispatchers.IO) {
-                    withTimeout(2000) {
-
-                        logger.fine("Send Data")
-                        printer.sendData(5000)
-                        logger.fine("Sent.")
-
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        withTimeout(2000) {
+                            logger.fine("Send Data")
+                            printer.sendData(5000)
+                            logger.fine("Sent.")
+                        }
+                    } catch (e: Exception) {
+                        logger.warning("Error sending data: ${e.message}")
                     }
                 }
             }}

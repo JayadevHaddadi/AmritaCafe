@@ -60,10 +60,7 @@ import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
 import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrint
 import edu.amrita.amritacafe.settings.Configuration
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -112,6 +109,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityMainBinding
+
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -229,6 +228,11 @@ class MainActivity : AppCompatActivity() {
             }
         })
         mHoinPrinter.switchType(true);
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 
     private val BLUETOOTH_CONNECT_REQUEST_CODE = 101
@@ -555,27 +559,25 @@ class MainActivity : AppCompatActivity() {
         binding.clearMoneyRecieved.setOnClickListener(onClickRecivedListener)
     }
 
-    fun tryConnect() = runBlocking() {
-        launch {
-            delay(1000L)
-            println("World")
+    fun tryConnect() = scope.launch(Dispatchers.IO) {
+        delay(1000L)
+        println("World")
 
-            devices = mHoinPrinter.pairedDevice
-            println("JAYADEV $devices")
-            for (x in devices) {
-                println(x)
-                println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
-            }
+        devices = mHoinPrinter.pairedDevice
+        println("JAYADEV $devices")
+        for (x in devices) {
+            println(x)
+            println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
+        }
 
-            println("JAYADEV MODE ${configuration.mode}")
-            println("JAYADEV BT_STATE $BT_STATE")
-            if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
-                val selection =
-                    devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName }
-                println("JAYADEV SELECTION $selection")
-                if (!selection.isEmpty())
-                    mHoinPrinter.connect(selection.first().address)
-            }
+        println("JAYADEV MODE ${configuration.mode}")
+        println("JAYADEV BT_STATE $BT_STATE")
+        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
+            val selection =
+                devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName }
+            println("JAYADEV SELECTION $selection")
+            if (selection.isNotEmpty())
+                mHoinPrinter.connect(selection.first().address)
         }
 
         println("JAYADEV MODE ${configuration.mode}")
@@ -583,7 +585,6 @@ class MainActivity : AppCompatActivity() {
         if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
             mHoinPrinter.startBtDiscovery()
         println("Hello")
-
     }
 
     val BT_NOT_AVALIBLE = 1000; //Bluetooth is not available on this device
@@ -654,10 +655,8 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     private fun startNewOrder() {
-        GlobalScope.launch {
-//            orderNumberService.next()
-
-            runOnUiThread {
+        scope.launch {
+            withContext(Dispatchers.Main) {
                 orderAdapter.clear()
                 binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
             }
@@ -721,12 +720,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         val orders = if (hasPizza && hasGrill) {
+            val pizzaOrderNumber = runBlocking { orderNumberService.next() }
             listOf(
                 Order(
                     orderNumberService.currentOrderNumber,
                     orderList.filter { it.menuItem.category != PIZZA }),
                 Order(
-                    runBlocking { orderNumberService.next() },
+                    pizzaOrderNumber,
                     orderList.filter { it.menuItem.category == PIZZA })
             )
         } else {
@@ -876,7 +876,7 @@ class MainActivity : AppCompatActivity() {
         if (configuration.printToFile)
             writeToCSV(orders, configuration)
 
-        GlobalScope.launch {
+        scope.launch {
             orderNumberService.next()
         }
     }

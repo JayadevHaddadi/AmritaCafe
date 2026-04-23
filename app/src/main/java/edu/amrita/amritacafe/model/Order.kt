@@ -4,7 +4,7 @@ import edu.amrita.amritacafe.menu.RegularOrderItem
 import java.util.*
 
 data class Order(
-    val orderNumber: Int,
+    var orderNumber: Int,
     var orderItems: List<RegularOrderItem>,
 //    var orderLongTime: Date = Calendar.getInstance(TimeZone.getDefault()).time,
 

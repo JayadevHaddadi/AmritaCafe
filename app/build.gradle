@@ -102,6 +102,7 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // NEVER DELETE, will make app crash, for epson printers
     implementation files('libs/ePOS2.jar')
 
     // Kotlin
@@ -116,10 +117,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.preference:preference-ktx:1.2.1'
 
-    // Additional Dependencies
+    // MOst likely very important bluetooth
     implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0'
-//    implementation 'am.util:printer:2.1.0'
-//    implementation 'com.inuker.bluetooth:library:1.4.0'
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
 
