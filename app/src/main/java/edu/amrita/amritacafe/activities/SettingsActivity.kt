@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.IO.overrideFile
 import edu.amrita.amritacafe.databinding.ActivitySettingsBinding
 import edu.amrita.amritacafe.settings.Configuration
@@ -28,8 +29,8 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.URLEncoder
-import java.net.UnknownHostException // Keep this if you want specific check
-
+import java.net.UnknownHostException 
+import edu.amrita.amritacafe.R
 class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var pref: SharedPreferences
     private lateinit var configuration: Configuration
@@ -42,9 +43,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     private lateinit var spinnerAdapter: ArrayAdapter<String>
 
     // IMPORTANT: Replace this with YOUR deployed Apps Script Web App URL
-    private val APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec" // <--- ****** PASTE YOUR URL HERE ******
-
+    private val APPS_SCRIPT_URL = BuildConfig.MENU_SCRIPT_URL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,44 +58,37 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         configuration = Configuration(pref)
 
         with(binding) {
-            // *** FIX: Initialize views using binding ***
-            this@SettingsActivity.sheetSpinner =
-                sheetSpinner // Assigns the Spinner from the layout (binding.sheetSpinner) to your variable
-            this@SettingsActivity.progressBar = progressBar   // Assigns the ProgressBar
-            this@SettingsActivity.textViewError = textViewError // Assigns the TextView
-            // ******************************************
+            this@SettingsActivity.sheetSpinner = sheetSpinner 
+            this@SettingsActivity.progressBar = progressBar   
+            this@SettingsActivity.textViewError = textViewError 
 
-
-            // Initialize the adapter (Use this@SettingsActivity for context clarity inside 'with')
             spinnerAdapter = ArrayAdapter(
                 this@SettingsActivity,
                 android.R.layout.simple_spinner_item,
                 mutableListOf<String>()
             )
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            // Now this line should work because sheetSpinner is initialized:
             this@SettingsActivity.sheetSpinner.adapter = spinnerAdapter
-
-            // --- Set the ItemSelectedListener for the sheetSpinner ---
             this@SettingsActivity.sheetSpinner.onItemSelectedListener = sheetSpinnerListener
-            // ---------------------------------------------------------
 
-            // Set spinner visibility initially to invisible until data loads
-            this@SettingsActivity.sheetSpinner.visibility = View.INVISIBLE
-
-            // *** FIX: Correct URL Check Logic ***
-            // Check if the URL IS the placeholder OR blank
-            if (APPS_SCRIPT_URL == "YOUR_APPS_SCRIPT_WEB_APP_URL" || APPS_SCRIPT_URL.isBlank()) {
-                showError("Apps Script URL is not set correctly in SettingsActivity.")
-                this@SettingsActivity.progressBar.visibility =
-                    View.GONE // Hide progress bar if URL is missing
+            // --- SEAMLESS MENU LOADING ---
+            val cachedNames = pref.getString("cached_sheet_names", "")
+            if (!cachedNames.isNullOrBlank()) {
+                val list = cachedNames.split(",").filter { it.isNotBlank() }
+                updateSpinner(list)
             } else {
-                Log.d("Get Menu", "CALLING FETCHING NAMES")
-                fetchSheetNames()
+                updateSpinner(emptyList())
             }
-            // ************************************
-            //GEMINI END
 
+            // Fetch fresh names in background
+            Log.d("SettingsActivity", "Refreshing sheet names in background")
+            fetchSheetNames()
+
+            refreshButton.setOnClickListener {
+                Toast.makeText(this@SettingsActivity, "Refreshing menu list...", Toast.LENGTH_SHORT).show()
+                fetchSheetNames(true)
+            }
+            // -----------------------------
 
             // Bind Views
             receiptIpET.setText(configuration.receiptPrinterIP)
@@ -155,11 +147,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     }
 
     private fun updateSpinner(sheetNames: List<String>) {
-        Log.d(
-            "Get Menu",
-            "SettingsActivity: updateSpinner started with sheetNames: $sheetNames"
-        ) // Added log
         spinnerAdapter.clear()
+        spinnerAdapter.add("Select a Sheet")
         if (sheetNames.isEmpty()) {
             spinnerAdapter.add("No sheets found")
             sheetSpinner.isEnabled = false
@@ -168,10 +157,18 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             sheetSpinner.isEnabled = true
         }
         spinnerAdapter.notifyDataSetChanged()
-        Log.d(
-            "Get Menu",
-            "SettingsActivity: updateSpinner finished, spinnerAdapter count: ${spinnerAdapter.count}"
-        ) // Added log
+        
+        // Cache the names for next time
+        pref.edit().putString("cached_sheet_names", sheetNames.joinToString(",")).apply()
+
+        // Restore selection if it exists in the list
+        val currentSelection = pref.getString("selected_menu_name", null)
+        if (currentSelection != null) {
+            val index = sheetNames.indexOf(currentSelection)
+            if (index != -1) {
+                sheetSpinner.setSelection(index + 1)
+            }
+        }
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -222,80 +219,41 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     // --- End of Listener ---
 
 
-    private fun fetchSheetNames() {
-        Log.d("Get Menu", "FETCHING SHEETS!")
-        Log.d("Get Menu", "SettingsActivity: fetchSheetNames started") // Added log
-        showLoading(true)
+    private fun fetchSheetNames(showFeedback: Boolean = false) {
+        Log.d("Get Menu", "SettingsActivity: fetchSheetNames started (Background)")
+        // Seamless background update: don't show loading or hide spinner
         textViewError.visibility = View.GONE
-        sheetSpinner.visibility = View.INVISIBLE // Keep spinner visible, just update content
 
         val requestQueue = Volley.newRequestQueue(this)
         val stringRequest = StringRequest(
             Request.Method.GET,
-            APPS_SCRIPT_URL, // URL WITHOUT parameters fetches all names
+            APPS_SCRIPT_URL,
             { response ->
-                Log.d(
-                    "Get Menu",
-                    "SettingsActivity: fetchSheetNames success response: $response"
-                ) // Added log
                 try {
                     val jsonResponse = JSONObject(response)
                     val status = jsonResponse.optString("status", "error")
                     if (status == "success") {
                         val sheetNamesArray = jsonResponse.optJSONArray("sheetNames")
                         if (sheetNamesArray != null) {
-                            val sheetNamesList =
-                                mutableListOf<String>("Select a Sheet") // Add prompt at the start
+                            val sheetNamesList = mutableListOf<String>()
                             for (i in 0 until sheetNamesArray.length()) {
                                 sheetNamesList.add(sheetNamesArray.getString(i))
                             }
-                            Log.d(
-                                "Get Menu",
-                                "SettingsActivity: fetchSheetNames sheetNamesList: $sheetNamesList"
-                            ) // Added log
                             updateSpinner(sheetNamesList)
-                            sheetSpinner.visibility = View.VISIBLE // Ensure spinner is visible
-                        } else {
-                            Log.d(
-                                "Get Menu",
-                                "SettingsActivity: fetchSheetNames error: missing 'sheetNames'"
-                            ) // Added log
-                            showError("Script Error: Response format incorrect (missing 'sheetNames').")
-
-                            fallbackLocalSheetNames()
-                            updateSpinner(listOf("Select a Sheet", "Error loading"))
+                            
+                            if (showFeedback) {
+                                Toast.makeText(this, "Menu list updated", Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    } else {
-                        val message = jsonResponse.optString("message", "Unknown script error")
-                        Log.d(
-                            "Get Menu",
-                            "SettingsActivity: fetchSheetNames error: script returned error - $message"
-                        ) // Added log
-                        showError("Script Error: $message")
-                        fallbackLocalSheetNames()
-                        updateSpinner(listOf("Select a Sheet", "Error loading"))
                     }
                 } catch (e: JSONException) {
-                    Log.d(
-                        "Get Menu",
-                        "SettingsActivity: fetchSheetNames error: JSON parsing - ${e.message}"
-                    ) // Added log
-                    showError("Error: Could not parse sheet list response.")
-                    fallbackLocalSheetNames()
-                    updateSpinner(listOf("Select a Sheet", "Error loading"))
-                } finally {
-                    showLoading(false)
+                    Log.e("Get Menu", "JSON parsing error in background fetch", e)
+                    if (showFeedback) Toast.makeText(this, "Update failed: Invalid response", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
-                Log.d(
-                    "Get Menu",
-                    "SettingsActivity: fetchSheetNames error: Volley - ${error.message}"
-                ) // Added log
-                showError("Network Error fetching sheet list: ${error.message}")
-                updateSpinner(listOf("Select a Sheet", "Network Error"))
-                fallbackLocalSheetNames()
-                showLoading(false)
+                Log.e("Get Menu", "Volley error in background fetch", error)
+                if (showFeedback) Toast.makeText(this, "Update failed: Network error", Toast.LENGTH_SHORT).show()
             })
         stringRequest.setRetryPolicy(
             DefaultRetryPolicy(
@@ -305,7 +263,6 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             )
         )
         requestQueue.add(stringRequest)
-        Log.d("Get Menu", "SettingsActivity: fetchSheetNames finished") // Added log
     }
 
     // --- New Function to Fetch Content of a Specific Sheet ---

@@ -254,9 +254,6 @@ class MainActivity : AppCompatActivity() {
         tryConnect()
 
         print("PERMISSION " + checkStoragePermission(this))
-
-        // Check for updates once on startup
-        UpdateChecker.checkForUpdates(this)
     }
 
     // Check if external storage is writable
@@ -446,6 +443,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.tabletNameMainTV.text = configuration.tabletName
+        UpdateChecker.checkForUpdates(this)
     }
 
 

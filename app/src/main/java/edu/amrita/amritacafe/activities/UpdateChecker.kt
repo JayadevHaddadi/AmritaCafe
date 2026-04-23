@@ -28,10 +28,16 @@ object UpdateChecker {
     
     private var isShowing = false
     private var downloadId: Long = -1
+    private var lastCheckTime: Long = 0
+    private const val CHECK_INTERVAL = 60 * 60 * 1000 // 1 hour
 
     fun checkForUpdates(context: Context) {
-        if (isShowing) return
-
+        val currentTime = System.currentTimeMillis()
+        if (isShowing || (currentTime - lastCheckTime < CHECK_INTERVAL)) {
+            return
+        }
+        
+        lastCheckTime = currentTime
         val queue = Volley.newRequestQueue(context)
         val stringRequest = StringRequest(
             Request.Method.GET, UPDATE_INFO_URL,
