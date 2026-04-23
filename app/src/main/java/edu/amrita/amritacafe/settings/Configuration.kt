@@ -86,6 +86,18 @@ data class Configuration(private val preferences: SharedPreferences) {
             println("JAYADEV set mode to " + value)
         }
 
+    var wifiKeywords
+        get() = preferences.getString(WIFI_KEYWORDS, "breakfast,lunch,dinner")!!
+        set(value) {
+            preferences.edit().putString(WIFI_KEYWORDS, value).apply()
+        }
+
+    var bluetoothKeywords
+        get() = preferences.getString(BT_KEYWORDS, "cafe,canteen")!!
+        set(value) {
+            preferences.edit().putString(BT_KEYWORDS, value).apply()
+        }
+
     val kitchenPrinterConnStr
         get() = "TCP:" + kitchenPrinterIP
 
@@ -119,6 +131,8 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
         const val BLUETOOTH_NAME = "bluetooth name"
         const val MODE = "mode"
+        const val WIFI_KEYWORDS = "wifi_keywords"
+        const val BT_KEYWORDS = "bt_keywords"
         const val COLUMN_NUMBER_RANGE = "column_number_range"
         const val TESTING = "testing"
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"

@@ -1,321 +1,225 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="edu.amrita.amritacafe.activities.SettingsActivity">
-
-    <ScrollView
-            android:id="@+id/left_scroll"
-            android:layout_width="400dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0">
-
-        <TextView
-                android:id="@+id/menu_ET"
-                android:layout_width="400dp"
-                android:layout_height="0dp"
-                android:editable="false"
-                android:inputType="textMultiLine"
-                android:text="Menu items"
-                android:textSize="20sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
-    </ScrollView>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context="edu.amrita.amritacafe.activities.SettingsActivity">
 
     <TextView
-            android:id="@+id/textViewLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select Sheet:"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@+id/left_scroll"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/textViewLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Menu Sheet:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Spinner
-            android:id="@+id/sheetSpinner"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:minHeight="48dp"
-            app:layout_constraintStart_toStartOf="@+id/textViewLabel"
-            app:layout_constraintTop_toBottomOf="@+id/textViewLabel" />
+        android:id="@+id/sheetSpinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        app:layout_constraintEnd_toStartOf="@+id/refreshButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLabel" />
 
     <ImageButton
-            android:id="@+id/refreshButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Refresh Menu"
-            android:src="@android:drawable/ic_popup_sync"
-            app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
-            app:layout_constraintStart_toEndOf="@+id/sheetSpinner"
-            app:layout_constraintTop_toTopOf="@+id/sheetSpinner" />
+        android:id="@+id/refreshButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Refresh Menu"
+        android:src="@android:drawable/ic_popup_sync"
+        app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/sheetSpinner" />
 
     <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
-            app:layout_constraintEnd_toEndOf="@+id/sheetSpinner"
-            app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
-            app:layout_constraintTop_toTopOf="@+id/sheetSpinner"
-            tools:visibility="visible" />
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/sheetSpinner"
+        app:layout_constraintEnd_toEndOf="@+id/sheetSpinner"
+        app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
+        app:layout_constraintTop_toTopOf="@+id/sheetSpinner" />
 
     <TextView
-            android:id="@+id/textViewError"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textColor="@android:color/holo_red_dark"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@+id/sheetSpinner"
-            app:layout_constraintTop_toBottomOf="@+id/sheetSpinner"
-            tools:text="Error loading sheets"
-            tools:visibility="visible" />
+        android:id="@+id/textViewError"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sheetSpinner"
+        tools:text="Error loading sheets"
+        tools:visibility="visible" />
 
     <ScrollView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewError">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="32dp">
+
+            <!-- Printer IPs -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Printer Configuration"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Receipt Printer IP:"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/receipt_ip_ET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                tools:context="edu.amrita.amritacafe.activities.SettingsActivity">
+                android:hint="192.168.0.116"
+                android:inputType="text" />
 
             <TextView
-                    android:id="@+id/nameTV"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="Tablet Name:"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kitchen Printer IP:"
+                android:layout_marginTop="8dp"/>
             <EditText
-                    android:id="@+id/tabletNameET"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:ems="10"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/nameTV" />
+                android:id="@+id/kitchen_ip_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="192.168.0.11"
+                android:inputType="text" />
 
             <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="Reciepe Printer IP:"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tabletNameET" />
-
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth Printer Name:"
+                android:layout_marginTop="8dp"/>
             <EditText
-                    android:id="@+id/receipt_ip_ET"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:ems="10"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView2" />
+                android:id="@+id/bluetooth_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="PT-280_2A69"
+                android:inputType="text" />
 
-            <EditText
-                    android:id="@+id/editTextNumber2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:ems="10"
-                    android:inputType="number"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView9" />
-
-            <EditText
-                    android:id="@+id/kitchen_ip_ET"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:ems="10"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView9" />
-
-            <EditText
-                    android:id="@+id/bluetooth_ET"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:ems="10"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView" />
+            <!-- Workflow -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Workflow Configuration"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
 
             <TextView
-                    android:id="@+id/textView9"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="Kitchen Printer IP:"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/receipt_ip_ET" />
-
-            <TextView
-                    android:id="@+id/textView333"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_marginTop="164dp"
-                    android:layout_marginEnd="60dp"
-                    android:layout_marginRight="60dp"
-                    android:text="Kitchen Printer IP:"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/receipt_ip_ET" />
-
-            <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_marginEnd="60dp"
-                    android:text="Bluetooth Name:"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/editTextNumber2" />
-
-
-            <TextView
-                    android:id="@+id/textView22"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Menu columns"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/mode_spinner" />
-
-            <TextView
-                    android:id="@+id/textView10"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Order Number Range"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/column_numbers_ET" />
-
-            <TextView
-                    android:id="@+id/textView11"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
-                    android:text=" to "
-                    app:layout_constraintBottom_toBottomOf="@+id/range_to_ET"
-                    app:layout_constraintEnd_toStartOf="@+id/range_to_ET"
-                    app:layout_constraintTop_toTopOf="@+id/range_to_ET" />
-
-            <EditText
-                    android:id="@+id/column_numbers_ET"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:ems="10"
-                    android:inputType="numberSigned"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView22" />
-
-            <EditText
-                    android:id="@+id/range_to_ET"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginRight="16dp"
-                    android:ems="10"
-                    android:inputType="numberSigned"
-                    android:text="999"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView10" />
-
-            <EditText
-                    android:id="@+id/range_from_ET"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginRight="10dp"
-                    android:ems="10"
-                    android:inputType="numberSigned"
-                    android:text="1"
-                    app:layout_constraintEnd_toStartOf="@+id/textView11"
-                    app:layout_constraintTop_toBottomOf="@+id/textView10" />
-
-            <CheckBox
-                    android:id="@+id/testingCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Testing Mode"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/range_from_ET" />
-
-
-            <CheckBox
-                    android:id="@+id/printToCSVCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Print Daily CSV"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/testingCheckBox" />
-
-
-            <TextView
-                    android:id="@+id/modeTV"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="Mode"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/bluetooth_ET" />
-
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Default Mode:"
+                android:layout_marginTop="8dp"/>
             <Spinner
-                    android:id="@+id/mode_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/modeTV" />
+                android:id="@+id/mode_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
 
-            <Button
-                    android:id="@+id/button2"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WIFI Keywords (comma separated):"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/wifiKeywordsET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="breakfast,lunch,dinner"
+                android:inputType="text" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth Keywords (comma separated):"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/btKeywordsET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="cafe,canteen"
+                android:inputType="text" />
+
+            <!-- Layout -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="App Layout"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Menu Columns:"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/column_numbers_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Order Number Range:"
+                android:layout_marginTop="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/range_from_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="1"
+                    android:inputType="number" />
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:onClick="tryConnect"
-                    android:text="Connect"
-                    android:visibility="invisible"
-                    app:layout_constraintBottom_toBottomOf="@+id/mode_spinner"
-                    app:layout_constraintEnd_toStartOf="@+id/mode_spinner"
-                    app:layout_constraintTop_toTopOf="@+id/mode_spinner" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:text=" to "
+                    android:padding="8dp"/>
+                <EditText
+                    android:id="@+id/range_to_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="999"
+                    android:inputType="number" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/testingCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Testing Mode (Disable actual printing)" />
+
+        </LinearLayout>
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

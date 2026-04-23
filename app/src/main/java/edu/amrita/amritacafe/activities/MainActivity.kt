@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -46,6 +47,7 @@ import edu.amrita.amritacafe.IO.createDefaultFilesIfNecessary
 import edu.amrita.amritacafe.IO.getListOfMenu
 import edu.amrita.amritacafe.IO.saveIfValidText
 import edu.amrita.amritacafe.IO.writeToCSV
+import android.widget.ArrayAdapter
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.databinding.ActivityMainBinding
@@ -116,21 +118,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
         LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val pref = PreferenceManager.getDefaultSharedPreferences(this)
-        pref.let { preferences ->
-            configuration = Configuration(preferences)
-            orderNumberService = OrderNumberService(preferences)
-        }
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        configuration = Configuration(preferences)
+        orderNumberService = OrderNumberService(preferences)
 
         supportActionBar?.hide()
 
@@ -157,16 +157,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-        updateNameForToggleButton()
+        setupMenuSpinner(preferences)
+
         tabletName = "Unknown Tablet"
         binding.userTV.text = "Amritapuri @ $tabletName"
 
+        binding.tabletNameMainET.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                configuration.tabletName = s.toString()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
         createDefaultFilesIfNecessary(baseContext)
-//        loadMenu() //will load on resume
+        loadMenu()
 
         binding.orderNumberET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-//                Toast.makeText(this, , Toast.LENGTH_SHORT).show()
                 makeToast(binding.orderNumberET.text.toString())
                 orderNumberService.currentOrderNumber =
                     binding.orderNumberET.text.toString().toInt()
@@ -176,7 +184,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            println("Jayadev 2")
             requestMultiplePermissions.launch(
                 arrayOf(
                     Manifest.permission.BLUETOOTH_SCAN,
@@ -206,7 +213,7 @@ class MainActivity : AppCompatActivity() {
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
             override fun onState(newStateCode: Int) {
                 BT_STATE = newStateCode
-                var message = when (newStateCode) {
+                val message = when (newStateCode) {
                     BT_STATE_CONNECTING -> "Connecting... "
                     BT_STATE_CONNECTED -> "Connected!"
                     BT_STATE_LISTEN -> "Listening... "
@@ -214,20 +221,97 @@ class MainActivity : AppCompatActivity() {
                     else -> "STATUS $newStateCode"
                 }
                 makeToast(message)
-                println(message)
             }
 
             override fun onError(p0: Int) {
-                makeToast("onError " + p0)
-                println("JAYADEV onError $p0")
+                makeToast("onError $p0")
             }
 
             override fun onEvent(p0: PrinterEvent?) {
                 makeToast("onEvent $p0")
-                println("JAYADEV onEvent $p0")
             }
         })
-        mHoinPrinter.switchType(true);
+        mHoinPrinter.switchType(true)
+    }
+
+    private fun setupMenuSpinner(preferences: SharedPreferences) {
+        binding.menuSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (parent != null && position > 0) {
+                    val selectedMenuName = parent.getItemAtPosition(position) as String
+                    if (selectedMenuName != "No sheets found") {
+                        val currentSelection = preferences.getString("selected_menu_name", null)
+                        if (selectedMenuName != currentSelection) {
+                            preferences.edit()
+                                .putString("selected_menu_name", selectedMenuName)
+                                .apply()
+
+                            loadMenu()
+                            fetchMenuUpdate(selectedMenuName)
+                        }
+                    }
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        val cachedNamesStr = preferences.getString("cached_sheet_names", "")
+        if (!cachedNamesStr.isNullOrBlank()) {
+            val list = cachedNamesStr.split(",").filter { it.isNotBlank() }.toMutableList()
+            list.add(0, "Select Menu")
+            val spinnerAdapter = ArrayAdapter(this, R.layout.spinner_item, list)
+            spinnerAdapter.setDropDownViewResource(R.layout.spinner_item)
+            binding.menuSpinner.adapter = spinnerAdapter
+            
+            val currentSelection = preferences.getString("selected_menu_name", null)
+            if (currentSelection != null) {
+                val index = list.indexOf(currentSelection)
+                if (index != -1) {
+                    binding.menuSpinner.setSelection(index, false) // false to avoid triggering listener immediately if not needed, but we actually want it to trigger if it's the first time.
+                }
+            }
+        }
+    }
+
+    private fun fetchMenuUpdate(selectedMenuName: String) {
+        try {
+            val encodedMenuName = URLEncoder.encode(selectedMenuName, "UTF-8")
+            val url = "${BuildConfig.MENU_SCRIPT_URL}?menu=$encodedMenuName"
+            Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
+
+            val requestQueue = Volley.newRequestQueue(this)
+            val stringRequest = object : StringRequest(
+                Request.Method.GET,
+                url,
+                { response ->
+                    try {
+                        val jsonResponse = JSONObject(response)
+                        val status = jsonResponse.optString("status", "error")
+                        val csvData = jsonResponse.optString("data", "")
+                        
+                        if (status == "success" && csvData.isNotEmpty()) {
+                            val fileName = "$selectedMenuName.csv"
+                            val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
+                            if (saved) {
+                                Log.d("MainActivity", "Updated CSV saved successfully as $fileName")
+                                loadMenu()
+                            }
+                        }
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+                },
+                { error ->
+                    Log.e("MainActivity", "Error fetching updated menu: ${error.message}")
+                }
+            ) {
+                override fun getBodyContentType(): String = "application/json; charset=utf-8"
+            }
+            stringRequest.retryPolicy = DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+            requestQueue.add(stringRequest)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroy() {
@@ -304,63 +388,11 @@ class MainActivity : AppCompatActivity() {
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
         val selectedMenuName = pref.getString("selected_menu_name", null)
         if (selectedMenuName != null) {
-            try {
-                val encodedMenuName = URLEncoder.encode(selectedMenuName, "UTF-8")
-                val url = "${BuildConfig.MENU_SCRIPT_URL}?menu=$encodedMenuName"
-                Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
-
-                val requestQueue = Volley.newRequestQueue(this)
-                val stringRequest = object : StringRequest(
-                    Request.Method.GET,
-                    url,
-                    { response ->
-                        try {
-                            val jsonResponse = JSONObject(response)
-                            val status = jsonResponse.optString("status", "error")
-                            val csvData = jsonResponse.optString("data", "")
-                            
-                            if (status == "success" && csvData.isNotEmpty()) {
-                                // Save the updated CSV file using the new FileIO system.
-                                val fileName = "$selectedMenuName.csv"
-                                val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
-                                if (saved) {
-                                    Log.d("MainActivity", "Updated CSV saved successfully as $fileName")
-                                    // Refresh the UI with the updated menu.
-                                    loadMenu()
-                                } else {
-                                    Log.e("MainActivity", "Failed to save updated CSV as $fileName")
-                                }
-                            } else {
-                                val msg = jsonResponse.optString("message", "Empty data received")
-                                Log.e("MainActivity", "Update skipped: $msg")
-                            }
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
-                        }
-                    },
-                    { error ->
-                        Log.e("MainActivity", "Error fetching updated menu: ${error.message}")
-                        // Optionally, show a toast or log that the update failed.
-                    }
-                ) {
-                    override fun getBodyContentType(): String {
-                        return "application/json; charset=utf-8"
-                    }
-                }
-                stringRequest.retryPolicy = DefaultRetryPolicy(
-                    10000,
-                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                )
-                requestQueue.add(stringRequest)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        } else {
-            Log.d("MainActivity", "No preferred menu name found in preferences.")
+            fetchMenuUpdate(selectedMenuName)
         }
 
-        binding.tabletNameMainTV.text = configuration.tabletName
+        binding.tabletNameMainET.setText(configuration.tabletName)
+        updateNameForToggleButton()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
              UpdateChecker.checkForUpdates(this)
@@ -623,6 +655,26 @@ class MainActivity : AppCompatActivity() {
                 binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
                 setMenuAdapter(list)
                 Log.d("MainActivity", "Loaded menu from file: $fileName")
+                
+                // Switch modes based on keywords
+                val lowerCaseMenu = selectedMenuName.lowercase()
+                val wifiKeywords = configuration.wifiKeywords.split(",").map { it.trim().lowercase() }
+                val btKeywords = configuration.bluetoothKeywords.split(",").map { it.trim().lowercase() }
+
+                val oldMode = configuration.mode
+                if (btKeywords.any { lowerCaseMenu.contains(it) }) {
+                    configuration.mode = BLUETOOTH
+                } else if (wifiKeywords.any { lowerCaseMenu.contains(it) }) {
+                    configuration.mode = WIFI
+                }
+
+                if (configuration.mode != oldMode) {
+                    val modeName = if (configuration.mode == BLUETOOTH) "Bluetooth" else "WIFI"
+                    makeToast("Switched to $modeName mode")
+                    if (configuration.mode == BLUETOOTH) {
+                        tryConnect()
+                    }
+                }
             } else {
                 Toast.makeText(this, "Menu file not found: $fileName", Toast.LENGTH_SHORT).show()
                 Log.d("MainActivity", "File $fileName does not exist")
@@ -896,8 +948,8 @@ class MainActivity : AppCompatActivity() {
 
     fun toggleShortLongName(view: View) {
         configuration.toggleName()
-        updateNameForToggleButton()
         menuAdapter.showFullName = configuration.showMenuItemNames
+        updateNameForToggleButton()
     }
 
     private fun updateNameForToggleButton() {
@@ -940,7 +992,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteOrder(view: View) {
-        orderAdapter.clear()
+        if (orderAdapter.orderItems.isEmpty()) return
+
+        AlertDialog.Builder(this, R.style.DialogStyle)
+            .setTitle("Clear Order")
+            .setMessage("Are you sure you want to clear the current order?")
+            .setPositiveButton("Yes") { _, _ ->
+                orderAdapter.clear()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     fun cafeOrder(view: View) {
