@@ -140,11 +140,11 @@ object UpdateChecker {
     }
 
     private fun startDownload(context: Context, url: String) {
-        val destination = File(context.filesDir, "AmritaCafe_update.apk")
+        val destination = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "AmritaCafe_update.apk")
         if (destination.exists()) destination.delete()
 
         val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("Downloading Amrita Cafe Update")
+            .setTitle(if (url.contains("beta", true)) "Downloading Amrita Cafe Beta" else "Downloading Amrita Cafe Update")
             .setDescription("Please wait...")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationUri(Uri.fromFile(destination))
