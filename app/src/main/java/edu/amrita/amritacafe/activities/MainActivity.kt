@@ -115,6 +115,8 @@ class MainActivity : AppCompatActivity() {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     @SuppressLint("SourceLockedOrientationActivity")
+    private var showPrice = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
@@ -440,10 +442,14 @@ class MainActivity : AppCompatActivity() {
     private fun setMenuAdapter(menu: List<MenuItem>) {
         binding.menuGridView.numColumns = configuration.columns
         menuAdapter =
-            MenuAdapter(menu, applicationContext, configuration.showMenuItemNames, configuration) {
+            MenuAdapter(menu, applicationContext, configuration.showMenuItemNames, showPrice, configuration) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
             }
-        runOnUiThread { binding.menuGridView.adapter = menuAdapter }
+        runOnUiThread { 
+            binding.menuGridView.adapter = menuAdapter 
+            updateNameForToggleButton()
+            findViewById<Button>(R.id.price_toggle_button).text = if (showPrice) "On" else "Off"
+        }
     }
 
     private fun makeToast(text: String) {
@@ -1031,8 +1037,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNameForToggleButton() {
-        binding.shortLongToggleButton.text =
-            if (configuration.showMenuItemNames) "Short Names" else "Long Names"
+        findViewById<Button>(R.id.short_long_toggle_button).text =
+            if (configuration.showMenuItemNames) "Off" else "On"
+    }
+
+    fun togglePriceVisibility(view: View) {
+        showPrice = !showPrice
+        menuAdapter.showPrice = showPrice
+        findViewById<Button>(R.id.price_toggle_button).text = if (showPrice) "On" else "Off"
     }
 
     fun openSettings(view: View) {

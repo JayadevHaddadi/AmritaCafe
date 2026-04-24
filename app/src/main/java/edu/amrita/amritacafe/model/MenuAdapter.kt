@@ -22,11 +22,18 @@ class MenuAdapter(
     menu: List<MenuItem>,
     private val context: Context,
     showFullName: Boolean,
+    showPrice: Boolean = true,
     private val configuration: edu.amrita.amritacafe.settings.Configuration,
     private val onChanged: () -> Unit
 ) : BaseAdapter() {
 
     var showFullName: Boolean = showFullName
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    var showPrice: Boolean = showPrice
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -104,7 +111,12 @@ class MenuAdapter(
                     else
                         name.text = menuItem.code
                     
-                    cost.text = "₹${menuItem.price}"
+                    if (showPrice) {
+                        cost.text = "₹${menuItem.price}"
+                        cost.visibility = View.VISIBLE
+                    } else {
+                        cost.visibility = View.GONE
+                    }
                     name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
                     name.setTypeface(SERIF, NORMAL)
                 }
