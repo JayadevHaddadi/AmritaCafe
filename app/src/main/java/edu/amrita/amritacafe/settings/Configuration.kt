@@ -43,6 +43,15 @@ data class Configuration(private val preferences: SharedPreferences) {
             }
         }
 
+    var betaUpdates
+        get() = preferences.getBoolean(BETA_UPDATES, false)
+        set(value) {
+            preferences.edit {
+                putBoolean(BETA_UPDATES, value)
+                apply()
+            }
+        }
+
     val textConfig
         get() = if (testing) {
             TextConfig(1, 1, 0)
@@ -135,6 +144,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val BT_KEYWORDS = "bt_keywords"
         const val COLUMN_NUMBER_RANGE = "column_number_range"
         const val TESTING = "testing"
+        const val BETA_UPDATES = "beta_updates"
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
         const val COLUMNS_AMOUNT = "COLUMNS_AMOUNT"
         const val DEFAULT_COLUMNS_AMOUNT = 8 // TODO for tablet 11

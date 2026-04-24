@@ -219,6 +219,23 @@
                 android:layout_marginTop="16dp"
                 android:text="Testing Mode (Disable actual printing)" />
 
+            <CheckBox
+                android:id="@+id/betaUpdatesCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Receive Beta Updates" />
+
+            <TextView
+                android:id="@+id/versionInfoTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="center_horizontal"
+                android:alpha="0.5"
+                android:textSize="12sp"
+                tools:text="Version: v5 (7000)" />
+
         </LinearLayout>
     </ScrollView>
 

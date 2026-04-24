@@ -395,9 +395,9 @@ class MainActivity : AppCompatActivity() {
         updateNameForToggleButton()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-             UpdateChecker.checkForUpdates(this)
+             UpdateChecker.checkForUpdates(this, true)
         } else if (checkStoragePermission(this)) {
-             UpdateChecker.checkForUpdates(this)
+             UpdateChecker.checkForUpdates(this, true)
         }
     }
 

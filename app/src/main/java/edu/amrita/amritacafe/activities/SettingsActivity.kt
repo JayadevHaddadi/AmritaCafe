@@ -102,6 +102,25 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             wifiKeywordsET.setText(configuration.wifiKeywords)
             btKeywordsET.setText(configuration.bluetoothKeywords)
 
+            betaUpdatesCheckBox.isChecked = configuration.betaUpdates
+            betaUpdatesCheckBox.setOnCheckedChangeListener { _, isChecked ->
+                configuration.betaUpdates = isChecked
+            }
+
+            try {
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                val vCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    packageInfo.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageInfo.versionCode
+                }
+                val vName = packageInfo.versionName
+                versionInfoTV.text = "Current Version: $vName ($vCode)"
+            } catch (e: Exception) {
+                versionInfoTV.text = "Version: Unknown"
+            }
+
             bluetoothET.setText(configuration.bluetoothName)
             bluetoothET.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {

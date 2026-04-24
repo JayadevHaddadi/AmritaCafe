@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -31,9 +32,9 @@ object UpdateChecker {
     private var lastCheckTime: Long = 0
     private const val CHECK_INTERVAL = 60 * 60 * 1000 // 1 hour
 
-    fun checkForUpdates(context: Context) {
+    fun checkForUpdates(context: Context, force: Boolean = false) {
         val currentTime = System.currentTimeMillis()
-        if (isShowing || (currentTime - lastCheckTime < CHECK_INTERVAL)) {
+        if (isShowing || (!force && (currentTime - lastCheckTime < CHECK_INTERVAL))) {
             return
         }
         
@@ -44,8 +45,21 @@ object UpdateChecker {
             { response ->
                 try {
                     val json = JSONObject(response)
-                    val latestVersionCode = json.getInt("versionCode")
-                    val updateUrl = json.getString("updateUrl")
+                    
+                    val pref = PreferenceManager.getDefaultSharedPreferences(context)
+                    val isBetaUser = pref.getBoolean("beta_updates", false)
+                    
+                    val versionKey = if (isBetaUser) "betaVersionCode" else "versionCode"
+                    val urlKey = if (isBetaUser) "betaUpdateUrl" else "updateUrl"
+                    
+                    if (!json.has(versionKey)) {
+                        // Fallback if sheet doesn't have beta fields yet
+                        checkForUpdatesLegacy(context, json)
+                        return@StringRequest
+                    }
+
+                    val latestVersionCode = json.getInt(versionKey)
+                    val updateUrl = json.getString(urlKey)
                     
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -56,7 +70,7 @@ object UpdateChecker {
                     }
 
                     if (latestVersionCode > currentVersionCode) {
-                        showUpdateDialog(context, updateUrl)
+                        showUpdateDialog(context, updateUrl, isBetaUser)
                     }
                 } catch (e: Exception) {
                     Log.e("UpdateChecker", "Error parsing update info", e)
@@ -76,13 +90,39 @@ object UpdateChecker {
         queue.add(stringRequest)
     }
 
-    private fun showUpdateDialog(context: Context, updateUrl: String) {
+    private fun checkForUpdatesLegacy(context: Context, json: JSONObject) {
+        try {
+            val latestVersionCode = json.getInt("versionCode")
+            val updateUrl = json.getString("updateUrl")
+            
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val currentVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode
+            }
+
+            if (latestVersionCode > currentVersionCode) {
+                showUpdateDialog(context, updateUrl, false)
+            }
+        } catch (e: Exception) {
+            Log.e("UpdateChecker", "Error in legacy update check", e)
+        }
+    }
+
+    private fun showUpdateDialog(context: Context, updateUrl: String, isBeta: Boolean) {
         if (isShowing) return
         isShowing = true
 
+        val title = if (isBeta) "Beta Update Available" else "Update Available"
+        val message = if (isBeta) 
+            "A newer beta version of the app is available. Install now?" 
+            else "A newer version of the app is available. Download and install now?"
+
         val dialog = AlertDialog.Builder(context)
-            .setTitle("Update Available")
-            .setMessage("A newer version of the app is available. Download and install now?")
+            .setTitle(title)
+            .setMessage(message)
             .setPositiveButton("Update") { _, _ ->
                 isShowing = false
                 startDownload(context, updateUrl)
