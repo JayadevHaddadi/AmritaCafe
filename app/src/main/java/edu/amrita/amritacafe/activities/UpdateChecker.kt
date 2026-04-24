@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -49,17 +50,27 @@ object UpdateChecker {
                     val pref = PreferenceManager.getDefaultSharedPreferences(context)
                     val isBetaUser = pref.getBoolean("beta_updates", false)
                     
-                    val versionKey = if (isBetaUser) "betaVersionCode" else "versionCode"
-                    val urlKey = if (isBetaUser) "betaUpdateUrl" else "updateUrl"
+                    val standardVersionCode = json.optInt("versionCode", 0)
+                    val standardUpdateUrl = json.optString("updateUrl", "")
                     
-                    if (!json.has(versionKey)) {
-                        // Fallback if sheet doesn't have beta fields yet
+                    val betaVersionCode = json.optInt("betaVersionCode", 0)
+                    val betaUpdateUrl = json.optString("betaUpdateUrl", "")
+
+                    var latestVersionCode = standardVersionCode
+                    var updateUrl = standardUpdateUrl
+                    var isFinalBeta = false
+
+                    if (isBetaUser && betaVersionCode >= standardVersionCode) {
+                        latestVersionCode = betaVersionCode
+                        updateUrl = betaUpdateUrl
+                        isFinalBeta = true
+                    }
+
+                    if (latestVersionCode == 0) {
+                        // Fallback for very old sheet formats if needed
                         checkForUpdatesLegacy(context, json)
                         return@StringRequest
                     }
-
-                    val latestVersionCode = json.getInt(versionKey)
-                    val updateUrl = json.getString(urlKey)
                     
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -70,7 +81,7 @@ object UpdateChecker {
                     }
 
                     if (latestVersionCode > currentVersionCode) {
-                        showUpdateDialog(context, updateUrl, isBetaUser)
+                        showUpdateDialog(context, updateUrl, isFinalBeta)
                     }
                 } catch (e: Exception) {
                     Log.e("UpdateChecker", "Error parsing update info", e)
@@ -163,11 +174,12 @@ object UpdateChecker {
                     if (cursor.moveToFirst()) {
                         val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
                         if (cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                                                        if (isValidApk(destination)) {
-                                Log.d("UpdateChecker", "Download success. Size: ${destination.length()} bytes")
-                                context.unregisterReceiver(this)
-                                installApk(context, destination)
-                            } else {
+                        if (isValidApk(destination)) {
+                            Log.d("UpdateChecker", "Download success. Size: ${destination.length()} bytes")
+                            Toast.makeText(context, "Download complete. Starting update...", Toast.LENGTH_SHORT).show()
+                            context.unregisterReceiver(this)
+                            installApk(context, destination)
+                        } else {
                                 val size = destination.length()
                                 context.unregisterReceiver(this)
                                 showFallbackDialog(context, url, "Invalid file received ($size bytes). The link might not be a direct download.")
@@ -227,17 +239,38 @@ object UpdateChecker {
     }
 
     private fun installApk(context: Context, file: File) {
+        if (!file.exists()) {
+            Log.e("UpdateChecker", "APK file not found: ${file.absolutePath}")
+            return
+        }
+
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.setDataAndType(uri, "application/vnd.android.package-archive")
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        
+        // For Android 8.0+ we need to check if we can actually request installs
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!context.packageManager.canRequestPackageInstalls()) {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+                Toast.makeText(context, "Please allow 'Install unknown apps' and try again", Toast.LENGTH_LONG).show()
+                return
+            }
+        }
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
 
         try {
+            Log.d("UpdateChecker", "Launching installer for: ${file.absolutePath}")
             context.startActivity(intent)
         } catch (e: Exception) {
             Log.e("UpdateChecker", "Error starting installation", e)
-            Toast.makeText(context, "Failed to launch installer", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to launch installer: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 }

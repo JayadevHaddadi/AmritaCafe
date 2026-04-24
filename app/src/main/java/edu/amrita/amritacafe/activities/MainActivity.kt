@@ -158,6 +158,10 @@ class MainActivity : AppCompatActivity() {
             }
 
         setupMenuSpinner(preferences)
+        
+        // --- SEAMLESS INITIALIZATION ---
+        fetchMenuList(preferences)
+        // --------------------------------
 
         tabletName = "Unknown Tablet"
         binding.userTV.text = "Amritapuri @ $tabletName"
@@ -237,9 +241,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupMenuSpinner(preferences: SharedPreferences) {
         binding.menuSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (parent != null && position > 0) {
+                if (parent != null) {
                     val selectedMenuName = parent.getItemAtPosition(position) as String
-                    if (selectedMenuName != "No sheets found") {
+                    if (selectedMenuName != "No sheets found" && selectedMenuName != "Loading menus...") {
                         val currentSelection = preferences.getString("selected_menu_name", null)
                         if (selectedMenuName != currentSelection) {
                             preferences.edit()
@@ -257,27 +261,93 @@ class MainActivity : AppCompatActivity() {
 
         val cachedNamesStr = preferences.getString("cached_sheet_names", "")
         if (!cachedNamesStr.isNullOrBlank()) {
-            val list = cachedNamesStr.split(",").filter { it.isNotBlank() }.toMutableList()
-            list.add(0, "Select Menu")
-            val spinnerAdapter = ArrayAdapter(this, R.layout.spinner_item, list)
-            spinnerAdapter.setDropDownViewResource(R.layout.spinner_item)
-            binding.menuSpinner.adapter = spinnerAdapter
-            
-            val currentSelection = preferences.getString("selected_menu_name", null)
-            if (currentSelection != null) {
-                val index = list.indexOf(currentSelection)
-                if (index != -1) {
-                    binding.menuSpinner.setSelection(index, false) // false to avoid triggering listener immediately if not needed, but we actually want it to trigger if it's the first time.
-                }
-            }
+            updateSpinner(cachedNamesStr.split(",").filter { it.isNotBlank() })
+        } else {
+            updateSpinner(listOf("Loading menus..."))
         }
     }
 
-    private fun fetchMenuUpdate(selectedMenuName: String) {
+    private fun updateSpinner(list: List<String>) {
+        val pref = PreferenceManager.getDefaultSharedPreferences(this)
+        val spinnerAdapter = ArrayAdapter(this, R.layout.spinner_item, list)
+        spinnerAdapter.setDropDownViewResource(R.layout.spinner_item)
+        binding.menuSpinner.adapter = spinnerAdapter
+        
+        val currentSelection = pref.getString("selected_menu_name", null)
+        if (currentSelection != null) {
+            val index = list.indexOf(currentSelection)
+            if (index != -1) {
+                binding.menuSpinner.setSelection(index, false)
+            }
+        } else if (list.isNotEmpty() && list[0] != "Loading menus..." && list[0] != "No sheets found" 
+            && list[0] != "Server Error" && list[0] != "Parse Error" && list[0] != "Sync Error (Check Internet)") {
+            // Auto-select first menu if none selected
+            binding.menuSpinner.setSelection(0)
+        }
+    }
+
+    private fun fetchMenuList(preferences: SharedPreferences) {
+        val requestQueue = Volley.newRequestQueue(this)
+        val stringRequest = StringRequest(
+            Request.Method.GET,
+            BuildConfig.MENU_SCRIPT_URL,
+            { response ->
+                try {
+                    Log.d("MainActivity", "Menu list response: $response")
+                    val jsonResponse = JSONObject(response)
+                    val status = jsonResponse.optString("status", "error")
+                    if (status == "success") {
+                        val sheetNamesArray = jsonResponse.optJSONArray("sheetNames")
+                        if (sheetNamesArray != null) {
+                            val sheetNamesList = mutableListOf<String>()
+                            for (i in 0 until sheetNamesArray.length()) {
+                                sheetNamesList.add(sheetNamesArray.getString(i))
+                            }
+                            
+                            // Save list
+                            preferences.edit().putString("cached_sheet_names", sheetNamesList.joinToString(",")).apply()
+                            
+                            // Update UI
+                            updateSpinner(sheetNamesList)
+                            
+                            // Download ALL menus in background for seamless offline use later
+                            sheetNamesList.forEach { fetchMenuUpdate(it, silent = true) }
+                        } else {
+                            Log.e("MainActivity", "sheetNames array is null")
+                            updateSpinner(listOf("No sheets found"))
+                        }
+                    } else {
+                        Log.e("MainActivity", "Status was not success: $status")
+                        updateSpinner(listOf("Server Error"))
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error parsing menu list", e)
+                    updateSpinner(listOf("Parse Error"))
+                }
+            },
+            { error ->
+                val errorMsg = error.message ?: error.toString()
+                Log.e("MainActivity", "Error fetching menu list: $errorMsg")
+                updateSpinner(listOf("Sync Error (Check Internet)"))
+            }
+        )
+        
+        // Increase timeout for Google Apps Script cold start
+        stringRequest.retryPolicy = DefaultRetryPolicy(
+            20000,
+            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        )
+
+        requestQueue.add(stringRequest)
+    }
+
+    private fun fetchMenuUpdate(selectedMenuName: String, silent: Boolean = false) {
         try {
             val encodedMenuName = URLEncoder.encode(selectedMenuName, "UTF-8")
-            val url = "${BuildConfig.MENU_SCRIPT_URL}?menu=$encodedMenuName"
-            Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
+            // Use 'sheetName' to match FetchMenus.gs
+            val url = "${BuildConfig.MENU_SCRIPT_URL}?sheetName=$encodedMenuName"
+            if (!silent) Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
 
             val requestQueue = Volley.newRequestQueue(this)
             val stringRequest = object : StringRequest(
@@ -285,24 +355,32 @@ class MainActivity : AppCompatActivity() {
                 url,
                 { response ->
                     try {
+                        Log.d("MainActivity", "Menu update response for $selectedMenuName: $response")
                         val jsonResponse = JSONObject(response)
                         val status = jsonResponse.optString("status", "error")
                         val csvData = jsonResponse.optString("data", "")
                         
                         if (status == "success" && csvData.isNotEmpty()) {
-                            val fileName = "$selectedMenuName.csv"
+                            val fileName = "${selectedMenuName.replace("[\\\\/]".toRegex(), "_")}.csv"
                             val saved = edu.amrita.amritacafe.IO.CSVFileManager.saveCSV(applicationContext, fileName, csvData)
-                            if (saved) {
-                                Log.d("MainActivity", "Updated CSV saved successfully as $fileName")
+                            Log.d("MainActivity", "Saved CSV for $selectedMenuName to $fileName: $saved")
+                            
+                            // Always refresh the menu if the downloaded one is the currently selected one
+                            val currentPref = PreferenceManager.getDefaultSharedPreferences(this@MainActivity).getString("selected_menu_name", null)
+                            if (saved && currentPref == selectedMenuName) {
+                                Log.d("MainActivity", "Reloading menu: $selectedMenuName")
                                 loadMenu()
                             }
+                        } else {
+                            val msg = jsonResponse.optString("message", "Unknown error")
+                            Log.w("MainActivity", "Update for $selectedMenuName failed. Status: $status, Msg: $msg")
                         }
                     } catch (e: JSONException) {
-                        e.printStackTrace()
+                        Log.e("MainActivity", "Error parsing menu update for $selectedMenuName", e)
                     }
                 },
                 { error ->
-                    Log.e("MainActivity", "Error fetching updated menu: ${error.message}")
+                    if (!silent) Log.e("MainActivity", "Error fetching updated menu $selectedMenuName: ${error.message}")
                 }
             ) {
                 override fun getBodyContentType(): String = "application/json; charset=utf-8"
@@ -638,8 +716,8 @@ class MainActivity : AppCompatActivity() {
         val selectedMenuName = PreferenceManager.getDefaultSharedPreferences(this)
             .getString("selected_menu_name", null)
         if (selectedMenuName != null) {
-            // Build the file name (e.g., "BreakfastMenu.csv")
-            val fileName = "$selectedMenuName.csv"
+            // Build the sanitized file name
+            val fileName = "${selectedMenuName.replace("[\\\\/]".toRegex(), "_")}.csv"
             // Create a File object from internal storage using getFileStreamPath
             val file = getFileStreamPath(fileName)
             if (file.exists()) {

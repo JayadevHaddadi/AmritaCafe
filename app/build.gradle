@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 37
 
     defaultConfig {
         multiDexEnabled true
         applicationId "edu.amrita.amritacafe3"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 7000
-        versionName "v7"
+        versionCode 7001
+        versionName "v7.001"
         vectorDrawables {
             useSupportLibrary = true
         }
