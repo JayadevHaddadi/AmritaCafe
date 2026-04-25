@@ -80,7 +80,7 @@ private fun bluetoothPrint(
     )
 
     printer.printText(
-        "Thank You",
+        "Thank You\n\n",
         true, true, false, true
     )
 }
