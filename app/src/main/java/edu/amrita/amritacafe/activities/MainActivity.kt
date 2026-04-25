@@ -75,7 +75,7 @@ import kotlin.math.max
 
 
 fun String.capitalizeWords(): String =
-    split(" ").map { it.toLowerCase().capitalize() }.joinToString(" ")
+    split(" ").map { it.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }.joinToString(" ")
 
 
 class MainActivity : AppCompatActivity() {

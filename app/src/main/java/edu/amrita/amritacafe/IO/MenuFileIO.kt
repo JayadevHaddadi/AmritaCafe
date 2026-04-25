@@ -9,6 +9,7 @@ import edu.amrita.amritacafe.menu.DEFAULT_LUNCH_DINNER_MENU
 import edu.amrita.amritacafe.menu.MenuItem
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 
 val DEFAULT_BREAKFAST_CSV = """BREAKFAST
 Iddli ,15
@@ -169,13 +170,13 @@ fun createMenuFileFromMenuList(file: File, list: List<MenuItem>) {
     var category = ""
 
     for (item in list) {
-        val nextCategory = item.category.toUpperCase()
+        val nextCategory = item.category.uppercase(Locale.ROOT)
         if (category != nextCategory) {
             category = nextCategory
             fos.write("\n$category\n".toByteArray())
         }
 
-        fos.write("${item.name.capitalizeWords()}, ${item.code.toUpperCase()}, ${item.price.toInt()}\n".toByteArray())
+        fos.write("${item.name.capitalizeWords()}, ${item.code.uppercase(Locale.ROOT)}, ${item.price.toInt()}\n".toByteArray())
     }
 
     fos.close()
@@ -228,7 +229,7 @@ private fun readMenuFromText(
 
             // If there's only one non-empty value, treat it as a category row
             if (columns.size == 1) {
-                category = columns[0].toUpperCase()
+                category = columns[0].uppercase(Locale.ROOT)
                 itemNr = 1
             } else if (columns.size == 3) {
                 menu.add(
