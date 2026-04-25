@@ -160,6 +160,7 @@
                     android:id="@+id/menu_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:padding="0dp"
                     android:background="@drawable/background_other_buttons" />
         </LinearLayout>
 
@@ -184,6 +185,7 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/background_other_buttons"
                     android:onClick="togglePriceVisibility"
+                    android:padding="0dp"
                     android:text="On"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
@@ -211,6 +213,7 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/background_other_buttons"
                     android:onClick="toggleShortLongName"
+                    android:padding="0dp"
                     android:text="Off"
                     android:textAllCaps="false"
                     android:textColor="@color/black"

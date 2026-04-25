@@ -316,21 +316,42 @@ class MainActivity : AppCompatActivity() {
                             sheetNamesList.forEach { fetchMenuUpdate(it, silent = true) }
                         } else {
                             Log.e("MainActivity", "sheetNames array is null")
-                            updateSpinner(listOf("No sheets found"))
+                            // Fallback to cache if possible
+                            val cached = preferences.getString("cached_sheet_names", "") ?: ""
+                            if (cached.isNotEmpty()) {
+                                updateSpinner(cached.split(",").filter { it.isNotBlank() })
+                            } else {
+                                updateSpinner(listOf("No sheets found"))
+                            }
                         }
                     } else {
                         Log.e("MainActivity", "Status was not success: $status")
-                        updateSpinner(listOf("Server Error"))
+                        val cached = preferences.getString("cached_sheet_names", "") ?: ""
+                        if (cached.isNotEmpty()) {
+                            updateSpinner(cached.split(",").filter { it.isNotBlank() })
+                        } else {
+                            updateSpinner(listOf("Server Error"))
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Error parsing menu list", e)
-                    updateSpinner(listOf("Parse Error"))
+                    val cached = preferences.getString("cached_sheet_names", "") ?: ""
+                    if (cached.isNotEmpty()) {
+                        updateSpinner(cached.split(",").filter { it.isNotBlank() })
+                    } else {
+                        updateSpinner(listOf("Parse Error"))
+                    }
                 }
             },
             { error ->
                 val errorMsg = error.message ?: error.toString()
                 Log.e("MainActivity", "Error fetching menu list: $errorMsg")
-                updateSpinner(listOf("Sync Error (Check Internet)"))
+                val cached = preferences.getString("cached_sheet_names", "") ?: ""
+                if (cached.isNotEmpty()) {
+                    updateSpinner(cached.split(",").filter { it.isNotBlank() })
+                } else {
+                    updateSpinner(listOf("Sync Error (Check Internet)"))
+                }
             }
         )
         
@@ -760,12 +781,41 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                Toast.makeText(this, "Menu file not found: $fileName", Toast.LENGTH_SHORT).show()
-                Log.d("MainActivity", "File $fileName does not exist")
+                // FALLBACK: If file doesn't exist, use default menus if they match the names
+                if (selectedMenuName.contains("Breakfast", true)) {
+                    val list = getListOfMenu(BREAKFAST_FILE)
+                    setupMenuData(list)
+                } else if (selectedMenuName.contains("Lunch", true) || selectedMenuName.contains("Dinner", true)) {
+                    val list = getListOfMenu(LUNCH_DINNER_FILE)
+                    setupMenuData(list)
+                } else {
+                    Toast.makeText(this, "Menu file not found: $fileName", Toast.LENGTH_SHORT).show()
+                    Log.d("MainActivity", "File $fileName does not exist")
+                }
             }
         } else {
-            Toast.makeText(this, "No preferred menu selected", Toast.LENGTH_SHORT).show()
-            Log.d("MainActivity", "Preferred menu name not set in preferences")
+            // Default first time load
+            loadMenuByName("Breakfast") 
+        }
+    }
+
+    private fun setupMenuData(list: List<MenuItem>) {
+        allCurrentCategories = mutableListOf()
+        list.forEach {
+            if (!allCurrentCategories.contains(it.category))
+                allCurrentCategories.add(it.category)
+        }
+        orderNumberService.updateRange()
+        binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+        setMenuAdapter(list)
+    }
+
+    private fun loadMenuByName(name: String) {
+        val fileName = "${name.replace("[\\\\/]".toRegex(), "_")}.csv"
+        val file = getFileStreamPath(fileName)
+        if (file.exists()) {
+            val list = getListOfMenu(file)
+            setupMenuData(list)
         }
     }
 
