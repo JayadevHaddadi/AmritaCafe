@@ -710,11 +710,15 @@ class MainActivity : AppCompatActivity() {
         println("JAYADEV MODE ${configuration.mode}")
         println("JAYADEV BT_STATE $BT_STATE")
         if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
-            val selection =
-                devices.filter { bluetoothDevice -> bluetoothDevice.name == configuration.bluetoothName }
-            println("JAYADEV SELECTION $selection")
-            if (selection.isNotEmpty())
-                mHoinPrinter.connect(selection.first().address)
+            val address = configuration.bluetoothAddress
+            if (address.isNotEmpty()) {
+                mHoinPrinter.connect(address)
+            } else {
+                // Fallback to name if address is missing (for legacy support)
+                val selection = devices.filter { it.name == configuration.bluetoothName }
+                if (selection.isNotEmpty())
+                    mHoinPrinter.connect(selection.first().address)
+            }
         }
 
         println("JAYADEV MODE ${configuration.mode}")

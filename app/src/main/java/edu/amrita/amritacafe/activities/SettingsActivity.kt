@@ -1,6 +1,18 @@
 package edu.amrita.amritacafe.activities
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,15 +20,49 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import edu.amrita.amritacafe.databinding.ActivitySettingsBinding
 import edu.amrita.amritacafe.settings.Configuration
+import java.util.ArrayList
+import java.util.HashSet
+import java.util.Collections
+import android.util.Log
+import edu.amrita.amritacafe.R
+import android.os.Handler
+import android.os.Looper
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var pref: SharedPreferences
     private lateinit var configuration: Configuration
     private lateinit var binding: ActivitySettingsBinding
+    private var bluetoothAdapter: BluetoothAdapter? = null
+
+    private val discoveredDevices = HashSet<BluetoothDevice>()
+    private val receiver = object : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    @Suppress("DEPRECATION")
+                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    if (device != null) {
+                        Log.d("BT_SCAN", "Found: ${device.name ?: "Unknown"} (${device.address})")
+                        discoveredDevices.add(device)
+                    }
+                }
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    Log.d("BT_SCAN", "Discovery Finished")
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +128,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
+            pairButton.setOnClickListener {
+                showBluetoothDeviceSelector()
+            }
+
             // Spinner setup
             val spinner = modeSpinner
             spinner.onItemSelectedListener = this@SettingsActivity
@@ -97,9 +147,168 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private fun showBluetoothDeviceSelector() {
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = bluetoothManager.adapter
+        
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), 123)
+            return
+        }
+
+        if (!bluetoothAdapter!!.isEnabled) {
+            Toast.makeText(this, "Enable Bluetooth first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val bondedDevices: Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
+        val initialList = ArrayList<BluetoothDevice>(bondedDevices)
+        val initialStrings = initialList.map { "${it.name ?: "Unknown"}\n${it.address} (Paired)" }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Select Bluetooth Printer")
+            .setItems(initialStrings) { _, which ->
+                val selectedDevice = initialList[which]
+                binding.bluetoothET.setText(selectedDevice.name ?: "Unknown")
+                configuration.bluetoothName = selectedDevice.name ?: "Unknown"
+                configuration.bluetoothAddress = selectedDevice.address
+            }
+            .setNeutralButton("Scan for New Devices") { _, _ ->
+                startDiscoveryFlow()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startDiscoveryFlow() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isLocationEnabled = try {
+            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        } catch (e: Exception) {
+            false
+        }
+
+        if (!isLocationEnabled && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Toast.makeText(this, "Please enable System Location/GPS to scan for new devices.", Toast.LENGTH_LONG).show()
+        }
+
+        discoveredDevices.clear()
+        discoveredDevices.addAll(bluetoothAdapter!!.bondedDevices)
+        
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_FOUND)
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        registerReceiver(receiver, filter)
+        
+        val success = bluetoothAdapter?.startDiscovery() ?: false
+        if (!success) {
+            Toast.makeText(this, "Failed to start scanning. Is Bluetooth on?", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val progressDialog = AlertDialog.Builder(this)
+            .setTitle("Scanning for Printers...")
+            .setMessage("Looking for nearby Bluetooth devices. This will take 10 seconds.")
+            .setNegativeButton("Cancel") { _, _ ->
+                bluetoothAdapter?.cancelDiscovery()
+            }
+            .create()
+
+        progressDialog.show()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!isFinishing) {
+                progressDialog.dismiss()
+                bluetoothAdapter?.cancelDiscovery()
+                try {
+                    unregisterReceiver(receiver)
+                } catch (e: Exception) {}
+                showResultsDialog()
+            }
+        }, 10000)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun showResultsDialog() {
+        val deviceList = ArrayList<BluetoothDevice>(discoveredDevices)
+        if (deviceList.size > 1) {
+            Collections.sort(deviceList) { a: BluetoothDevice, b: BluetoothDevice ->
+                val aBonded = if (a.bondState == BluetoothDevice.BOND_BONDED) 0 else 1
+                val bBonded = if (b.bondState == BluetoothDevice.BOND_BONDED) 0 else 1
+                aBonded - bBonded
+            }
+        }
+
+        if (deviceList.isEmpty()) {
+            Toast.makeText(this, "No devices found. Make sure the printer is in pairing mode.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val deviceStrings = deviceList
+            .filter { it.name != null && it.name.isNotEmpty() }
+            .map { 
+                val status = when(it.bondState) {
+                    BluetoothDevice.BOND_BONDED -> "(Paired)"
+                    BluetoothDevice.BOND_BONDING -> "(Pairing...)"
+                    else -> "(Unpaired)"
+                }
+                "${it.name}\n${it.address} $status"
+            }.toTypedArray()
+
+        if (deviceStrings.isEmpty()) {
+            Toast.makeText(this, "No named devices found. Ensure the printer is on and nearby.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Found Bluetooth Printers")
+            .setItems(deviceStrings) { _, which ->
+                // We need the original device from the filtered list
+                val filteredList = deviceList.filter { it.name != null && it.name.isNotEmpty() }
+                val selectedDevice = filteredList[which]
+                
+                if (selectedDevice.bondState == BluetoothDevice.BOND_NONE) {
+                    Toast.makeText(this, "Initiating pairing with ${selectedDevice.name}...", Toast.LENGTH_SHORT).show()
+                    selectedDevice.createBond()
+                }
+
+                binding.bluetoothET.setText(selectedDevice.name ?: "Unknown")
+                configuration.bluetoothName = selectedDevice.name ?: "Unknown"
+                configuration.bluetoothAddress = selectedDevice.address
+                
+                Toast.makeText(this, "Saved: ${selectedDevice.name}", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: Exception) {}
+    }
+
     override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-        val item = parent.getItemAtPosition(position).toString()
-        Toast.makeText(parent.context, "Selected: $item", Toast.LENGTH_SHORT).show()
+        // val item = parent.getItemAtPosition(position).toString()
         configuration.mode = position
     }
 

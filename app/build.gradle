@@ -122,6 +122,9 @@ dependencies {
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
 
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+
     // Volley for Google App Scripts calls
     implementation 'com.android.volley:volley:1.2.1'
 

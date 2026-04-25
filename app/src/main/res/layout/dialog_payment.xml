@@ -1,329 +1,278 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTintMode="screen"
-        android:backgroundTint="@color/white"
         android:background="@drawable/background_white_text"
-        android:orientation="horizontal">
+        android:backgroundTint="@color/white"
+        android:backgroundTintMode="screen"
+        android:padding="12dp">
 
-    <TextView
-            android:visibility="gone"
-            android:id="@+id/textView4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            android:text="Payment"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-            android:drawableTop="@drawable/delete_image"
-            android:id="@+id/clear_money_recieved"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginStart="200dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="16dp"
-            android:text="Clear"
-            android:textColor="@color/black"
-            android:textSize="20dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/received_50_button"
-            app:layout_constraintTop_toTopOf="@+id/received_50_button" />
-
-
-
-<!--    android:drawableEnd="@drawable/check_image"-->
-    <Button
-            android:drawableTop="@drawable/renunciate"
-            android:id="@+id/renunciate_botton"
-            android:padding="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="Renunciate"
-            android:textColor="@color/black"
-            android:layout_margin="10dp"
-            android:textSize="18dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/seperator3" />
-
-    <Button
-            android:drawableTop="@drawable/rupee_image"
-            android:id="@+id/gpay_button"
-            android:padding="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="GPay"
-            android:textColor="@color/black"
-            android:layout_margin="10dp"
-            android:textSize="18dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/renunciate_botton"
-            app:layout_constraintTop_toBottomOf="@+id/seperator3" />
-
-    <Button
-            android:drawableTop="@drawable/print_image"
-            android:id="@+id/print_bottom"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_margin="10dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="10dp"
-            android:text="Print Order"
-            android:textColor="@color/black"
-            android:textSize="18dp"
-            app:layout_constraintEnd_toEndOf="parent"
-         app:layout_constraintTop_toBottomOf="@+id/seperator3" />
-
-    <Button
-            android:drawableTop="@drawable/no_print_image"
-
-            android:id="@+id/no_print_botton"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_margin="10dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="10dp"
-            android:text="No print"
-            android:textColor="@color/black"
-            android:textSize="18dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/print_bottom"
-            app:layout_constraintTop_toBottomOf="@+id/seperator3" />
-
-    <TextView
-            android:id="@+id/textView5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:text="Cash recieved:"
-            android:textColor="@color/black"
-            android:textSize="34dp"
-
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view2" />
-
-    <TextView
+        <TextView
             android:id="@+id/textView13"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Total to pay:"
             android:textColor="@color/black"
-            android:textSize="50sp"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-            android:id="@+id/textView8"
+        <TextView
+            android:id="@+id/to_pay_TV"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Bills recieved:"
+            android:layout_marginStart="8dp"
+            android:text="0"
             android:textColor="@color/black"
-            android:textSize="20sp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView13"
+            app:layout_constraintStart_toEndOf="@+id/textView13" />
 
-            app:layout_constraintStart_toStartOf="@+id/textView5"
-            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+        <View
+            android:id="@+id/view2"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/best_pink_very_dark"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
-    <TextView
-            android:id="@+id/textView6"
+        <TextView
+            android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cash to return:"
+            android:layout_marginTop="12dp"
+            android:text="Cash received:"
             android:textColor="@color/black"
-            android:textSize="34sp"
-            app:layout_constraintEnd_toStartOf="@+id/to_return_TV"
-            app:layout_constraintTop_toTopOf="@+id/received_TV" />
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/view2" />
 
-    <TextView
+        <TextView
             android:id="@+id/received_TV"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="0"
-            android:textAlignment="textEnd"
             android:textColor="@color/black"
-            android:textSize="34sp"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView5"
+            app:layout_constraintStart_toEndOf="@+id/textView5" />
 
-            app:layout_constraintStart_toEndOf="@+id/textView5"
-            app:layout_constraintTop_toTopOf="@+id/textView5" />
-
-    <TextView
-            android:id="@+id/to_pay_TV"
+        <TextView
+            android:id="@+id/textView6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0"
-            android:textAlignment="textEnd"
+            android:layout_marginStart="24dp"
+            android:text="To return:"
             android:textColor="@color/black"
-            android:textSize="50sp"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView5"
+            app:layout_constraintStart_toEndOf="@+id/received_TV" />
 
-            app:layout_constraintStart_toEndOf="@+id/textView13"
-            app:layout_constraintTop_toTopOf="@+id/textView13" />
-
-    <TextView
+        <TextView
             android:id="@+id/to_return_TV"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="8dp"
             android:text="0"
             android:textColor="@color/black"
-            android:textSize="34sp"
-            app:layout_constraintBottom_toBottomOf="@+id/textView6"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/textView6" />
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
+            app:layout_constraintStart_toEndOf="@+id/textView6" />
 
-    <Button
-            android:id="@+id/received_500_button"
+        <TextView
+            android:id="@+id/textView8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginTop="12dp"
+            android:text="Bills received:"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+        <GridLayout
+            android:id="@+id/money_grid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:columnCount="4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView8">
+
+            <Button
+                android:id="@+id/received_500_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="500₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_200_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="200₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_100_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="100₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_50_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="50₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_20_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="20₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_10_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="10₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/received_5_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="5₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/recieved_1_botton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_margin="4dp"
+                android:background="@drawable/background_other_button_darkers"
+                android:padding="8dp"
+                android:text="1₹"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </GridLayout>
+
+        <Button
+            android:id="@+id/clear_money_recieved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:background="@drawable/background_other_button_darkers"
-            android:text="500₹"
-            android:padding="10dp"
-            android:textSize="34dp"
+            android:minHeight="0dp"
+            android:padding="8dp"
+            android:text="Clear"
             android:textColor="@color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView8" />
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/money_grid" />
 
-    <Button
-            android:id="@+id/received_20_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="20₹"
-            android:textColor="@color/black"
-            android:padding="10dp"
-            android:textSize="34dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/received_500_button" />
-
-    <Button
-            android:id="@+id/received_10_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="10dp"
-            android:text="10₹"
-            android:textColor="@color/black"
-            android:textSize="34dp"
-            app:layout_constraintEnd_toEndOf="@+id/received_200_button"
-            app:layout_constraintStart_toStartOf="@+id/received_200_button"
-            app:layout_constraintTop_toBottomOf="@+id/received_500_button" />
-
-    <Button
-            android:id="@+id/received_5_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="10dp"
-            android:text="5₹"
-            android:textColor="@color/black"
-            android:textSize="34dp"
-            app:layout_constraintEnd_toEndOf="@+id/received_100_button"
-            app:layout_constraintStart_toStartOf="@+id/received_100_button"
-            app:layout_constraintTop_toBottomOf="@+id/received_500_button" />
-
-    <Button
-            android:id="@+id/recieved_1_botton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:padding="10dp"
-            android:text="1₹"
-            android:textColor="@color/black"
-            android:textSize="34dp"
-            app:layout_constraintEnd_toEndOf="@+id/received_50_button"
-            app:layout_constraintStart_toStartOf="@+id/received_50_button"
-            app:layout_constraintTop_toBottomOf="@+id/received_500_button" />
-
-    <Button
-            android:id="@+id/received_200_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="200₹"
-            android:textColor="@color/black"
-            android:padding="10dp"
-            android:textSize="34dp"
-            app:layout_constraintStart_toEndOf="@+id/received_500_button"
-            app:layout_constraintTop_toTopOf="@+id/received_500_button" />
-
-    <Button
-            android:id="@+id/received_100_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="100₹"
-            android:textColor="@color/black"
-            android:padding="10dp"
-            android:textSize="34dp"
-            app:layout_constraintStart_toEndOf="@+id/received_200_button"
-            app:layout_constraintTop_toTopOf="@+id/received_200_button" />
-
-    <Button
-            android:id="@+id/received_50_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:text="50₹"
-            android:textColor="@color/black"
-            android:padding="10dp"
-            android:textSize="34dp"
-            app:layout_constraintStart_toEndOf="@+id/received_100_button"
-            app:layout_constraintTop_toTopOf="@+id/received_200_button" />
-
-    <View
+        <View
             android:id="@+id/seperator3"
             android:layout_width="0dp"
             android:layout_height="1dp"
+            android:layout_marginTop="8dp"
             android:background="@color/best_pink_very_dark"
-            android:textColor="@color/black"
-            android:textSize="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_margin="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/received_20_button" />
+            app:layout_constraintTop_toBottomOf="@+id/clear_money_recieved" />
 
-    <View
-            android:id="@+id/view2"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:background="@color/best_pink_very_dark"
-            android:textColor="@color/black"
-            android:textSize="20dp"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView13" />
+            app:layout_constraintTop_toBottomOf="@+id/seperator3">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <Button
+                android:id="@+id/renunciate_botton"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_other_button_darkers"
+                android:text="Renunciate"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/gpay_button"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_other_button_darkers"
+                android:text="GPay"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/no_print_botton"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_other_button_darkers"
+                android:text="No Print"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/print_bottom"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:layout_weight="1.2"
+                android:background="@drawable/background_other_button_darkers"
+                android:text="Print Order"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

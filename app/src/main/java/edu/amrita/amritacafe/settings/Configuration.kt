@@ -88,6 +88,12 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(BLUETOOTH_NAME, value).apply()
         }
 
+    var bluetoothAddress
+        get() = preferences.getString(BLUETOOTH_ADDRESS, "")!!
+        set(value) {
+            preferences.edit().putString(BLUETOOTH_ADDRESS, value).apply()
+        }
+
     var mode
         get() = preferences.getInt(MODE, 0)
         set(value) {
@@ -139,6 +145,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val IP_KITCEN_PRINTER = "kitchen_printer_ip"
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
         const val BLUETOOTH_NAME = "bluetooth name"
+        const val BLUETOOTH_ADDRESS = "bluetooth address"
         const val MODE = "mode"
         const val WIFI_KEYWORDS = "wifi_keywords"
         const val BT_KEYWORDS = "bt_keywords"

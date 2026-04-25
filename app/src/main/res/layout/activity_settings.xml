@@ -112,12 +112,24 @@
                 android:layout_height="wrap_content"
                 android:text="Bluetooth Printer Name:"
                 android:layout_marginTop="8dp"/>
-            <EditText
-                android:id="@+id/bluetooth_ET"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="PT-280_2A69"
-                android:inputType="text" />
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/bluetooth_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="PT-280_2A69"
+                    android:inputType="text" />
+                <Button
+                    android:id="@+id/pair_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select"
+                    style="?android:attr/buttonStyleSmall" />
+            </LinearLayout>
 
             <!-- Workflow -->
             <TextView
