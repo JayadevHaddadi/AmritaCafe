@@ -709,15 +709,18 @@ class MainActivity : AppCompatActivity() {
 
         println("JAYADEV MODE ${configuration.mode}")
         println("JAYADEV BT_STATE $BT_STATE")
-        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
+        if (configuration.mode == BLUETOOTH) {
             val address = configuration.bluetoothAddress
             if (address.isNotEmpty()) {
+                // If we are already connected, we might need to reset. 
+                // Using connect directly with the new address is the standard way for this lib.
                 mHoinPrinter.connect(address)
             } else {
-                // Fallback to name if address is missing (for legacy support)
+                // Fallback to name if address is missing
                 val selection = devices.filter { it.name == configuration.bluetoothName }
-                if (selection.isNotEmpty())
+                if (selection.isNotEmpty()) {
                     mHoinPrinter.connect(selection.first().address)
+                }
             }
         }
 

@@ -198,6 +198,33 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
     @SuppressLint("MissingPermission")
     private fun startDiscoveryFlow() {
+        if (bluetoothAdapter == null) return
+
+        // 1. Check Permissions
+        val permissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        val missing = permissions.filter { 
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED 
+        }
+
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1001)
+            return
+        }
+
+        // 2. Check if Enabled
+        if (!bluetoothAdapter!!.isEnabled) {
+            Toast.makeText(this, "Bluetooth is disabled. Please enable it.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 3. System Location check
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isLocationEnabled = try {
             locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
@@ -206,8 +233,19 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             false
         }
 
-        if (!isLocationEnabled && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            Toast.makeText(this, "Please enable System Location/GPS to scan for new devices.", Toast.LENGTH_LONG).show()
+        if (!isLocationEnabled) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // On Android 12+, we might not need GPS if using neverForLocation flag
+                Log.d("BT_SCAN", "Location disabled, but continuing on API 31+")
+            } else {
+                Toast.makeText(this, "Please pull down the notification bar and ENABLE Location/GPS to scan.", Toast.LENGTH_LONG).show()
+                return
+            }
+        }
+
+        // 4. Start Scan
+        if (bluetoothAdapter!!.isDiscovering) {
+            bluetoothAdapter!!.cancelDiscovery()
         }
 
         discoveredDevices.clear()
