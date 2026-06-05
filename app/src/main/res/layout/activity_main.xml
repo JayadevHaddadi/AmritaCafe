@@ -99,7 +99,8 @@
             android:clipToPadding="false"
             android:gravity="center_horizontal|center_vertical"
             android:horizontalSpacing="4dp"
-            android:numColumns="11"
+            android:numColumns="auto_fit"
+            android:columnWidth="90dp"
             android:paddingTop="4dp"
             android:paddingBottom="72dp"
             android:verticalSpacing="4dp"
@@ -138,7 +139,8 @@
             android:paddingEnd="4dp"
             android:baselineAligned="false"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
-            app:layout_constraintHeight_percent="0.12"
+            app:layout_constraintHeight_min="60dp"
+            app:layout_constraintHeight_percent="0.15"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title">
 
@@ -154,7 +156,8 @@
                     android:layout_height="wrap_content"
                     android:text="Menu:"
                     android:textColor="@color/black"
-                    android:textSize="10sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
             <Spinner
                     android:id="@+id/menu_spinner"
@@ -178,7 +181,8 @@
                     android:layout_height="wrap_content"
                     android:text="Price:"
                     android:textColor="@color/black"
-                    android:textSize="10sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
             <Button
                     android:id="@+id/price_toggle_button"
@@ -190,7 +194,7 @@
                     android:text="On"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
         </LinearLayout>
 
@@ -206,7 +210,8 @@
                     android:layout_height="wrap_content"
                     android:text="Short:"
                     android:textColor="@color/black"
-                    android:textSize="10sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
             <Button
                     android:id="@+id/short_long_toggle_button"
@@ -218,7 +223,7 @@
                     android:text="Off"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
