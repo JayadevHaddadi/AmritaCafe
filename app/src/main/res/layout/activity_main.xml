@@ -138,14 +138,14 @@
             android:paddingEnd="4dp"
             android:baselineAligned="false"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
-            app:layout_constraintHeight_percent="0.09"
+            app:layout_constraintHeight_percent="0.12"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title">
 
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="1.2"
                 android:orientation="vertical"
                 android:layout_marginEnd="2dp">
 
@@ -161,6 +161,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="0dp"
+                    android:layout_margin="0dp"
                     android:background="@drawable/background_other_buttons" />
         </LinearLayout>
 

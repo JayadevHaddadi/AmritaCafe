@@ -712,8 +712,7 @@ class MainActivity : AppCompatActivity() {
         if (configuration.mode == BLUETOOTH) {
             val address = configuration.bluetoothAddress
             if (address.isNotEmpty()) {
-                // If we are already connected, we might need to reset. 
-                // Using connect directly with the new address is the standard way for this lib.
+                // Standard connection attempt
                 mHoinPrinter.connect(address)
             } else {
                 // Fallback to name if address is missing
@@ -726,8 +725,12 @@ class MainActivity : AppCompatActivity() {
 
         println("JAYADEV MODE ${configuration.mode}")
         println("JAYADEV BT_STATE $BT_STATE")
-        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED)
+        
+        // If still disconnected after a short wait, try starting discovery as a fallback
+        delay(2000L) 
+        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
             mHoinPrinter.startBtDiscovery()
+        }
         println("Hello")
     }
 
