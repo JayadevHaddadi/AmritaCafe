@@ -938,8 +938,8 @@ class MainActivity : AppCompatActivity() {
 
             val historicalOrder = HistoricalOrder(it)
             histories.add(historicalOrder)
-            orderHistory.add(historicalOrder)
         }
+        currentOrdersHistories = histories
 
         if (configuration.mode == WIFI) {
             // Use the binding class generated for dialog_print.xml
@@ -1068,7 +1068,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    private lateinit var currentOrdersHistories : List<HistoricalOrder>
     private fun orderDone(orders: List<Order>) {
+        currentOrdersHistories.forEach {
+            orderHistory.add(it)
+        }
+
         if (configuration.printToFile)
             writeToCSV(orders, configuration)
 

@@ -33,32 +33,44 @@ class HistoryAdapter(
             view.historyOrderTV.text =
                 ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)
 
-            if (configuration.mode == mainActivity.BLUETOOTH) {
-                view.include.kitchenTextTV.visibility = View.GONE
-                view.include.kitchenProgress.visibility = View.GONE
-                view.include.kitchenError.visibility = View.GONE
-                view.include.kitchenDone.visibility = View.GONE
-                view.include.kitchenRetryButton.visibility = View.GONE
+            view.gpayIndicator.visibility = if (historicalOrder.order.isGpay) View.VISIBLE else View.GONE
+            
+            var hasRenunciate = false
+            for (item in historicalOrder.order.orderItems) {
+                if (item.renounciateEffected) {
+                    hasRenunciate = true
+                    break
+                }
+            }
+            view.renunciateIndicator.visibility = if (hasRenunciate) View.VISIBLE else View.GONE
+
+            val isBluetooth = configuration.mode == mainActivity.BLUETOOTH
+
+            if (isBluetooth) {
+                view.include.kitchenLayout.visibility = View.GONE
                 view.include.receiptTextTV.text = "Printer:"
             } else {
-                view.include.kitchenTextTV.visibility = View.VISIBLE
+                view.include.kitchenLayout.visibility = View.VISIBLE
                 view.include.receiptTextTV.text = "Receipt Printer:"
             }
 
+            // Reset visibilities
             view.include.kitchenProgress.visibility = View.INVISIBLE
             view.include.kitchenError.visibility = View.INVISIBLE
             view.include.kitchenDone.visibility = View.INVISIBLE
-            view.include.kitchenRetryButton.visibility = View.VISIBLE
+            view.include.kitchenRetryButton.visibility = if (isBluetooth) View.GONE else View.VISIBLE
 
             view.include.receiptProgress.visibility = View.INVISIBLE
             view.include.receiptError.visibility = View.INVISIBLE
             view.include.receiptDone.visibility = View.INVISIBLE
             view.include.receiptRetryButton.visibility = View.VISIBLE
 
-            when (historicalOrder.KitchenPrinted) {
-                PrintStatus.SUCCESS_PRINT -> view.include.kitchenDone.visibility = View.VISIBLE
-                PrintStatus.FAILED_PRINT -> view.include.kitchenError.visibility = View.VISIBLE
-                PrintStatus.PRINTING -> view.include.kitchenProgress.visibility = View.VISIBLE
+            if (!isBluetooth) {
+                when (historicalOrder.KitchenPrinted) {
+                    PrintStatus.SUCCESS_PRINT -> view.include.kitchenDone.visibility = View.VISIBLE
+                    PrintStatus.FAILED_PRINT -> view.include.kitchenError.visibility = View.VISIBLE
+                    PrintStatus.PRINTING -> view.include.kitchenProgress.visibility = View.VISIBLE
+                }
             }
 
             when (historicalOrder.RecipePrinted) {
@@ -119,7 +131,7 @@ class HistoryAdapter(
                 view.include.receiptRetryButton.visibility = View.VISIBLE
                 view.include.receiptProgress.visibility = View.VISIBLE
 
-                if (configuration.mode == mainActivity.BLUETOOTH) {
+                if (isBluetooth) {
                     try {
                         bluetoothPrint(mainActivity.mHoinPrinter, listOf(historicalOrder.order))
                         historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
