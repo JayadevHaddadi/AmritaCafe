@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tool="http://schemas.android.com/tools"
-        android:layout_width="700dp"
-        android:layout_height="700dp"
-        android:background="@drawable/background_login_buttons">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_login_buttons">
 
     <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/history_RV"
-            android:layout_width="700dp"
-            android:layout_height="700dp"
-            android:layout_margin="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tool:itemCount="10"
-            tool:listitem="@layout/item_history" />
+        android:id="@+id/history_RV"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tool:itemCount="10"
+        tool:listitem="@layout/item_history" />
 </LinearLayout>

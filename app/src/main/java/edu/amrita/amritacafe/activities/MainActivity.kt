@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     val BT_STATE_CONNECTED = 3; //Bluetooth connected
     var BT_STATE = BT_STATE_DISCONNECTED
 
-    private lateinit var mHoinPrinter: HoinPrinter
+    lateinit var mHoinPrinter: HoinPrinter
     private lateinit var devices: MutableSet<BluetoothDevice>
     private lateinit var allCurrentCategories: MutableList<String>
     private var myToast: Toast? = null
