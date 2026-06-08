@@ -30,7 +30,22 @@
 
             <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/printer_indicator"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@android:color/darker_gray" />
+
+                <View
+                    android:id="@+id/sheets_indicator"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@android:color/darker_gray" />
 
                 <TextView
                         android:layout_width="wrap_content"
@@ -349,7 +364,7 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/background_payment"
             android:onClick="cafeOrder"
-            android:padding="10dp"
+            android:padding="0dp"
             android:text="Cafe Item"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/black"

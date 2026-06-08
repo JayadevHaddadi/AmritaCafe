@@ -47,10 +47,10 @@ class HistoryAdapter(
             val isBluetooth = configuration.mode == mainActivity.BLUETOOTH
 
             if (isBluetooth) {
-                view.include.kitchenLayout.visibility = View.GONE
+                view.include.kitchenTextTV.visibility = View.GONE
                 view.include.receiptTextTV.text = "Printer:"
             } else {
-                view.include.kitchenLayout.visibility = View.VISIBLE
+                view.include.kitchenTextTV.visibility = View.VISIBLE
                 view.include.receiptTextTV.text = "Receipt Printer:"
             }
 

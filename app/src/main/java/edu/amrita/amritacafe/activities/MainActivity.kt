@@ -124,8 +124,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        ConnectionIndicator.init(binding.printerIndicator, binding.sheetsIndicator)
+        ConnectionIndicator.setPrinterConnected(false)
+        ConnectionIndicator.setSheetsConnected(false)
 
         BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
         LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
@@ -219,22 +223,15 @@ class MainActivity : AppCompatActivity() {
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
             override fun onState(newStateCode: Int) {
                 BT_STATE = newStateCode
-                val message = when (newStateCode) {
-                    BT_STATE_CONNECTING -> "Connecting... "
-                    BT_STATE_CONNECTED -> "Connected!"
-                    BT_STATE_LISTEN -> "Listening... "
-                    BT_STATE_DISCONNECTED -> "Disconnected!"
-                    else -> "STATUS $newStateCode"
-                }
-                makeToast(message)
+                val connected = newStateCode == BT_STATE_CONNECTED
+                ConnectionIndicator.setPrinterConnected(connected)
             }
 
             override fun onError(p0: Int) {
-                makeToast("onError $p0")
+                ConnectionIndicator.setPrinterConnected(false)
             }
 
             override fun onEvent(p0: PrinterEvent?) {
-                makeToast("onEvent $p0")
             }
         })
         mHoinPrinter.switchType(true)
@@ -588,53 +585,53 @@ class MainActivity : AppCompatActivity() {
                 null // bottom drawable
             )
 
-            var totalRenunciateItems = 0
-            var hasMilkCurdEgg = false
+            fun applyRenunciate(items: List<RegularOrderItem>, isRenunciate: Boolean) {
+                var totalRenunciateItems = 0
+                var hasMilkCurdEgg = false
 
-            fun discountOne(string: String) {
-                orderAdapter.orderItems.forEach {
-                    if (it.menuItem.name == string && !hasMilkCurdEgg) {
-                        hasMilkCurdEgg = true
-                        it.quantityAsRenounciate = it.quantity - 1
-                        it.renounciateEffected = true
+                if (isRenunciate) {
+                    items.forEach {
+                        if ((it.menuItem.name == "Curd" || it.menuItem.name == "Milk" || it.menuItem.name == "Egg") && !hasMilkCurdEgg) {
+                            hasMilkCurdEgg = true
+                            it.quantityAsRenounciate = it.quantity - 1
+                            it.renounciateEffected = true
+                        }
                     }
-                }
-            }
 
-            arrayOf("Curd", "Milk", "Egg").forEach {
-                discountOne(it)
-            }
-
-            orderAdapter.orderItems.forEach {
-                if (renunciate) {
-                    if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
-                        it.quantityAsRenounciate = it.quantity - 1
-                    else if (it.menuItem.name.equals("Bread")) {
-                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
-                    } else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
-                        totalRenunciateItems += 1
-                        it.quantityAsRenounciate = it.quantity - 1
+                    items.forEach {
+                        if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
+                            it.quantityAsRenounciate = it.quantity - 1
+                        else if (it.menuItem.name.equals("Bread")) {
+                            it.quantityAsRenounciate = max(it.quantity - 2, 0)
+                        } else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
+                            totalRenunciateItems += 1
+                            it.quantityAsRenounciate = it.quantity - 1
+                        }
+                        // 5 iddly or dosa are free for renunciates
+                        else if (it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) {
+                            it.quantityAsRenounciate = max(it.quantity - 5, 0)
+                        } else if (it.menuItem.name.equals("Sambar Only/Ex")) {
+                            it.quantityAsRenounciate = 0
+                        } else if (it.menuItem.name.equals("Upma")) {
+                            it.quantityAsRenounciate = max(it.quantity - 2, 0)
+                        } else if (it.menuItem.name.equals("Sprouts")) {
+                            it.quantityAsRenounciate = max(it.quantity - 1, 0)
+                        }
+                        if (it.quantityAsRenounciate != it.quantity)
+                            it.renounciateEffected = true
                     }
-                    // 5 iddly or dosa are free for renunciates
-                    else if (it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) {
-                        it.quantityAsRenounciate = max(it.quantity - 5, 0)
-                    } else if (it.menuItem.name.equals("Sambar Only/Ex")) {
-                        it.quantityAsRenounciate = 0
-                    } else if (it.menuItem.name.equals("Upma")) {
-                        it.quantityAsRenounciate = max(it.quantity - 2, 0)
-                    } else if (it.menuItem.name.equals("Sprouts")) {
-                        it.quantityAsRenounciate = max(it.quantity - 1, 0)
-                    }
-                    if (it.quantityAsRenounciate != it.quantity)
-                        it.renounciateEffected = true
                 } else {
-                    it.quantityAsRenounciate = it.quantity
-                    it.renounciateEffected = false
+                    items.forEach {
+                        it.quantityAsRenounciate = it.quantity
+                        it.renounciateEffected = false
+                    }
                 }
-                println("it.quantityAsRenounciate: ${it.quantityAsRenounciate}")
-                println("it.renounciateEffected: ${it.renounciateEffected}")
-                println("it.menuItem.name: ${it.menuItem.name}")
             }
+
+            val allItems = mutableListOf<RegularOrderItem>()
+            orders.forEach { allItems.addAll(it.orderItems) }
+            applyRenunciate(orderAdapter.orderItems, renunciate)
+            applyRenunciate(allItems, renunciate)
 
             println("PRICE")
             // TODO STORE the renunciate indication on sheets
@@ -915,18 +912,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val orderNumberStr = binding.orderNumberET.text.toString()
+        val orderNumber = if (orderNumberStr.isNotEmpty()) orderNumberStr.toInt() else orderNumberService.currentOrderNumber
+        orderNumberService.currentOrderNumber = orderNumber
+
         val orders = if (hasPizza && hasGrill) {
             val pizzaOrderNumber = runBlocking { orderNumberService.next() }
             listOf(
                 Order(
-                    orderNumberService.currentOrderNumber,
+                    orderNumber,
                     orderList.filter { it.menuItem.category != PIZZA }),
                 Order(
                     pizzaOrderNumber,
                     orderList.filter { it.menuItem.category == PIZZA })
             )
         } else {
-            listOf(Order(orderNumberService.currentOrderNumber, orderList))
+            listOf(Order(orderNumber, orderList))
         }
 
         val histories = mutableListOf<HistoricalOrder>()
@@ -1079,6 +1080,9 @@ class MainActivity : AppCompatActivity() {
 
         scope.launch {
             orderNumberService.next()
+            withContext(Dispatchers.Main) {
+                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import android.util.Log
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import edu.amrita.amritacafe.activities.ConnectionIndicator
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
 import org.json.JSONArray
@@ -15,6 +16,7 @@ import java.io.UnsupportedEncodingException
 fun sendToSheets(
     orders: List<Order>, configuration: Configuration, context: Context
 ) {
+    ConnectionIndicator.setSheetsConnected(false)
     val jsonData = JSONObject()
     val jsonArray = JSONArray()
     var orderTime = 0L
@@ -39,12 +41,19 @@ fun sendToSheets(
     val url =
         "https://script.google.com/macros/s/AKfycbz9Jbpdz8VVG8Yo23F0-ti5xuUflFmEOugdV8sVyVtlGyjlNyD5R1HwFfLwAwoWqd26Xg/exec" // Replace with your actual URL
 
-    jsonData.put("items", jsonArray)
+    var isGpay = false
+    for (order in orders) {
+        if (order.isGpay) {
+            isGpay = true
+            break
+        }
+    }
+
     try {
         jsonData.put("time", orderTime)
         jsonData.put("tablet", configuration.tabletName)
         jsonData.put("order", myOrderNumber.toString())
-        jsonData.put("isGpay", orders.any { it.isGpay })
+        jsonData.put("isGpay", isGpay)
     } catch (e: JSONException) {
         e.printStackTrace()
     }
@@ -56,10 +65,12 @@ fun sendToSheets(
         { response ->
             // Handle successful response
             Log.d("Connection", "Response: $response")
+            ConnectionIndicator.setSheetsConnected(true)
         },
         { error ->
             // Handle error
             Log.e("Connection", "Error: ${error.message}")
+            ConnectionIndicator.setSheetsConnected(false)
         }) {
         override fun getBodyContentType(): String {
             return "application/json; charset=utf-8"
