@@ -34,35 +34,30 @@ class HistoryAdapter(
                 ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)
 
             view.gpayIndicator.visibility = if (historicalOrder.order.isGpay) View.VISIBLE else View.GONE
-            
-            var hasRenunciate = false
-            for (item in historicalOrder.order.orderItems) {
-                if (item.renounciateEffected) {
-                    hasRenunciate = true
-                    break
-                }
-            }
-            view.renunciateIndicator.visibility = if (hasRenunciate) View.VISIBLE else View.GONE
+            view.renunciateIndicator.visibility = if (historicalOrder.order.isRenunciate) View.VISIBLE else View.GONE
 
             val isBluetooth = configuration.mode == mainActivity.BLUETOOTH
 
+            val kitchenLayout = binding.root.findViewById<View>(R.id.kitchen_layout)
             if (isBluetooth) {
-                view.include.kitchenTextTV.visibility = View.GONE
+                kitchenLayout?.visibility = View.GONE
                 view.include.receiptTextTV.text = "Printer:"
+                view.include.receiptRetryButton.text = "PRINT NEW"
             } else {
-                view.include.kitchenTextTV.visibility = View.VISIBLE
+                kitchenLayout?.visibility = View.VISIBLE
                 view.include.receiptTextTV.text = "Receipt Printer:"
+                view.include.receiptRetryButton.text = "Retry"
             }
 
-            // Reset visibilities
-            view.include.kitchenProgress.visibility = View.INVISIBLE
-            view.include.kitchenError.visibility = View.INVISIBLE
-            view.include.kitchenDone.visibility = View.INVISIBLE
+            // Reset visibilities - ensure progress is GONE by default
+            view.include.kitchenProgress.visibility = View.GONE
+            view.include.kitchenError.visibility = View.GONE
+            view.include.kitchenDone.visibility = View.GONE
             view.include.kitchenRetryButton.visibility = if (isBluetooth) View.GONE else View.VISIBLE
 
-            view.include.receiptProgress.visibility = View.INVISIBLE
-            view.include.receiptError.visibility = View.INVISIBLE
-            view.include.receiptDone.visibility = View.INVISIBLE
+            view.include.receiptProgress.visibility = View.GONE
+            view.include.receiptError.visibility = View.GONE
+            view.include.receiptDone.visibility = View.GONE
             view.include.receiptRetryButton.visibility = View.VISIBLE
 
             if (!isBluetooth) {
@@ -70,6 +65,7 @@ class HistoryAdapter(
                     PrintStatus.SUCCESS_PRINT -> view.include.kitchenDone.visibility = View.VISIBLE
                     PrintStatus.FAILED_PRINT -> view.include.kitchenError.visibility = View.VISIBLE
                     PrintStatus.PRINTING -> view.include.kitchenProgress.visibility = View.VISIBLE
+                    PrintStatus.NONE -> {}
                 }
             }
 
@@ -77,14 +73,14 @@ class HistoryAdapter(
                 PrintStatus.SUCCESS_PRINT -> view.include.receiptDone.visibility = View.VISIBLE
                 PrintStatus.FAILED_PRINT -> view.include.receiptError.visibility = View.VISIBLE
                 PrintStatus.PRINTING -> view.include.receiptProgress.visibility = View.VISIBLE
+                PrintStatus.NONE -> {}
             }
 
             view.historyItemSumTV.text = historicalOrder.order.sum.toString()
 
             view.include.kitchenRetryButton.setOnClickListener {
-                view.include.kitchenError.visibility = View.INVISIBLE
-                view.include.kitchenDone.visibility = View.INVISIBLE
-                view.include.kitchenRetryButton.visibility = View.VISIBLE
+                view.include.kitchenError.visibility = View.GONE
+                view.include.kitchenDone.visibility = View.GONE
                 view.include.kitchenProgress.visibility = View.VISIBLE
                 val printerDispatch = ReceiptDispatch(
                     configuration.kitchenPrinterConnStr,
@@ -93,18 +89,16 @@ class HistoryAdapter(
                     object : PrintStatusListener {
                         override fun printComplete(status: PrintDispatchResponse) {
                             mainActivity.runOnUiThread {
-                                view.include.kitchenProgress.visibility = View.INVISIBLE
+                                view.include.kitchenProgress.visibility = View.GONE
                             }
                             if (status is PrintSuccess) {
                                 historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
-                                Log.d("kitchen_retry_button", "PrintSuccess")
                                 mainActivity.runOnUiThread {
                                     view.include.kitchenDone.visibility = View.VISIBLE
                                 }
                             } else if (status is PrintFailed) {
                                 historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
                                 mainActivity.runOnUiThread {
-                                    Log.d("kitchen_retry_button", "PrintFailed")
                                     view.include.kitchenError.visibility = View.VISIBLE
                                 }
                             }
@@ -113,8 +107,7 @@ class HistoryAdapter(
                         override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
                             historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
                             mainActivity.runOnUiThread {
-                                view.include.kitchenProgress.visibility = View.INVISIBLE
-                                Log.d("kitchen_retry_button", "error")
+                                view.include.kitchenProgress.visibility = View.GONE
                                 view.include.kitchenError.visibility = View.VISIBLE
                             }
                         }
@@ -126,21 +119,24 @@ class HistoryAdapter(
             }
 
             view.include.receiptRetryButton.setOnClickListener {
-                view.include.receiptError.visibility = View.INVISIBLE
-                view.include.receiptDone.visibility = View.INVISIBLE
-                view.include.receiptRetryButton.visibility = View.VISIBLE
+                view.include.receiptError.visibility = View.GONE
+                view.include.receiptDone.visibility = View.GONE
                 view.include.receiptProgress.visibility = View.VISIBLE
 
                 if (isBluetooth) {
                     try {
                         bluetoothPrint(mainActivity.mHoinPrinter, listOf(historicalOrder.order))
                         historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
-                        view.include.receiptProgress.visibility = View.INVISIBLE
-                        view.include.receiptDone.visibility = View.VISIBLE
+                        mainActivity.runOnUiThread {
+                            view.include.receiptProgress.visibility = View.GONE
+                            view.include.receiptDone.visibility = View.VISIBLE
+                        }
                     } catch (e: Exception) {
                         historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
-                        view.include.receiptProgress.visibility = View.INVISIBLE
-                        view.include.receiptError.visibility = View.VISIBLE
+                        mainActivity.runOnUiThread {
+                            view.include.receiptProgress.visibility = View.GONE
+                            view.include.receiptError.visibility = View.VISIBLE
+                        }
                     }
                 } else {
                     val receiptPrintDispatch = ReceiptDispatch(
@@ -150,17 +146,15 @@ class HistoryAdapter(
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {
                                 mainActivity.runOnUiThread {
-                                    view.include.receiptProgress.visibility = View.INVISIBLE
+                                    view.include.receiptProgress.visibility = View.GONE
                                 }
                                 if (status is PrintSuccess) {
                                     historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
-                                    Log.d("receipt_retry_button", "PrintSuccess")
                                     mainActivity.runOnUiThread {
                                         view.include.receiptDone.visibility = View.VISIBLE
                                     }
                                 } else if (status is PrintFailed) {
                                     historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
-                                    Log.d("receipt_retry_button", "PrintFailed")
                                     mainActivity.runOnUiThread {
                                         view.include.receiptError.visibility = View.VISIBLE
                                     }
@@ -170,8 +164,7 @@ class HistoryAdapter(
                             override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
                                 historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
                                 mainActivity.runOnUiThread {
-                                    view.include.receiptProgress.visibility = View.INVISIBLE
-                                    Log.d("receipt_retry_button", "error")
+                                    view.include.receiptProgress.visibility = View.GONE
                                     view.include.receiptError.visibility = View.VISIBLE
                                 }
                             }

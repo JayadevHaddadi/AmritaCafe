@@ -13,5 +13,6 @@ data class Order(
         hours.toString().padStart(2) + ":" + minutes.toString().padStart(2, '0')
     },
     val sum: Int = orderItems.map { it.totalPrice()}.sum(),
-    var isGpay: Boolean = false
+    var isGpay: Boolean = false,
+    var isRenunciate: Boolean = false
 )

@@ -33,19 +33,21 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical">
 
-                <View
+                <ImageView
                     android:id="@+id/printer_indicator"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:layout_marginEnd="4dp"
-                    android:background="@android:color/darker_gray" />
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="2dp"
+                    app:srcCompat="@android:drawable/ic_menu_report_image"
+                    app:tint="@android:color/darker_gray" />
 
-                <View
+                <ImageView
                     android:id="@+id/sheets_indicator"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@android:color/darker_gray" />
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="4dp"
+                    app:srcCompat="@android:drawable/stat_sys_upload"
+                    app:tint="@android:color/darker_gray" />
 
                 <TextView
                         android:layout_width="wrap_content"

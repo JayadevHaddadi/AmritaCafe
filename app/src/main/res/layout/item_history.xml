@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:background="#FF9800"
+            android:background="#2196F3"
             android:paddingHorizontal="4dp"
             android:text="RENUNCIATE"
             android:textColor="@color/white"

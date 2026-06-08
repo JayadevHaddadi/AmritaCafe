@@ -20,6 +20,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.Button
@@ -645,7 +646,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         fun done() {
-            orders.forEach { it.isGpay = isGpay }
+            orders.forEach { 
+                it.isGpay = isGpay
+                it.isRenunciate = renunciate
+            }
             sendToSheets(orders, configuration, this)
             startNewOrder()
             orderDone(orders)
@@ -654,6 +658,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.printBottom.setOnClickListener {
             bluetoothPrint(mHoinPrinter, orders)
+            currentOrdersHistories.forEach {
+                it.RecipePrinted = PrintStatus.SUCCESS_PRINT
+            }
             done()
         }
 
@@ -943,6 +950,10 @@ class MainActivity : AppCompatActivity() {
         currentOrdersHistories = histories
 
         if (configuration.mode == WIFI) {
+            histories.forEach {
+                it.KitchenPrinted = PrintStatus.PRINTING
+                it.RecipePrinted = PrintStatus.PRINTING
+            }
             // Use the binding class generated for dialog_print.xml
             val dialogBinding = DialogPrintBinding.inflate(LayoutInflater.from(this))
 
@@ -1192,12 +1203,17 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton("Cancel", null)
 
         val dialog = builder.create()
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         dialog.setOnShowListener {
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
             positiveButton.setTextColor(Color.DKGRAY)
             negativeButton.setTextColor(Color.RED)
+
+            cafeOrderCostET.requestFocus()
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(cafeOrderCostET, InputMethodManager.SHOW_IMPLICIT)
 
             positiveButton.setOnClickListener {
                 try {

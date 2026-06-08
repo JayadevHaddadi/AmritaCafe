@@ -10,7 +10,7 @@
         android:background="@drawable/background_white_text"
         android:backgroundTint="@color/white"
         android:backgroundTintMode="screen"
-        android:minWidth="400dp"
+        android:minWidth="600dp"
         android:padding="16dp">
 
         <TextView
