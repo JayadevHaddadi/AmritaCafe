@@ -71,9 +71,29 @@ function doPost(e) {
   var date = new Date(time);
   var timeFormat = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + ' '+ date.getHours() + ':'+ date.getMinutes() + ':'+ date.getSeconds() + "." + date.getMilliseconds()
 
+  var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
+  var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
+
   for (var i = 0; i < items.length; i++) {
     var gpayAmount = isGpay ? items[i].total : 0;
-    sheet.appendRow([timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount, appVersion]);
+    var rowValues = [timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount];
+    
+    if (appVersionColIndex > 0) {
+      var maxCols = Math.max(rowValues.length, headers.length);
+      var fullRow = [];
+      for (var j = 0; j < maxCols; j++) {
+        if (j === appVersionColIndex - 1) {
+          fullRow.push(appVersion);
+        } else if (j < rowValues.length) {
+          fullRow.push(rowValues[j]);
+        } else {
+          fullRow.push("");
+        }
+      }
+      sheet.appendRow(fullRow);
+    } else {
+      sheet.appendRow(rowValues);
+    }
   }
   
   // Return a success message (optional)

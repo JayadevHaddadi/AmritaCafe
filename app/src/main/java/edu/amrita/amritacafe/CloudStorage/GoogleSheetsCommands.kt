@@ -59,7 +59,7 @@ fun sendToSheets(
         jsonData.put("order", myOrderNumber.toString())
         jsonData.put("isGpay", isGpay)
         jsonData.put("items", jsonArray)
-        jsonData.put("appVersion", BuildConfig.VERSION_NAME)
+        jsonData.put("appVersion", BuildConfig.VERSION_CODE.toString())
     } catch (e: JSONException) {
         e.printStackTrace()
     }
