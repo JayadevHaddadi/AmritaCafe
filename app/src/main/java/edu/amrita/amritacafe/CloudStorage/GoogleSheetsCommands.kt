@@ -5,6 +5,7 @@ import android.util.Log
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import edu.amrita.amritacafe.BuildConfig
 import edu.amrita.amritacafe.activities.ConnectionIndicator
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.settings.Configuration
@@ -38,8 +39,11 @@ fun sendToSheets(
         }
     }
 
-    val url =
+    val url = if (BuildConfig.ORDER_SCRIPT_URL.isNotEmpty()) {
+        BuildConfig.ORDER_SCRIPT_URL
+    } else {
         "https://script.google.com/macros/s/AKfycbz9Jbpdz8VVG8Yo23F0-ti5xuUflFmEOugdV8sVyVtlGyjlNyD5R1HwFfLwAwoWqd26Xg/exec" // Replace with your actual URL
+    }
 
     var isGpay = false
     for (order in orders) {
@@ -54,6 +58,8 @@ fun sendToSheets(
         jsonData.put("tablet", configuration.tabletName)
         jsonData.put("order", myOrderNumber.toString())
         jsonData.put("isGpay", isGpay)
+        jsonData.put("items", jsonArray)
+        jsonData.put("appVersion", BuildConfig.VERSION_NAME)
     } catch (e: JSONException) {
         e.printStackTrace()
     }
