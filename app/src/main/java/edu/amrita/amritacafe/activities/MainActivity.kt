@@ -44,6 +44,8 @@ import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
 import edu.amrita.amritacafe.CloudStorage.sendToSheets
+import edu.amrita.amritacafe.CloudStorage.OfflineOrderSync
+import edu.amrita.amritacafe.CloudStorage.getOrderScriptUrl
 import edu.amrita.amritacafe.IO.createDefaultFilesIfNecessary
 import edu.amrita.amritacafe.IO.getListOfMenu
 import edu.amrita.amritacafe.IO.saveIfValidText
@@ -502,6 +504,9 @@ class MainActivity : AppCompatActivity() {
         } else if (checkStoragePermission(this)) {
              UpdateChecker.checkForUpdates(this, true)
         }
+        
+        // Attempt to sync any offline orders that were queued
+        OfflineOrderSync.syncPendingOrders(this, getOrderScriptUrl())
     }
 
     private fun checkStoragePermission(activity: Activity): Boolean {

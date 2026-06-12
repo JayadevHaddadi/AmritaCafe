@@ -14,6 +14,14 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 
+fun getOrderScriptUrl(): String {
+    return if (BuildConfig.ORDER_SCRIPT_URL.isNotEmpty()) {
+        BuildConfig.ORDER_SCRIPT_URL
+    } else {
+        "https://script.google.com/macros/s/AKfycbz9Jbpdz8VVG8Yo23F0-ti5xuUflFmEOugdV8sVyVtlGyjlNyD5R1HwFfLwAwoWqd26Xg/exec" // Replace with your actual URL
+    }
+}
+
 fun sendToSheets(
     orders: List<Order>, configuration: Configuration, context: Context
 ) {
@@ -39,11 +47,7 @@ fun sendToSheets(
         }
     }
 
-    val url = if (BuildConfig.ORDER_SCRIPT_URL.isNotEmpty()) {
-        BuildConfig.ORDER_SCRIPT_URL
-    } else {
-        "https://script.google.com/macros/s/AKfycbz9Jbpdz8VVG8Yo23F0-ti5xuUflFmEOugdV8sVyVtlGyjlNyD5R1HwFfLwAwoWqd26Xg/exec" // Replace with your actual URL
-    }
+    val url = getOrderScriptUrl()
 
     var isGpay = false
     for (order in orders) {
@@ -72,11 +76,17 @@ fun sendToSheets(
             // Handle successful response
             Log.d("Connection", "Response: $response")
             ConnectionIndicator.setSheetsConnected(true)
+            
+            // Sync any previously failed orders
+            OfflineOrderSync.syncPendingOrders(context, url)
         },
         { error ->
             // Handle error
             Log.e("Connection", "Error: ${error.message}")
             ConnectionIndicator.setSheetsConnected(false)
+            
+            // Add failed order to offline queue
+            OfflineOrderSync.addOrder(context, jsonString)
         }) {
         override fun getBodyContentType(): String {
             return "application/json; charset=utf-8"
