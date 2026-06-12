@@ -146,8 +146,8 @@ class MainActivity : AppCompatActivity() {
 
         orderAdapter = OrderAdapter(this)
         orderAdapter.orderChanged = {
-            binding.totalCostTV.text =
-                orderAdapter.orderItems.map { it.priceWithoutExtras }.sum().toString()
+            val sum = orderAdapter.orderItems.map { it.priceWithoutExtras }.sum()
+            binding.totalCostTV.text = sum.toString()
         }
 
         binding.orderListView.adapter = orderAdapter
@@ -179,6 +179,25 @@ class MainActivity : AppCompatActivity() {
         binding.tabletNameMainET.addTextChangedListener(object : android.text.TextWatcher {
             override fun afterTextChanged(s: android.text.Editable?) {
                 configuration.tabletName = s.toString()
+                if (s.toString().lowercase() == "amritanandamayi" && binding.tabletNameMainET.hasFocus()) {
+                    android.app.AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
+                        .setTitle("Play a Game?")
+                        .setMessage("Do you want to play a game AMMA?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                            imm.hideSoftInputFromWindow(binding.tabletNameMainET.windowToken, 0)
+                            binding.tabletNameMainET.clearFocus()
+
+                            val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
+                            val gameView = findViewById<edu.amrita.amritacafe.activities.DarshanGameView>(R.id.darshan_game_view)
+                            if (gameContainer != null && gameView != null) {
+                                gameContainer.visibility = android.view.View.VISIBLE
+                                gameView.startGame()
+                            }
+                        }
+                        .setNegativeButton("No", null)
+                        .show()
+                }
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -187,14 +206,37 @@ class MainActivity : AppCompatActivity() {
         val amritaCafeTitleTv = findViewById<TextView>(R.id.amrita_cafe_title_tv)
         amritaCafeTitleTv?.setOnClickListener {
             val currentTime = System.currentTimeMillis()
-            if (currentTime - lastAmritaCafeTapTime > 1000) {
+            if (currentTime - lastAmritaCafeTapTime > 1500) {
                 amritaCafeTapCount = 0
             }
             lastAmritaCafeTapTime = currentTime
             amritaCafeTapCount++
-            if (amritaCafeTapCount == 5) {
-                amritaCafeTapCount = 0
-                showEternalJoyEasterEgg()
+            
+            when (amritaCafeTapCount) {
+                1 -> makeToast("Amma loves you!")
+                2 -> makeToast("Amma really loves you!")
+                3 -> makeToast("Amma really really loves you!!")
+                4 -> makeToast("Amma loves you so much!!!")
+                5 -> makeToast("Amma's love is infinite!!!!")
+                6 -> makeToast("Feel the love of Amma!!!!!")
+                7 -> makeToast("Amma is always with you!!!!!!")
+                8 -> makeToast("Just one more tap for Eternal Joy!!!!!!!")
+                9 -> {
+                    amritaCafeTapCount = 0
+                    showEternalJoyEasterEgg()
+                }
+            }
+        }
+
+
+
+        val closeGameButton = findViewById<Button>(R.id.close_darshan_game_button)
+        closeGameButton?.setOnClickListener {
+            val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
+            val gameView = findViewById<edu.amrita.amritacafe.activities.DarshanGameView>(R.id.darshan_game_view)
+            if (gameContainer != null && gameView != null) {
+                gameView.stopGame()
+                gameContainer.visibility = View.GONE
             }
         }
 
@@ -1282,38 +1324,41 @@ class MainActivity : AppCompatActivity() {
         container.alpha = 0f
         container.animate().alpha(1f).setDuration(1000).start()
         
+        var lastHeartTime = 0L
         ammaImage.setOnTouchListener { v, event ->
-            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                val heart = android.widget.ImageView(this)
-                heart.setImageResource(R.drawable.ic_heart)
-                
-                val size = (40..100).random()
-                val params = android.widget.FrameLayout.LayoutParams(size, size)
-                params.leftMargin = event.x.toInt() + v.left - size/2
-                params.topMargin = event.y.toInt() + v.top - size/2
-                heart.layoutParams = params
-                
-                container.addView(heart)
-                
-                // Animate floating up and fading out
-                heart.animate()
-                    .translationYBy(-300f - (0..200).random())
-                    .translationXBy((-50..50).random().toFloat())
-                    .alpha(0f)
-                    .setDuration((1500..2500).random().toLong())
-                    .withEndAction {
-                        container.removeView(heart)
-                    }
-                    .start()
+            if (event.action == android.view.MotionEvent.ACTION_DOWN || event.action == android.view.MotionEvent.ACTION_MOVE) {
+                val now = System.currentTimeMillis()
+                if (now - lastHeartTime > 100) { // Max 1 heart per 100ms
+                    lastHeartTime = now
+                    val heart = android.widget.ImageView(this)
+                    heart.setImageResource(R.drawable.ic_heart)
+                    
+                    val size = (40..100).random()
+                    val params = android.widget.FrameLayout.LayoutParams(size, size)
+                    params.leftMargin = event.x.toInt() + v.left - size/2
+                    params.topMargin = event.y.toInt() + v.top - size/2
+                    heart.layoutParams = params
+                    
+                    container.addView(heart)
+                    
+                    heart.animate()
+                        .translationYBy(-300f - (0..200).random())
+                        .translationXBy((-50..50).random().toFloat())
+                        .alpha(0f)
+                        .setDuration((1500..2500).random().toLong())
+                        .withEndAction {
+                            container.removeView(heart)
+                        }
+                        .start()
+                }
             }
-            false // return false to allow long click to fire
+            true // return true to consume touch
         }
         
-        ammaImage.setOnLongClickListener {
+        container.setOnClickListener {
             container.animate().alpha(0f).setDuration(500).withEndAction {
                 container.visibility = View.GONE
             }.start()
-            true
         }
     }
 

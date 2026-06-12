@@ -428,7 +428,7 @@
         <ImageView
                 android:id="@+id/amma_image_view"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
@@ -481,6 +481,35 @@
                 android:textStyle="italic"
                 android:text="₹0" />
         </FrameLayout>
+    </FrameLayout>
+
+    <!-- Darshan Mini Game -->
+    <FrameLayout
+        android:id="@+id/darshan_game_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:elevation="120dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <edu.amrita.amritacafe.activities.DarshanGameView
+            android:id="@+id/darshan_game_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+            
+        <Button
+            android:id="@+id/close_darshan_game_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:background="@drawable/background_other_button_darkers"
+            android:padding="8dp"
+            android:text="Chai is coming!"
+            android:textColor="@color/black" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
