@@ -10,8 +10,8 @@
         android:background="@drawable/background_white_text"
         android:backgroundTint="@color/white"
         android:backgroundTintMode="screen"
-        android:minWidth="600dp"
-        android:padding="16dp">
+        android:minWidth="500dp"
+        android:padding="12dp">
 
         <TextView
             android:id="@+id/textView13"
@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:text="Total to pay:"
             android:textColor="@color/black"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -31,7 +31,7 @@
             android:layout_marginStart="8dp"
             android:text="0"
             android:textColor="@color/black"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView13"
             app:layout_constraintStart_toEndOf="@+id/textView13" />
@@ -50,10 +50,10 @@
             android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:text="Cash received:"
             android:textColor="@color/black"
-            android:textSize="20sp"
+            android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view2" />
 
@@ -64,7 +64,7 @@
             android:layout_marginStart="8dp"
             android:text="0"
             android:textColor="@color/black"
-            android:textSize="20sp"
+            android:textSize="18sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView5"
             app:layout_constraintStart_toEndOf="@+id/textView5" />
 
@@ -72,10 +72,10 @@
             android:id="@+id/textView6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="24dp"
             android:text="To return:"
             android:textColor="@color/black"
-            android:textSize="20sp"
+            android:textSize="18sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView5"
             app:layout_constraintStart_toEndOf="@+id/received_TV" />
 
@@ -86,7 +86,7 @@
             android:layout_marginStart="8dp"
             android:text="0"
             android:textColor="@color/black"
-            android:textSize="20sp"
+            android:textSize="18sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
             app:layout_constraintStart_toEndOf="@+id/textView6" />
 
@@ -94,19 +94,33 @@
             android:id="@+id/textView8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:text="Bills received:"
             android:textColor="@color/black"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
+        <Button
+            android:id="@+id/clear_money_recieved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_other_button_darkers"
+            android:minHeight="0dp"
+            android:padding="8dp"
+            android:text="Clear"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/textView8"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/textView8" />
+
         <GridLayout
             android:id="@+id/money_grid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:columnCount="4"
+            android:columnCount="8"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView8">
@@ -117,12 +131,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="500₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_200_button"
@@ -130,12 +144,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="200₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_100_button"
@@ -143,12 +157,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="100₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_50_button"
@@ -156,12 +170,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="50₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_20_button"
@@ -169,12 +183,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="20₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_10_button"
@@ -182,12 +196,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="10₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/received_5_button"
@@ -195,12 +209,12 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="5₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/recieved_1_botton"
@@ -208,28 +222,14 @@
                 android:layout_width="0dp"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp"
+                android:layout_margin="2dp"
                 android:background="@drawable/background_other_button_darkers"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:text="1₹"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
         </GridLayout>
-
-        <Button
-            android:id="@+id/clear_money_recieved"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/background_other_button_darkers"
-            android:minHeight="0dp"
-            android:padding="12dp"
-            android:text="Clear"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/money_grid" />
 
         <View
             android:id="@+id/seperator3"
@@ -239,7 +239,7 @@
             android:background="@color/best_pink_very_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/clear_money_recieved" />
+            app:layout_constraintTop_toBottomOf="@+id/money_grid" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -255,46 +255,50 @@
             <Button
                 android:id="@+id/renunciate_botton"
                 android:layout_width="0dp"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
+                android:minHeight="54dp"
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
                 android:text="Renunciate"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/gpay_button"
                 android:layout_width="0dp"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
+                android:minHeight="54dp"
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
                 android:text="GPay"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/no_print_botton"
                 android:layout_width="0dp"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
+                android:minHeight="54dp"
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
                 android:text="No Print"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/print_bottom"
                 android:layout_width="0dp"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
+                android:minHeight="54dp"
                 android:layout_margin="4dp"
                 android:layout_weight="1.2"
                 android:background="@drawable/background_other_button_darkers"
                 android:text="Print Order"
                 android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
