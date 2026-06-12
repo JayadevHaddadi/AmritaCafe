@@ -50,6 +50,13 @@ class DarshanGameView(context: Context, attrs: AttributeSet? = null) : View(cont
     private var selectedDevotee: Devotee? = null
     private var hasStartedDrawing = false
 
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            systemGestureExclusionRects = listOf(Rect(0, 0, width, height))
+        }
+    }
+
     init {
         val options = BitmapFactory.Options()
         options.inSampleSize = 2

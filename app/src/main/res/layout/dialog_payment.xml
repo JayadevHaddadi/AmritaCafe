@@ -260,6 +260,7 @@
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
+                android:drawableTop="@drawable/renunciate"
                 android:text="Renunciate"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
@@ -272,6 +273,7 @@
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
+                android:drawableTop="@drawable/rupee_image"
                 android:text="GPay"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
@@ -284,6 +286,8 @@
                 android:layout_margin="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_other_button_darkers"
+                android:backgroundTint="#FFCCBC"
+                android:drawableTop="@drawable/ic_no_print"
                 android:text="No Print"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
@@ -296,7 +300,9 @@
                 android:layout_margin="4dp"
                 android:layout_weight="1.2"
                 android:background="@drawable/background_other_button_darkers"
-                android:text="Print Order"
+                android:backgroundTint="#C8E6C9"
+                android:drawableTop="@drawable/ic_print"
+                android:text="Print"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:textStyle="bold" />

@@ -608,6 +608,13 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(true)
         val dialog = dialogBuilder.show()
 
+        // Make dialog fill 90% of the screen width
+        dialog.window?.let { window ->
+            val displayMetrics = resources.displayMetrics
+            val width = (displayMetrics.widthPixels * 0.90).toInt()
+            window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+
         val checkDraw = ContextCompat.getDrawable(this, R.drawable.check_image)
         val renunciateDraw = ContextCompat.getDrawable(this, R.drawable.renunciate)
         val rupeeDraw = ContextCompat.getDrawable(this, R.drawable.rupee_image)
@@ -626,6 +633,9 @@ class MainActivity : AppCompatActivity() {
                 if (isGpay) checkDraw else null,
                 null
             )
+            binding.gpayButton.backgroundTintList = if (isGpay) {
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E0F7FA"))
+            } else null
         }
 
         binding.renunciateBotton.setOnClickListener {
@@ -639,6 +649,7 @@ class MainActivity : AppCompatActivity() {
                         null,
                         null
                     )
+                    binding.gpayButton.backgroundTintList = null
                 }
             }
             orderAdapter.orderItems.forEach {
@@ -655,6 +666,9 @@ class MainActivity : AppCompatActivity() {
                 if (renunciate) checkDraw else null, // right drawable
                 null // bottom drawable
             )
+            binding.renunciateBotton.backgroundTintList = if (renunciate) {
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FFF9C4"))
+            } else null
 
             fun applyRenunciate(items: List<RegularOrderItem>, isRenunciate: Boolean) {
                 var totalRenunciateItems = 0
@@ -937,6 +951,12 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
+        if (gameContainer != null && gameContainer.visibility == android.view.View.VISIBLE) {
+            // Ignore back press if the game is active, so the user doesn't accidentally exit
+            return
+        }
+
         val builder = AlertDialog.Builder(this, R.style.DialogStyle)
         builder.setTitle("Close Amrita Cafe?")
         builder.setCancelable(true)
