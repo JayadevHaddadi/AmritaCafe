@@ -161,6 +161,18 @@ class MainActivity : AppCompatActivity() {
                     is MenuItem -> {
                         if (orderAdapter.add(menuItem) == -1) {
                             makeToast("Unsupported Action!")
+                        } else {
+                            val name = menuItem.name.lowercase()
+                            if (name.contains("cake") || name.contains("brownie") || name.contains("sweet") || name.contains("cookie") || name.contains("pie")) {
+                                if ((1..4).random() == 1) {
+                                    val messages = listOf(
+                                        "This cake is sweet, but fleeting. Seek eternal joy within! 🌸",
+                                        "A momentary delight for the tongue! Don't forget the soul. ✨",
+                                        "Enjoy the sugar, but remember: true sweetness is Amma's love! ❤️"
+                                    )
+                                    makeToast(messages.random())
+                                }
+                            }
                         }
                     }
                 }
@@ -188,9 +200,17 @@ class MainActivity : AppCompatActivity() {
 
         binding.orderNumberET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                makeToast(binding.orderNumberET.text.toString())
-                orderNumberService.currentOrderNumber =
-                    binding.orderNumberET.text.toString().toInt()
+                val enteredText = binding.orderNumberET.text.toString()
+                if (enteredText == "108") {
+                    triggerAmmaEasterEgg()
+                    binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+                    // Hide keyboard
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
+                    return@OnKeyListener true
+                }
+                makeToast(enteredText)
+                orderNumberService.currentOrderNumber = enteredText.toInt()
                 return@OnKeyListener true
             }
             false
@@ -1248,6 +1268,49 @@ class MainActivity : AppCompatActivity() {
             } else {
                 false
             }
+        }
+    }
+
+    private fun triggerAmmaEasterEgg() {
+        val container = findViewById<android.widget.FrameLayout>(R.id.easter_egg_container) ?: return
+        val ammaImage = findViewById<android.widget.ImageView>(R.id.amma_image_view) ?: return
+        
+        container.visibility = View.VISIBLE
+        container.alpha = 0f
+        container.animate().alpha(1f).setDuration(1000).start()
+        
+        ammaImage.setOnTouchListener { v, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                val heart = android.widget.ImageView(this)
+                heart.setImageResource(R.drawable.ic_heart)
+                
+                val size = (40..100).random()
+                val params = android.widget.FrameLayout.LayoutParams(size, size)
+                params.leftMargin = event.x.toInt() + v.left - size/2
+                params.topMargin = event.y.toInt() + v.top - size/2
+                heart.layoutParams = params
+                
+                container.addView(heart)
+                
+                // Animate floating up and fading out
+                heart.animate()
+                    .translationYBy(-300f - (0..200).random())
+                    .translationXBy((-50..50).random().toFloat())
+                    .alpha(0f)
+                    .setDuration((1500..2500).random().toLong())
+                    .withEndAction {
+                        container.removeView(heart)
+                    }
+                    .start()
+            }
+            false // return false to allow long click to fire
+        }
+        
+        ammaImage.setOnLongClickListener {
+            container.animate().alpha(0f).setDuration(500).withEndAction {
+                container.visibility = View.GONE
+            }.start()
+            true
         }
     }
 }
