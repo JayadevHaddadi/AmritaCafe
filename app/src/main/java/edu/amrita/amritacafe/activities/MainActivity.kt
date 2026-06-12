@@ -105,8 +105,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
-
     private val orderHistory = mutableListOf<HistoricalOrder>()
+    private var amritaCafeTapCount = 0
+    private var lastAmritaCafeTapTime = 0L
 
     companion object {
         lateinit var BREAKFAST_FILE: File
@@ -161,18 +162,6 @@ class MainActivity : AppCompatActivity() {
                     is MenuItem -> {
                         if (orderAdapter.add(menuItem) == -1) {
                             makeToast("Unsupported Action!")
-                        } else {
-                            val name = menuItem.name.lowercase()
-                            if (name.contains("cake") || name.contains("brownie") || name.contains("sweet") || name.contains("cookie") || name.contains("pie")) {
-                                if ((1..4).random() == 1) {
-                                    val messages = listOf(
-                                        "This cake is sweet, but fleeting. Seek eternal joy within! 🌸",
-                                        "A momentary delight for the tongue! Don't forget the soul. ✨",
-                                        "Enjoy the sugar, but remember: true sweetness is Amma's love! ❤️"
-                                    )
-                                    makeToast(messages.random())
-                                }
-                            }
                         }
                     }
                 }
@@ -194,6 +183,20 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+
+        val amritaCafeTitleTv = findViewById<TextView>(R.id.amrita_cafe_title_tv)
+        amritaCafeTitleTv?.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastAmritaCafeTapTime > 1000) {
+                amritaCafeTapCount = 0
+            }
+            lastAmritaCafeTapTime = currentTime
+            amritaCafeTapCount++
+            if (amritaCafeTapCount == 5) {
+                amritaCafeTapCount = 0
+                showEternalJoyEasterEgg()
+            }
+        }
 
         createDefaultFilesIfNecessary(baseContext)
         loadMenu()
@@ -1311,6 +1314,29 @@ class MainActivity : AppCompatActivity() {
                 container.visibility = View.GONE
             }.start()
             true
+        }
+    }
+
+    private fun showEternalJoyEasterEgg() {
+        val container = findViewById<android.widget.FrameLayout>(R.id.eternal_joy_container) ?: return
+        val item = findViewById<android.widget.FrameLayout>(R.id.eternal_joy_item) ?: return
+        val price = findViewById<TextView>(R.id.eternal_joy_price) ?: return
+
+        price.text = "₹0"
+        
+        container.visibility = View.VISIBLE
+        container.alpha = 0f
+        container.scaleX = 0.5f
+        container.scaleY = 0.5f
+        container.animate().alpha(1f).scaleX(1.5f).scaleY(1.5f).setDuration(500).start()
+
+        item.setOnClickListener {
+            price.text = "Priceless"
+            makeToast("Cakes are sweet but fleeting; true happiness comes from within! ✨")
+            
+            container.animate().alpha(0f).scaleX(0.5f).scaleY(0.5f).setDuration(1500).setStartDelay(1000).withEndAction {
+                container.visibility = View.GONE
+            }.start()
         }
     }
 }
