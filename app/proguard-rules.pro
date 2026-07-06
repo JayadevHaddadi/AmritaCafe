@@ -32,3 +32,7 @@
 # General optimizations
 -dontobfuscate
 -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+
+# Preserve Kotlin metadata and Coroutines signatures
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+-keep class kotlinx.coroutines.** { *; }
