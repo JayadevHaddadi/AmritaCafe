@@ -631,7 +631,7 @@ class MainActivity : AppCompatActivity() {
                 null
             )
             binding.gpayButton.backgroundTintList = if (isGpay) {
-                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E0F7FA"))
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FFF9C4"))
             } else null
         }
 
@@ -664,7 +664,7 @@ class MainActivity : AppCompatActivity() {
                 null // bottom drawable
             )
             binding.renunciateBotton.backgroundTintList = if (renunciate) {
-                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FFF9C4"))
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E0F7FA"))
             } else null
 
             fun applyRenunciate(items: List<RegularOrderItem>, isRenunciate: Boolean) {

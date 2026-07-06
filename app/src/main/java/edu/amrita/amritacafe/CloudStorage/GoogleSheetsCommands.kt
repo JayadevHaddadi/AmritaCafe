@@ -26,16 +26,14 @@ fun sendToSheets(
     orders: List<Order>, configuration: Configuration, context: Context
 ) {
     ConnectionIndicator.setSheetsConnected(false)
-    val jsonData = JSONObject()
-    val jsonArray = JSONArray()
-    var orderTime = 0L
-    var myOrderNumber = 0
+    val url = getOrderScriptUrl()
+    val requestQueue = Volley.newRequestQueue(context)
 
-    orders.forEach { (orderNumber, orderItems, time) ->
-        orderTime = time
-        myOrderNumber = orderNumber
+    orders.forEach { order ->
+        val jsonData = JSONObject()
+        val jsonArray = JSONArray()
 
-        orderItems.forEach {
+        order.orderItems.forEach {
             val jsonItem = JSONObject()
 //                val r = if(it.renounciateEffected)  "R" else ""
             jsonItem.put("name", it.menuItem.name)
@@ -45,71 +43,101 @@ fun sendToSheets(
             jsonItem.put("renounciate", if (it.renounciateEffected) "R" else "normal")
             jsonArray.put(jsonItem)
         }
-    }
 
+        try {
+            jsonData.put("time", order.orderLongTime)
+            jsonData.put("tablet", configuration.tabletName)
+            jsonData.put("order", order.orderNumber.toString())
+            jsonData.put("isGpay", order.isGpay)
+            jsonData.put("items", jsonArray)
+            jsonData.put("appVersion", BuildConfig.VERSION_CODE.toString())
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+        val jsonString = jsonData.toString()
+        val stringRequest = object : StringRequest(
+            Method.POST,
+            url, // Replace with your actual URL
+            { response ->
+                // Handle successful response
+                Log.d("Connection", "Response: $response")
+                ConnectionIndicator.setSheetsConnected(true)
+                
+                // Sync any previously failed orders
+                OfflineOrderSync.syncPendingOrders(context, url)
+            },
+            { error ->
+                // Handle error
+                Log.e("Connection", "Error: ${error.message}")
+                ConnectionIndicator.setSheetsConnected(false)
+                
+                // Add failed order to offline queue
+                OfflineOrderSync.addOrder(context, jsonString)
+            }) {
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getBody(): ByteArray {
+                return try {
+                    jsonString.toByteArray(Charsets.UTF_8)
+                } catch (e: UnsupportedEncodingException) {
+                    Log.e("TAG", "Error encoding JSON: $e")
+                    return ByteArray(0)
+                }
+            }
+        }
+        stringRequest.setRetryPolicy(
+            DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+        )
+
+        // Add the request to the queue
+        requestQueue.add(stringRequest)
+    }
+}
+
+fun updateGPayOnSheets(
+    historicalOrder: edu.amrita.amritacafe.model.HistoricalOrder,
+    configuration: Configuration,
+    context: Context
+) {
+    val jsonData = JSONObject()
     val url = getOrderScriptUrl()
 
-    var isGpay = false
-    for (order in orders) {
-        if (order.isGpay) {
-            isGpay = true
-            break
-        }
-    }
-
     try {
-        jsonData.put("time", orderTime)
+        jsonData.put("action", "updateGPay")
+        jsonData.put("time", historicalOrder.order.orderLongTime)
         jsonData.put("tablet", configuration.tabletName)
-        jsonData.put("order", myOrderNumber.toString())
-        jsonData.put("isGpay", isGpay)
-        jsonData.put("items", jsonArray)
+        jsonData.put("order", historicalOrder.order.orderNumber.toString())
+        jsonData.put("isGpay", historicalOrder.order.isGpay)
         jsonData.put("appVersion", BuildConfig.VERSION_CODE.toString())
     } catch (e: JSONException) {
         e.printStackTrace()
     }
+    
     val jsonString = jsonData.toString()
     val requestQueue = Volley.newRequestQueue(context)
     val stringRequest = object : StringRequest(
         Method.POST,
-        url, // Replace with your actual URL
+        url,
         { response ->
-            // Handle successful response
-            Log.d("Connection", "Response: $response")
+            Log.d("Connection", "Update GPay Response: $response")
             ConnectionIndicator.setSheetsConnected(true)
-            
-            // Sync any previously failed orders
-            OfflineOrderSync.syncPendingOrders(context, url)
         },
         { error ->
-            // Handle error
-            Log.e("Connection", "Error: ${error.message}")
+            Log.e("Connection", "Update GPay Error: ${error.message}")
             ConnectionIndicator.setSheetsConnected(false)
-            
-            // Add failed order to offline queue
-            OfflineOrderSync.addOrder(context, jsonString)
+            // Note: We might want an offline queue for updates too, 
+            // but starting with immediate sync for simplicity.
         }) {
-        override fun getBodyContentType(): String {
-            return "application/json; charset=utf-8"
-        }
-
-        override fun getBody(): ByteArray {
-            return try {
-                jsonString.toByteArray(Charsets.UTF_8)
-            } catch (e: UnsupportedEncodingException) {
-                Log.e("TAG", "Error encoding JSON: $e")
-                return ByteArray(0)
-            }
-        }
+        override fun getBodyContentType(): String = "application/json; charset=utf-8"
+        override fun getBody(): ByteArray = jsonString.toByteArray(Charsets.UTF_8)
     }
-    stringRequest.setRetryPolicy(
-        DefaultRetryPolicy(
-            0,
-            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        )
-    )
-
-    // Add the request to the queue
+    
+    stringRequest.setRetryPolicy(DefaultRetryPolicy(10000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
     requestQueue.add(stringRequest)
-
 }

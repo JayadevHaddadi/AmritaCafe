@@ -1,5 +1,7 @@
 package edu.amrita.amritacafe.activities
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -33,8 +35,45 @@ class HistoryAdapter(
             view.historyOrderTV.text =
                 ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)
 
-            view.gpayIndicator.visibility = if (historicalOrder.order.isGpay) View.VISIBLE else View.GONE
-            view.renunciateIndicator.visibility = if (historicalOrder.order.isRenunciate) View.VISIBLE else View.GONE
+            fun updateGPayUI() {
+                if (historicalOrder.order.isGpay) {
+                    view.gpayIndicator.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                    view.gpayIndicator.alpha = 1.0f
+                } else {
+                    view.gpayIndicator.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#808080"))
+                    view.gpayIndicator.alpha = 0.2f
+                }
+            }
+
+            fun updateRenunciateUI() {
+                if (historicalOrder.order.isRenunciate) {
+                    view.renunciateIndicator.visibility = View.VISIBLE
+                    view.renunciateIndicator.alpha = 1.0f
+                } else {
+                    view.renunciateIndicator.visibility = View.VISIBLE // Make always visible as requested?
+                    view.renunciateIndicator.alpha = 0.2f
+                }
+            }
+
+            updateGPayUI()
+            updateRenunciateUI()
+
+            view.gpayIndicator.setOnClickListener {
+                historicalOrder.order.isGpay = !historicalOrder.order.isGpay
+                updateGPayUI()
+                edu.amrita.amritacafe.CloudStorage.updateGPayOnSheets(
+                    historicalOrder,
+                    configuration,
+                    mainActivity
+                )
+            }
+
+            // User didn't ask for retrospective Renunciate toggle yet, but let's keep it consistent
+            view.renunciateIndicator.setOnClickListener {
+                // For now just toggle UI, or maybe do nothing if not supported by backend
+                // historicalOrder.order.isRenunciate = !historicalOrder.order.isRenunciate
+                // updateRenunciateUI()
+            }
 
             val isBluetooth = configuration.mode == mainActivity.BLUETOOTH
 

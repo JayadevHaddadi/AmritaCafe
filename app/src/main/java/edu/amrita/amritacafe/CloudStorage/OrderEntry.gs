@@ -47,29 +47,74 @@ function convertRangeToCsvFile_(csvFileName, sheet) {
   }
 }
 
-function testTime() {
-  var date = new Date()
-  var timeFormat = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + ' '+ date.getHours() + ':'+ date.getMinutes() + ':'+ date.getSeconds() + "." + date.getMilliseconds()
-   Logger.log(timeFormat)
+function formatAppTime(millis) {
+  var date = new Date(millis);
+  // Matches app format: YYYY-M-D H:m:s.SSS
+  return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + ' '+ date.getHours() + ':'+ date.getMinutes() + ':'+ date.getSeconds() + "." + date.getMilliseconds();
 }
 
 function doPost(e) {
   var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
   var sheet = ss.getSheetByName('Sheet1');
 
-  Logger.log("doPostEntry: " + e)
   // Parse the request data
   var data = JSON.parse(e.postData.getDataAsString());
-  // var data = e;
-  var time = data.time;
+  var timeMillis = data.time;
   var tablet = data.tablet;
-  var order = data.order;
-  var items = data.items;
   var isGpay = data.isGpay || false;
   var appVersion = data.appVersion || "";
 
-  var date = new Date(time);
-  var timeFormat = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + ' '+ date.getHours() + ':'+ date.getMinutes() + ':'+ date.getSeconds() + "." + date.getMilliseconds()
+  // Format the time EXACTLY like the app does for consistency
+  var timeFormat = formatAppTime(timeMillis);
+
+  // Handle Retrospective GPay Update
+  if (data.action === "updateGPay") {
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return ContentService.createTextOutput("Sheet is empty.");
+
+    // Dynamic headers
+    var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
+    
+    // Find column indices (1-based for getRange)
+    var tabletColIndex = headers.indexOf("TABLET") + 1 || 2; 
+    var orderColIndex = headers.indexOf("ORDER") + 1 || 3;
+    var totalColIndex = headers.indexOf("TOTAL") + 1 || 7;
+    var gpayColIndex = headers.indexOf("GPAY AMOUNT") + 1 || 8;
+
+    // Efficiency: Only check the last 2000 rows for updates (speed up search)
+    var searchDepth = 2000;
+    var startRow = Math.max(2, lastRow - searchDepth + 1);
+    var numRows = lastRow - startRow + 1;
+
+    // Get all columns up to the maximum column index we need
+    var maxCol = Math.max(tabletColIndex, orderColIndex, totalColIndex, gpayColIndex);
+    var values = sheet.getRange(startRow, 1, numRows, maxCol).getValues(); 
+    var found = false;
+    var targetOrder = data.order.toString();
+
+    // Search bottom-up
+    for (var i = values.length - 1; i >= 0; i--) {
+      var cellTablet = values[i][tabletColIndex - 1].toString();
+      var cellOrder = values[i][orderColIndex - 1].toString();
+
+      if (cellOrder === targetOrder && cellTablet === tablet) {
+        var total = values[i][totalColIndex - 1]; 
+        var gpayAmount = isGpay ? total : 0;
+
+        // Update GPay Amount column
+        sheet.getRange(startRow + i, gpayColIndex).setValue(gpayAmount);
+        found = true;
+      } else if (found) {
+        // If we already found the order block and now hit a different order, stop searching
+        break;
+      }
+    }
+    return ContentService.createTextOutput(found ? "Update successful!" : "Order not found in search range.");
+  }
+
+  // Normal Order Entry
+  var order = data.order;
+  var items = data.items;
 
   var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
   var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
@@ -96,8 +141,7 @@ function doPost(e) {
     }
   }
   
-  // Return a success message (optional)
-  return ContentService.createTextOutput("Name inserted successfully!");
+  return ContentService.createTextOutput("Order inserted successfully!");
 }
 
 function getLastRow(sheet) {
@@ -113,17 +157,9 @@ function getLastRow(sheet) {
 }
 
 function insertRowAtTop_v1(data, sheetName, targetRow) {
-
-  // const ss = SpreadsheetApp.getActiveSpreadsheet();
   var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
   const sheet = ss.getSheetByName(sheetName);
-
-  // Insert a row
-  // NOTE show what happens if we use insertRowAfter and how it carries over formatting from the top.
   sheet.insertRowBefore(targetRow);
-  sheet
-    .getRange(targetRow, 1, 1, data[0].length)
-    .setValues(data);
-
+  sheet.getRange(targetRow, 1, 1, data[0].length).setValues(data);
   SpreadsheetApp.flush();
 }
