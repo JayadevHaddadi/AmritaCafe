@@ -544,9 +544,6 @@ class MainActivity : AppCompatActivity() {
         myToast?.show()
     }
 
-    private val APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec" // <--- ****** PASTE YOUR URL HERE ******
-
 
     override fun onResume() {
         super.onResume()

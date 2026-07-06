@@ -1,22 +1,34 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve Epson SDK
+-keep class com.epson.epos2.** { *; }
+-keep interface com.epson.epos2.** { *; }
+-keep class com.epson.eposprint.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Preserve Hoin SDK
+-keep class com.example.hoinprinterlib.** { *; }
+-keep class com.example.hoinsdk.** { *; }
+-dontwarn am.util.printer.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Preserve Volley
+-keep class com.android.volley.** { *; }
+
+# Preserve native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Preserve model classes (for serialization/JSON)
+-keep class edu.amrita.amritacafe.model.** { *; }
+-keep class edu.amrita.amritacafe.menu.** { *; }
+
+# Preserve R classes (sometimes needed for reflection)
+-keep class **.R$* {
+    <fields>;
+}
+
+# General optimizations
 -dontobfuscate
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
