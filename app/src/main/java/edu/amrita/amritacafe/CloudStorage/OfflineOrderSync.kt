@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException
 
 object OfflineOrderSync {
     private const val PREFS_KEY = "offline_orders_queue"
+    private var isSyncing = false
 
     private fun getPrefs(context: Context): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(context)
@@ -34,6 +35,10 @@ object OfflineOrderSync {
 
     @Synchronized
     fun syncPendingOrders(context: Context, url: String) {
+        if (isSyncing) {
+            Log.d("OfflineSync", "Sync already in progress, skipping.")
+            return
+        }
         try {
             val prefs = getPrefs(context)
             val queueStr = prefs.getString(PREFS_KEY, "[]") ?: "[]"
@@ -43,6 +48,8 @@ object OfflineOrderSync {
                 Log.d("OfflineSync", "No pending orders to sync.")
                 return
             }
+
+            isSyncing = true
 
             Log.d("OfflineSync", "Attempting to sync ${queue.length()} pending orders...")
             val requestQueue = Volley.newRequestQueue(context)
@@ -59,11 +66,13 @@ object OfflineOrderSync {
                     // Remove the synced order from the queue
                     removeOrderFromQueue(context, pendingJsonString)
                     
+                    isSyncing = false
                     // Try next recursively
                     syncPendingOrders(context, url)
                 },
                 { error ->
                     Log.e("OfflineSync", "Failed to sync pending order: ${error.message}")
+                    isSyncing = false
                 }
             ) {
                 override fun getBodyContentType(): String = "application/json; charset=utf-8"
@@ -78,6 +87,7 @@ object OfflineOrderSync {
             requestQueue.add(stringRequest)
         } catch (e: Exception) {
             Log.e("OfflineSync", "Error during offline sync: ${e.message}")
+            isSyncing = false
         }
     }
 

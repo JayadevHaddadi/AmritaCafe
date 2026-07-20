@@ -11,7 +11,7 @@ android {
         applicationId "edu.amrita.amritacafe3"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 70802
+        versionCode 70803
         versionName "v7"
         vectorDrawables {
             useSupportLibrary = true

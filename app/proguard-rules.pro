@@ -6,6 +6,10 @@
 -keep class com.epson.epos2.** { *; }
 -keep interface com.epson.epos2.** { *; }
 -keep class com.epson.eposprint.** { *; }
+-keep class com.epson.eposdevice.** { *; }
+-keep interface com.epson.eposdevice.** { *; }
+-keep class com.epson.epsonio.** { *; }
+-keep interface com.epson.epsonio.** { *; }
 
 # Preserve Hoin SDK
 -keep class com.example.hoinprinterlib.** { *; }

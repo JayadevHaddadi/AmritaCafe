@@ -25,9 +25,7 @@ fun getOrderScriptUrl(): String {
 fun sendToSheets(
     orders: List<Order>, configuration: Configuration, context: Context
 ) {
-    ConnectionIndicator.setSheetsConnected(false)
     val url = getOrderScriptUrl()
-    val requestQueue = Volley.newRequestQueue(context)
 
     orders.forEach { order ->
         val jsonData = JSONObject()
@@ -55,49 +53,13 @@ fun sendToSheets(
             e.printStackTrace()
         }
         val jsonString = jsonData.toString()
-        val stringRequest = object : StringRequest(
-            Method.POST,
-            url, // Replace with your actual URL
-            { response ->
-                // Handle successful response
-                Log.d("Connection", "Response: $response")
-                ConnectionIndicator.setSheetsConnected(true)
-                
-                // Sync any previously failed orders
-                OfflineOrderSync.syncPendingOrders(context, url)
-            },
-            { error ->
-                // Handle error
-                Log.e("Connection", "Error: ${error.message}")
-                ConnectionIndicator.setSheetsConnected(false)
-                
-                // Add failed order to offline queue
-                OfflineOrderSync.addOrder(context, jsonString)
-            }) {
-            override fun getBodyContentType(): String {
-                return "application/json; charset=utf-8"
-            }
-
-            override fun getBody(): ByteArray {
-                return try {
-                    jsonString.toByteArray(Charsets.UTF_8)
-                } catch (e: UnsupportedEncodingException) {
-                    Log.e("TAG", "Error encoding JSON: $e")
-                    return ByteArray(0)
-                }
-            }
-        }
-        stringRequest.setRetryPolicy(
-            DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-            )
-        )
-
-        // Add the request to the queue
-        requestQueue.add(stringRequest)
+        
+        // Add to offline queue first for safety
+        OfflineOrderSync.addOrder(context, jsonString)
     }
+    
+    // Trigger sync
+    OfflineOrderSync.syncPendingOrders(context, url)
 }
 
 fun updateGPayOnSheets(
