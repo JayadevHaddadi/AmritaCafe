@@ -8,6 +8,11 @@ import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.writer.Writer
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
+import java.io.IOException
+import java.net.ConnectException
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.util.logging.Logger
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -31,27 +36,63 @@ class ReceiptDispatch(
     /***
      *  Print algorithm:
      *
-     *  * Open a suspend coroutine (executePrintJob)
+     *  * Open a suspend coroutine (executePrintJob or executeRawPrintJob)
      *    * Perform connect and execute the print transaction.
-     *    * Listener object created by *buildListener* will resume the continuation.
-     *    * If an error is caught, clean up and resume the continuation, with feedback.
+     *    * Listener object will be notified with PrintSuccess or PrintFailed.
      *  * Make calls to *listener* object, to give feedback to the app.
      */
     private suspend fun print(orders: List<Order>) = synchronized(getLock(connectionString)) {
         try {
-            println("Printing from: $connectionString")
-            val (code, status) = runBlocking { executePrintJob(orders) }
-            logger.fine("Executed.")
+            println("Printing from: $connectionString (rawSocket: ${configuration.useRawSocket})")
+            if (configuration.useRawSocket) {
+                val response = executeRawPrintJob(orders)
+                logger.fine("Raw socket print success")
+                listener.printComplete(response)
+            } else {
+                val (code, status) = runBlocking { executePrintJob(orders) }
+                logger.fine("Executed.")
 
-            val response = PrintDispatchResponse.fromPrinterCallback(code, status)
-            logger.fine("Notify")
-            listener.printComplete(response)
-            listener.notifyPrinterStatus(response.printerStatus)
-            ("Did notify")
+                val response = PrintDispatchResponse.fromPrinterCallback(code, status)
+                logger.fine("Notify")
+                listener.printComplete(response)
+                listener.notifyPrinterStatus(response.printerStatus)
+                ("Did notify")
+            }
         } catch (exception: Epos2Exception) {
             logger.warning("Caught error ${ErrorStatus.fromCode(exception.errorStatus)}")
             listener.error(ErrorStatus.fromCode(exception.errorStatus), exception)
+        } catch (e: SocketTimeoutException) {
+            logger.warning("Socket timeout connecting to $connectionString: ${e.message}")
+            listener.printComplete(PrintFailed(CompletedJobStatus.TimeoutError, emptyList()))
+        } catch (e: ConnectException) {
+            logger.warning("Connection refused / not found for $connectionString: ${e.message}")
+            listener.printComplete(PrintFailed(CompletedJobStatus.NotFoundError, emptyList()))
+        } catch (e: IOException) {
+            logger.warning("IO error on $connectionString: ${e.message}")
+            listener.printComplete(PrintFailed(CompletedJobStatus.PortError, emptyList()))
+        } catch (e: Exception) {
+            logger.severe("Print failed on $connectionString: ${e.message}")
+            listener.printComplete(PrintFailed(CompletedJobStatus.FailureError, emptyList()))
         }
+    }
+
+    private fun executeRawPrintJob(orders: List<Order>): PrintDispatchResponse {
+        val cleanIp = connectionString.removePrefix("TCP:").trim()
+        val parts = cleanIp.split(":")
+        val host = parts[0]
+        val port = if (parts.size > 1) parts[1].toIntOrNull() ?: 9100 else 9100
+
+        val data = receiptWriter.writeToEscPos(orders, configuration)
+
+        Socket().use { socket ->
+            socket.connect(InetSocketAddress(host, port), 4000)
+            socket.soTimeout = 4000
+            socket.getOutputStream().use { out ->
+                out.write(data)
+                out.flush()
+            }
+        }
+        return PrintSuccess(emptyList())
     }
 
     fun dispatchPrint(orders: List<Order>): Job = CoroutineScope(Dispatchers.IO).launch {

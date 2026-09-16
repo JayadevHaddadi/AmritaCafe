@@ -6,7 +6,7 @@ import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.settings.Configuration
 
-class PrintService(private val orders: List<Order>, private val listener: PrintServiceListener, configuration: Configuration) {
+class PrintService(private val orders: List<Order>, private val listener: PrintServiceListener, private val configuration: Configuration) {
     interface PrintServiceListener {
         fun kitchenPrinterFinished()
         fun receiptPrinterFinished()
@@ -20,22 +20,32 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
     private var receiptFinished = false
     private var kitchenFinished = false
 
-
     fun print() {
-        receiptFinished = false
-        kitchenFinished = false
+        receiptFinished = !configuration.isReceiptWifi
+        kitchenFinished = !configuration.isKitchenWifi
 
-        receiptPrintDispatch.dispatchPrint(orders)
-        kitchenPrintDispatch.dispatchPrint(orders)
-    }
-
-
-
-    fun retry() {
         if (!receiptFinished) {
             receiptPrintDispatch.dispatchPrint(orders)
+        } else {
+            listener.receiptPrinterFinished()
         }
+
         if (!kitchenFinished) {
+            kitchenPrintDispatch.dispatchPrint(orders)
+        } else {
+            listener.kitchenPrinterFinished()
+        }
+
+        if (receiptFinished && kitchenFinished) {
+            listener.printingComplete()
+        }
+    }
+
+    fun retry() {
+        if (!receiptFinished && configuration.isReceiptWifi) {
+            receiptPrintDispatch.dispatchPrint(orders)
+        }
+        if (!kitchenFinished && configuration.isKitchenWifi) {
             kitchenPrintDispatch.dispatchPrint(orders)
         }
     }

@@ -64,6 +64,8 @@ import edu.amrita.amritacafe.printer.OrderNumberService
 import edu.amrita.amritacafe.printer.PrintFailed
 import edu.amrita.amritacafe.printer.PrintService
 import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrint
+import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrintReceipt
+import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrintKitchen
 import edu.amrita.amritacafe.settings.Configuration
 import kotlinx.coroutines.*
 import org.json.JSONException
@@ -273,21 +275,6 @@ class MainActivity : AppCompatActivity() {
             requestBluetooth.launch(enableBtIntent)
         }
 
-        // Check if the permission is already granted
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permission is not granted, request it from the user
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                BLUETOOTH_CONNECT_REQUEST_CODE
-            )
-        } else {
-            // Permission has already been granted, proceed with accessing Bluetooth functionalities
-            tryConnect()
-        }
-
         mHoinPrinter = HoinPrinter.getInstance(this, 1, object : PrinterCallback {
             override fun onState(newStateCode: Int) {
                 BT_STATE = newStateCode
@@ -303,6 +290,21 @@ class MainActivity : AppCompatActivity() {
             }
         })
         mHoinPrinter.switchType(true)
+
+        // Check if the permission is already granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permission is not granted, request it from the user
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                BLUETOOTH_CONNECT_REQUEST_CODE
+            )
+        } else {
+            // Permission has already been granted, proceed with accessing Bluetooth functionalities
+            tryConnect()
+        }
     }
 
     private fun setupMenuSpinner(preferences: SharedPreferences) {
@@ -352,6 +354,7 @@ class MainActivity : AppCompatActivity() {
             binding.menuSpinner.setSelection(0)
         }
     }
+
 
     private fun fetchMenuList(preferences: SharedPreferences) {
         val requestQueue = Volley.newRequestQueue(this)
@@ -548,6 +551,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        configuration = Configuration(PreferenceManager.getDefaultSharedPreferences(this))
+        val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
+        if (needsBluetooth && BT_STATE != BT_STATE_CONNECTED) {
+            tryConnect()
+        }
+
         // First, load the saved (local) menu.
         loadMenu()
 
@@ -738,9 +747,34 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.printBottom.setOnClickListener {
-            bluetoothPrint(mHoinPrinter, orders)
-            currentOrdersHistories.forEach {
-                it.RecipePrinted = PrintStatus.SUCCESS_PRINT
+            if (configuration.isReceiptBluetooth) {
+                bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                currentOrdersHistories.forEach {
+                    it.RecipePrinted = PrintStatus.SUCCESS_PRINT
+                }
+            } else if (configuration.isReceiptWifi) {
+                val dispatch = edu.amrita.amritacafe.printer.ReceiptDispatch(
+                    configuration.receiptPrinterConnStr,
+                    edu.amrita.amritacafe.printer.writer.CashierReceiptWriter,
+                    configuration,
+                    object : edu.amrita.amritacafe.printer.PrintStatusListener {
+                        override fun printComplete(status: edu.amrita.amritacafe.printer.PrintDispatchResponse) {
+                            runOnUiThread {
+                                currentOrdersHistories.forEach {
+                                    it.RecipePrinted = if (status is edu.amrita.amritacafe.printer.PrintSuccess) PrintStatus.SUCCESS_PRINT else PrintStatus.FAILED_PRINT
+                                }
+                            }
+                        }
+                        override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+                            runOnUiThread {
+                                currentOrdersHistories.forEach {
+                                    it.RecipePrinted = PrintStatus.FAILED_PRINT
+                                }
+                            }
+                        }
+                    }
+                )
+                dispatch.dispatchPrint(orders)
             }
             done()
         }
@@ -794,7 +828,8 @@ class MainActivity : AppCompatActivity() {
 
         println("JAYADEV MODE ${configuration.mode}")
         println("JAYADEV BT_STATE $BT_STATE")
-        if (configuration.mode == BLUETOOTH) {
+        val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
+        if (needsBluetooth) {
             val address = configuration.bluetoothAddress
             if (address.isNotEmpty()) {
                 // Standard connection attempt
@@ -813,7 +848,7 @@ class MainActivity : AppCompatActivity() {
         
         // If still disconnected after a short wait, try starting discovery as a fallback
         delay(2000L) 
-        if (configuration.mode == BLUETOOTH && BT_STATE == BT_STATE_DISCONNECTED) {
+        if (needsBluetooth && BT_STATE == BT_STATE_DISCONNECTED) {
             mHoinPrinter.startBtDiscovery()
         }
         println("Hello")
@@ -856,25 +891,7 @@ class MainActivity : AppCompatActivity() {
                 setMenuAdapter(list)
                 Log.d("MainActivity", "Loaded menu from file: $fileName")
                 
-                // Switch modes based on keywords
-                val lowerCaseMenu = selectedMenuName.lowercase()
-                val wifiKeywords = configuration.wifiKeywords.split(",").map { it.trim().lowercase() }
-                val btKeywords = configuration.bluetoothKeywords.split(",").map { it.trim().lowercase() }
-
-                val oldMode = configuration.mode
-                if (btKeywords.any { lowerCaseMenu.contains(it) }) {
-                    configuration.mode = BLUETOOTH
-                } else if (wifiKeywords.any { lowerCaseMenu.contains(it) }) {
-                    configuration.mode = WIFI
-                }
-
-                if (configuration.mode != oldMode) {
-                    val modeName = if (configuration.mode == BLUETOOTH) "Bluetooth" else "WIFI"
-                    makeToast("Switched to $modeName mode")
-                    if (configuration.mode == BLUETOOTH) {
-                        tryConnect()
-                    }
-                }
+                // Loaded menu from file
             } else {
                 // FALLBACK: If file doesn't exist, use default menus if they match the names
                 if (selectedMenuName.contains("Breakfast", true)) {
@@ -977,7 +994,8 @@ class MainActivity : AppCompatActivity() {
     private fun printOrder(printOrder: Boolean = true) {
         val orderItemsCopy = orderAdapter.orderItems.toMutableList()
 
-        if (printOrder && BT_STATE != BT_STATE_CONNECTED)
+        val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
+        if (printOrder && needsBluetooth && BT_STATE != BT_STATE_CONNECTED)
             tryConnect()
 
         var pos = 0
@@ -1036,132 +1054,160 @@ class MainActivity : AppCompatActivity() {
         }
         currentOrdersHistories = histories
 
-        if (configuration.mode == WIFI) {
-            histories.forEach {
-                it.KitchenPrinted = PrintStatus.PRINTING
-                it.RecipePrinted = PrintStatus.PRINTING
+        if (configuration.workflowMode == Configuration.MODE_ORDER_TAKER) {
+            if (configuration.isReceiptBluetooth) {
+                bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                histories.forEach { it.RecipePrinted = PrintStatus.SUCCESS_PRINT }
             }
-            // Use the binding class generated for dialog_print.xml
-            val dialogBinding = DialogPrintBinding.inflate(LayoutInflater.from(this))
-
-            val dialog = AlertDialog.Builder(this)
-                .setView(dialogBinding.root) // Set the root view from the binding
-                .setCancelable(false)
-                .show()
-                .apply {
-                    setCanceledOnTouchOutside(false)
-                }
-
-            currentDialog = dialog
-
-            val listener = object : PrintService.PrintServiceListener {
-                override fun kitchenPrinterFinished() = runOnUiThread {
-                    histories.forEach {
-                        it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.kitchenProgress.visibility = View.INVISIBLE
-                        include2.kitchenError.visibility = View.INVISIBLE
-                        include2.kitchenDone.visibility = View.VISIBLE
-                        include2.kitchenRetryButton.visibility = View.INVISIBLE
-                    }
-                }
-
-                override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
-                    histories.forEach {
-                        it.KitchenPrinted = PrintStatus.FAILED_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.kitchenProgress.visibility = View.INVISIBLE
-                        include2.kitchenError.visibility = View.VISIBLE
-                        include2.kitchenRetryButton.visibility = View.VISIBLE
-                    }
-                }
-
-                override fun kitchenPrinterError(
-                    errorStatus: ErrorStatus,
-                    exception: Epos2Exception
-                ) = runOnUiThread {
-                    histories.forEach {
-                        it.KitchenPrinted = PrintStatus.FAILED_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.kitchenProgress.visibility = View.INVISIBLE
-                        include2.kitchenError.visibility = View.VISIBLE
-                        include2.kitchenRetryButton.visibility = View.VISIBLE
-                    }
-                }
-
-                override fun receiptPrinterFinished() = runOnUiThread {
-                    histories.forEach {
-                        it.RecipePrinted = PrintStatus.SUCCESS_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.receiptProgress.visibility = View.INVISIBLE
-                        include2.receiptError.visibility = View.INVISIBLE
-                        include2.receiptDone.visibility = View.VISIBLE
-                        include2.receiptRetryButton.visibility = View.INVISIBLE
-                    }
-                }
-
-                override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
-                    histories.forEach {
-                        it.RecipePrinted = PrintStatus.FAILED_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.receiptProgress.visibility = View.INVISIBLE
-                        include2.receiptError.visibility = View.VISIBLE
-                        include2.receiptRetryButton.visibility = View.VISIBLE
-                    }
-                }
-
-                override fun receiptPrinterError(
-                    errorStatus: ErrorStatus,
-                    exception: Epos2Exception
-                ) = runOnUiThread {
-                    histories.forEach {
-                        it.RecipePrinted = PrintStatus.FAILED_PRINT
-                    }
-                    dialogBinding.run {
-                        include2.receiptProgress.visibility = View.INVISIBLE
-                        include2.receiptError.visibility = View.VISIBLE
-                        include2.receiptRetryButton.visibility = View.VISIBLE
-                    }
-                }
-
-                override fun printingComplete() {
-                    runOnUiThread {
-                        dialog.dismiss()
-                    }
-                    startNewOrder()
-                }
+            if (configuration.isKitchenBluetooth) {
+                bluetoothPrintKitchen(mHoinPrinter, orders, configuration)
+                histories.forEach { it.KitchenPrinted = PrintStatus.SUCCESS_PRINT }
             }
 
-            val printService = PrintService(orders, listener, configuration = configuration)
-            printService.print()
+            val hasWifiJob = (configuration.isKitchenWifi || configuration.isReceiptWifi)
 
-            dialogBinding.include2.kitchenRetryButton.setOnClickListener {
+            if (hasWifiJob) {
                 histories.forEach {
-                    it.KitchenPrinted = PrintStatus.PRINTING
+                    if (configuration.isKitchenWifi) it.KitchenPrinted = PrintStatus.PRINTING
+                    if (configuration.isReceiptWifi) it.RecipePrinted = PrintStatus.PRINTING
                 }
-                printService.retry()
-                it.visibility = View.INVISIBLE
-                dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
-                dialogBinding.include2.kitchenProgress.visibility = View.VISIBLE
-            }
+                // Use the binding class generated for dialog_print.xml
+                val dialogBinding = DialogPrintBinding.inflate(LayoutInflater.from(this))
 
-            dialogBinding.include2.receiptRetryButton.setOnClickListener {
-                histories.forEach {
-                    it.RecipePrinted = PrintStatus.PRINTING
+                val dialog = AlertDialog.Builder(this)
+                    .setView(dialogBinding.root)
+                    .setCancelable(false)
+                    .show()
+                    .apply {
+                        setCanceledOnTouchOutside(false)
+                    }
+
+                currentDialog = dialog
+
+                if (!configuration.isKitchenWifi) {
+                    dialogBinding.include2.kitchenProgress.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenDone.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenRetryButton.visibility = View.INVISIBLE
                 }
-                printService.retry()
-                it.visibility = View.INVISIBLE
-                dialogBinding.include2.receiptError.visibility = View.INVISIBLE
-                dialogBinding.include2.receiptProgress.visibility = View.VISIBLE
+                if (!configuration.isReceiptWifi) {
+                    dialogBinding.include2.receiptProgress.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptDone.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptError.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptRetryButton.visibility = View.INVISIBLE
+                }
+
+                val listener = object : PrintService.PrintServiceListener {
+                    override fun kitchenPrinterFinished() = runOnUiThread {
+                        histories.forEach {
+                            it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.kitchenProgress.visibility = View.INVISIBLE
+                            include2.kitchenError.visibility = View.INVISIBLE
+                            include2.kitchenDone.visibility = View.VISIBLE
+                            include2.kitchenRetryButton.visibility = View.INVISIBLE
+                        }
+                    }
+
+                    override fun kitchenPrinterError(response: PrintFailed) = runOnUiThread {
+                        histories.forEach {
+                            it.KitchenPrinted = PrintStatus.FAILED_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.kitchenProgress.visibility = View.INVISIBLE
+                            include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenRetryButton.visibility = View.VISIBLE
+                        }
+                    }
+
+                    override fun kitchenPrinterError(
+                        errorStatus: ErrorStatus,
+                        exception: Epos2Exception
+                    ) = runOnUiThread {
+                        histories.forEach {
+                            it.KitchenPrinted = PrintStatus.FAILED_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.kitchenProgress.visibility = View.INVISIBLE
+                            include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenRetryButton.visibility = View.VISIBLE
+                        }
+                    }
+
+                    override fun receiptPrinterFinished() = runOnUiThread {
+                        histories.forEach {
+                            it.RecipePrinted = PrintStatus.SUCCESS_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.receiptProgress.visibility = View.INVISIBLE
+                            include2.receiptError.visibility = View.INVISIBLE
+                            include2.receiptDone.visibility = View.VISIBLE
+                            include2.receiptRetryButton.visibility = View.INVISIBLE
+                        }
+                    }
+
+                    override fun receiptPrinterError(response: PrintFailed) = runOnUiThread {
+                        histories.forEach {
+                            it.RecipePrinted = PrintStatus.FAILED_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.receiptProgress.visibility = View.INVISIBLE
+                            include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptRetryButton.visibility = View.VISIBLE
+                        }
+                    }
+
+                    override fun receiptPrinterError(
+                        errorStatus: ErrorStatus,
+                        exception: Epos2Exception
+                    ) = runOnUiThread {
+                        histories.forEach {
+                            it.RecipePrinted = PrintStatus.FAILED_PRINT
+                        }
+                        dialogBinding.run {
+                            include2.receiptProgress.visibility = View.INVISIBLE
+                            include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptRetryButton.visibility = View.VISIBLE
+                        }
+                    }
+
+                    override fun printingComplete() {
+                        runOnUiThread {
+                            dialog.dismiss()
+                        }
+                        startNewOrder()
+                    }
+                }
+
+                val printService = PrintService(orders, listener, configuration = configuration)
+                printService.print()
+
+                dialogBinding.include2.kitchenRetryButton.setOnClickListener {
+                    histories.forEach {
+                        it.KitchenPrinted = PrintStatus.PRINTING
+                    }
+                    printService.retry()
+                    it.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenProgress.visibility = View.VISIBLE
+                }
+
+                dialogBinding.include2.receiptRetryButton.setOnClickListener {
+                    histories.forEach {
+                        it.RecipePrinted = PrintStatus.PRINTING
+                    }
+                    printService.retry()
+                    it.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptError.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptProgress.visibility = View.VISIBLE
+                }
+            } else {
+                startNewOrder()
             }
 
             orderDone(orders)
-        } else if (configuration.mode == BLUETOOTH) {
+        } else if (configuration.workflowMode == Configuration.MODE_CASHIER) {
             openPaymentDialog(orders)
         }
     }

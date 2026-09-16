@@ -3,6 +3,7 @@ package edu.amrita.amritacafe.printer.writer
 import com.epson.epos2.printer.Printer
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.model.Order
+import edu.amrita.amritacafe.printer.escpos.EscPosBuilder
 import edu.amrita.amritacafe.settings.Configuration
 
 class KitchenWriter(private val orders: List<Order>, private val configuration: Configuration) {
@@ -57,8 +58,6 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             printer.addTextSize(textSize, textSize)
             printer.addText(orderItemsText)
             printer.addFeedLine(lineFeed)
-            printer.addFeedLine(lineFeed)
-            printer.addFeedLine((6 - itemCount).let { if (it < 0) 0 else it })
             printer.addCut(Printer.CUT_FEED)
         }
     }
@@ -90,5 +89,47 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
         ) {
             KitchenWriter(orders, configuration).writeTo(printer)
         }
+
+        override fun writeToEscPos(
+            orders: List<Order>,
+            configuration: Configuration
+        ): ByteArray {
+            return KitchenWriter(orders, configuration).writeToEscPos()
+        }
+    }
+
+    private fun writeToEscPos(): ByteArray {
+        val (titleSize, textSize, lineFeed) = configuration.textConfig
+        val builder = EscPosBuilder()
+
+        orders.forEach { (orderNumber, itemList, date, time) ->
+            val orderItemsText = itemList.map(::writeLine).joinToString("\n")
+            val itemCount = itemList.map { 1 }.sum()
+            val orderNumStr = orderNumber.toString().padStart(3, '0')
+
+            builder.alignLeft()
+            val titleScale = if (titleSize > 1) 2 else 1
+            builder.textSize(titleScale, titleScale)
+            builder.bold(true)
+            // 24 characters at 2x width on 80mm paper
+            val headerText = orderNumStr.padEnd(12) + time.padStart(12)
+            builder.line(headerText)
+            builder.bold(false)
+
+            builder.feedLines(lineFeed)
+            // Crucial: reset text size to 1x1 before drawing separator line to prevent wrapping
+            builder.textSize(1, 1)
+            builder.horizontalLine('=', 48)
+
+            // Large, bold font for kitchen staff (2x2 scale in normal mode)
+            val textScale = if (configuration.testing) 1 else 2
+            builder.textSize(textScale, textScale)
+            builder.bold(true)
+            builder.line(orderItemsText)
+            builder.bold(false)
+            builder.textSize(1, 1)
+            builder.cut(1)
+        }
+        return builder.build()
     }
 }

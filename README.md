@@ -4,7 +4,7 @@
 [![ISSUES!](https://img.shields.io/github/issues/JayadevHaddadi/AmritaCafe)](https://github.com/JayadevHaddadi/AmritaCafe/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
 ![ISSUES!](https://img.shields.io/github/repo-size/JayadevHaddadi/AmritaCafe)
 
-Now also supports HOIN printers and other chinese brands
+Now also supports HOIN printers and other chinese brands (e.g. KP307). See [PRINTER_GUIDE.md](PRINTER_GUIDE.md) for full Wi-Fi, web portal, and router setup instructions.
 
 
 

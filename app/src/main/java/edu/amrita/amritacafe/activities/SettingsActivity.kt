@@ -37,6 +37,11 @@ import android.os.Looper
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.Socket
+import java.net.InetSocketAddress
+import edu.amrita.amritacafe.printer.escpos.EscPosBuilder
 
 class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var pref: SharedPreferences
@@ -87,6 +92,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             // Bind Views
             receiptIpET.setText(configuration.receiptPrinterIP)
             kitchenIpET.setText(configuration.kitchenPrinterIP)
+            rawSocketCheckbox.isChecked = configuration.useRawSocket
+            rawSocketCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                configuration.useRawSocket = isChecked
+            }
 
             testingCheckBox.isChecked = configuration.testing
             testingCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -97,12 +106,14 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             rangeToET.setText(configuration.rangeTo.toString())
             columnNumbersET.setText(configuration.columns.toString())
 
-            wifiKeywordsET.setText(configuration.wifiKeywords)
-            btKeywordsET.setText(configuration.bluetoothKeywords)
-
             betaUpdatesCheckBox.isChecked = configuration.betaUpdates
             betaUpdatesCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 configuration.betaUpdates = isChecked
+            }
+
+            printAmmaQuoteCheckBox.isChecked = configuration.printAmmaQuote
+            printAmmaQuoteCheckBox.setOnCheckedChangeListener { _, isChecked ->
+                configuration.printAmmaQuote = isChecked
             }
 
             try {
@@ -120,30 +131,304 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             }
 
             bluetoothET.setText(configuration.bluetoothName)
-            bluetoothET.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(s: Editable?) {
-                    configuration.bluetoothName = s.toString()
-                }
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            })
 
             pairButton.setOnClickListener {
                 showBluetoothDeviceSelector()
             }
 
-            // Spinner setup
-            val spinner = modeSpinner
-            spinner.onItemSelectedListener = this@SettingsActivity
-            val categories = listOf("Wifi", "Bluetooth")
-            val dataAdapter = ArrayAdapter(
-                this@SettingsActivity,
-                android.R.layout.simple_spinner_item,
-                categories
+            testBluetoothButton.setOnClickListener {
+                testBluetoothPrinterConnection(testBluetoothButton)
+            }
+
+            // Destination Spinners
+            updateReceiptSpinner()
+            updateKitchenSpinner()
+
+            // Workflow Mode Spinner setup
+            val modeOptions = listOf(
+                "Order Mode (Table/Counter)",
+                "Cashier Mode (Payments & Change)"
             )
-            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinner.adapter = dataAdapter
-            spinner.setSelection(configuration.mode)
+            val modeAdapter = ArrayAdapter(
+                this@SettingsActivity,
+                R.layout.spinner_item,
+                modeOptions
+            )
+            modeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+            modeSpinner.adapter = modeAdapter
+            modeSpinner.setSelection(configuration.workflowMode)
+            updateKitchenVisibility(configuration.workflowMode)
+            modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    configuration.workflowMode = position
+                    configuration.mode = position
+                    updateKitchenVisibility(position)
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+
+            testWifi1Button.setOnClickListener {
+                val ip = receiptIpET.text.toString().trim()
+                testPrinterConnection(ip, testWifi1Button, "Wi-Fi / LAN 1")
+            }
+
+            testWifi2Button.setOnClickListener {
+                val ip = kitchenIpET.text.toString().trim()
+                testPrinterConnection(ip, testWifi2Button, "Wi-Fi / LAN 2")
+            }
+        }
+    }
+
+    private fun updateReceiptSpinner() {
+        val btLabel = if (configuration.bluetoothName.isNotEmpty()) {
+            "Bluetooth (${configuration.bluetoothName})"
+        } else {
+            "Bluetooth"
+        }
+        val receiptOptions = listOf(
+            "Wi-Fi / LAN 1",
+            "Wi-Fi / LAN 2",
+            btLabel,
+            "None (Disabled)"
+        )
+        val receiptAdapter = ArrayAdapter(
+            this@SettingsActivity,
+            R.layout.spinner_item,
+            receiptOptions
+        )
+        receiptAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.receiptDestinationSpinner.adapter = receiptAdapter
+        binding.receiptDestinationSpinner.setSelection(configuration.receiptPrinterTarget)
+        binding.receiptDestinationSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                configuration.receiptPrinterTarget = position
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateKitchenSpinner() {
+        val btLabel = if (configuration.bluetoothName.isNotEmpty()) {
+            "Bluetooth (${configuration.bluetoothName})"
+        } else {
+            "Bluetooth"
+        }
+        val kitchenOptions = listOf(
+            "Wi-Fi / LAN 2",
+            "Wi-Fi / LAN 1",
+            btLabel,
+            "None (Disabled)"
+        )
+        val kitchenAdapter = ArrayAdapter(
+            this@SettingsActivity,
+            R.layout.spinner_item,
+            kitchenOptions
+        )
+        kitchenAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.kitchenDestinationSpinner.adapter = kitchenAdapter
+        binding.kitchenDestinationSpinner.setSelection(configuration.kitchenPrinterTarget)
+        binding.kitchenDestinationSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                configuration.kitchenPrinterTarget = position
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateKitchenVisibility(mode: Int) {
+        val isOrderMode = (mode == Configuration.MODE_ORDER_TAKER)
+        binding.kitchenPrinterLabel.visibility = if (isOrderMode) View.VISIBLE else View.GONE
+        binding.kitchenDestinationSpinner.visibility = if (isOrderMode) View.VISIBLE else View.GONE
+    }
+
+    private fun testPrinterConnection(ipAddress: String, button: android.widget.Button, printerLabel: String) {
+        val cleanIp = ipAddress.removePrefix("TCP:").trim()
+        val parts = cleanIp.split(":")
+        val host = parts[0].trim()
+        val port = if (parts.size > 1) parts[1].toIntOrNull() ?: 9100 else 9100
+
+        if (host.isEmpty()) {
+            Toast.makeText(this, "Please enter an IP address first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        button.isEnabled = false
+        button.text = "Testing..."
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var success = false
+            var errorMsg = ""
+            val startTime = System.currentTimeMillis()
+
+            try {
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress(host, port), 2500)
+                    success = socket.isConnected
+                }
+            } catch (e: Exception) {
+                errorMsg = e.localizedMessage ?: e.message ?: "Connection timed out"
+            }
+
+            val elapsed = System.currentTimeMillis() - startTime
+
+            withContext(Dispatchers.Main) {
+                button.isEnabled = true
+                button.text = "Test"
+
+                if (success) {
+                    AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle("$printerLabel Online! \u2705")
+                        .setMessage("Successfully connected to $host:$port in ${elapsed}ms.\n\nWould you like to print a test ticket?")
+                        .setPositiveButton("Print Test") { _, _ ->
+                            printTestTicket(host, port)
+                        }
+                        .setNegativeButton("OK", null)
+                        .show()
+                } else {
+                    AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle("$printerLabel Unreachable \u274C")
+                        .setMessage("Could not connect to $host:$port.\n\nError: $errorMsg\n\nPlease check:\n1. Tablet is connected to router Wi-Fi\n2. Printer is turned ON\n3. IP address matches printer self-test sheet")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun printTestTicket(host: String, port: Int) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val data = EscPosBuilder()
+                    .alignCenter()
+                    .textSize(2, 2)
+                    .bold(true)
+                    .line("AMRITA CAFE")
+                    .textSize(1, 1)
+                    .bold(false)
+                    .line("Printer Test Successful")
+                    .line("IP: $host:$port")
+                    .horizontalLine('-', 42)
+                    .cut(1)
+                    .build()
+
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress(host, port), 3000)
+                    socket.getOutputStream().use { out ->
+                        out.write(data)
+                        out.flush()
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@SettingsActivity, "Test ticket printed!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@SettingsActivity, "Print failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun testBluetoothPrinterConnection(button: android.widget.Button) {
+        val address = configuration.bluetoothAddress
+        val name = configuration.bluetoothName.ifEmpty { "Bluetooth Printer" }
+
+        if (address.isEmpty()) {
+            Toast.makeText(this, "Please select a Bluetooth printer first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        button.isEnabled = false
+        button.text = "Testing..."
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var success = false
+            var errorMsg = ""
+            val startTime = System.currentTimeMillis()
+
+            try {
+                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                val adapter = bluetoothManager.adapter
+                if (adapter == null || !adapter.isEnabled) {
+                    throw Exception("Bluetooth is disabled on tablet")
+                }
+                val device = adapter.getRemoteDevice(address)
+                val uuid = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                val socket = device.createRfcommSocketToServiceRecord(uuid)
+                adapter.cancelDiscovery()
+                socket.connect()
+                success = socket.isConnected
+                socket.close()
+            } catch (e: Exception) {
+                errorMsg = e.localizedMessage ?: e.message ?: "Connection failed"
+            }
+
+            val elapsed = System.currentTimeMillis() - startTime
+
+            withContext(Dispatchers.Main) {
+                button.isEnabled = true
+                button.text = "Test"
+
+                if (success) {
+                    AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle("$name Online! \u2705")
+                        .setMessage("Successfully connected to $name ($address) in ${elapsed}ms.\n\nWould you like to print a test ticket?")
+                        .setPositiveButton("Print Test") { _, _ ->
+                            printBluetoothTestTicket(address, name)
+                        }
+                        .setNegativeButton("OK", null)
+                        .show()
+                } else {
+                    AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle("$name Unreachable \u274C")
+                        .setMessage("Could not connect to $name ($address).\n\nError: $errorMsg\n\nPlease check:\n1. Printer is turned ON and nearby\n2. Bluetooth is paired in Android Settings\n3. No other device is currently connected to the printer")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun printBluetoothTestTicket(address: String, name: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                val adapter = bluetoothManager.adapter ?: throw Exception("Bluetooth not available")
+                val device = adapter.getRemoteDevice(address)
+                val uuid = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                val socket = device.createRfcommSocketToServiceRecord(uuid)
+                adapter.cancelDiscovery()
+                socket.connect()
+
+                val data = EscPosBuilder()
+                    .alignCenter()
+                    .textSize(2, 2)
+                    .bold(true)
+                    .line("AMRITA CAFE")
+                    .textSize(1, 1)
+                    .bold(false)
+                    .line("Bluetooth Test Successful")
+                    .line(name)
+                    .line(address)
+                    .horizontalLine('-', 30)
+                    .cut(1)
+                    .build()
+
+                socket.outputStream.write(data)
+                socket.outputStream.flush()
+                delay(500L)
+                socket.close()
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@SettingsActivity, "Test ticket printed!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@SettingsActivity, "Print failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -188,6 +473,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 binding.bluetoothET.setText(selectedDevice.name ?: "Unknown")
                 configuration.bluetoothName = selectedDevice.name ?: "Unknown"
                 configuration.bluetoothAddress = selectedDevice.address
+                updateReceiptSpinner()
+                updateKitchenSpinner()
             }
             .setNeutralButton("Scan for New Devices") { _, _ ->
                 startDiscoveryFlow()
@@ -331,6 +618,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 binding.bluetoothET.setText(selectedDevice.name ?: "Unknown")
                 configuration.bluetoothName = selectedDevice.name ?: "Unknown"
                 configuration.bluetoothAddress = selectedDevice.address
+                updateReceiptSpinner()
+                updateKitchenSpinner()
                 
                 Toast.makeText(this, "Saved: ${selectedDevice.name}", Toast.LENGTH_SHORT).show()
             }
@@ -358,11 +647,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             configuration.apply {
                 kitchenPrinterIP = kitchenIpET.text.toString().trim()
                 receiptPrinterIP = receiptIpET.text.toString().trim()
+                useRawSocket = rawSocketCheckbox.isChecked
                 rangeFrom = rangeFromET.text.toString().trim().toIntOrNull() ?: 1
                 rangeTo = rangeToET.text.toString().trim().toIntOrNull() ?: 999
                 columns = columnNumbersET.text.toString().trim().toIntOrNull() ?: 8
-                wifiKeywords = wifiKeywordsET.text.toString().trim()
-                bluetoothKeywords = btKeywordsET.text.toString().trim()
             }
         }
     }

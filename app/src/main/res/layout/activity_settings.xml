@@ -74,71 +74,14 @@
             android:orientation="vertical"
             android:paddingBottom="32dp">
 
-            <!-- Printer IPs -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Printer Configuration"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Receipt Printer IP:"
-                android:layout_marginTop="8dp"/>
-            <EditText
-                android:id="@+id/receipt_ip_ET"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="192.168.0.116"
-                android:inputType="text" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kitchen Printer IP:"
-                android:layout_marginTop="8dp"/>
-            <EditText
-                android:id="@+id/kitchen_ip_ET"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="192.168.0.11"
-                android:inputType="text" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bluetooth Printer Name:"
-                android:layout_marginTop="8dp"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/bluetooth_ET"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="PT-280_2A69"
-                    android:inputType="text" />
-                <Button
-                    android:id="@+id/pair_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select"
-                    style="?android:attr/buttonStyleSmall" />
-            </LinearLayout>
-
-            <!-- Workflow -->
+            <!-- Workflow Configuration at the top -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Workflow Configuration"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="8dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -148,31 +91,132 @@
             <Spinner
                 android:id="@+id/mode_spinner"
                 android:layout_width="match_parent"
-                android:layout_height="48dp" />
+                android:layout_height="48dp"
+                android:popupBackground="#263238" />
+
+            <!-- Printer Configuration -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Printer Configuration"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="WIFI Keywords (comma separated):"
+                android:text="Receipt Printer:"
                 android:layout_marginTop="8dp"/>
-            <EditText
-                android:id="@+id/wifiKeywordsET"
+            <Spinner
+                android:id="@+id/receipt_destination_spinner"
                 android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:popupBackground="#263238" />
+
+            <TextView
+                android:id="@+id/kitchen_printer_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="breakfast,lunch,dinner"
-                android:inputType="text" />
+                android:text="Kitchen Printer:"
+                android:layout_marginTop="8dp"/>
+            <Spinner
+                android:id="@+id/kitchen_destination_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:popupBackground="#263238" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bluetooth Keywords (comma separated):"
+                android:text="Wi-Fi / LAN 1 IP Address:"
                 android:layout_marginTop="8dp"/>
-            <EditText
-                android:id="@+id/btKeywordsET"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="cafe,canteen"
-                android:inputType="text" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <EditText
+                    android:id="@+id/receipt_ip_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="192.168.0.10"
+                    android:inputType="text" />
+                <Button
+                    android:id="@+id/test_wifi1_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test"
+                    style="?android:attr/buttonStyleSmall" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wi-Fi / LAN 2 IP Address:"
+                android:layout_marginTop="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <EditText
+                    android:id="@+id/kitchen_ip_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="192.168.0.11"
+                    android:inputType="text" />
+                <Button
+                    android:id="@+id/test_wifi2_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test"
+                    style="?android:attr/buttonStyleSmall" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth Printer:"
+                android:layout_marginTop="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <EditText
+                    android:id="@+id/bluetooth_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Select a paired printer"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:inputType="none" />
+                <Button
+                    android:id="@+id/pair_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select"
+                    style="?android:attr/buttonStyleSmall" />
+                <Button
+                    android:id="@+id/test_bluetooth_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test"
+                    style="?android:attr/buttonStyleSmall" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/raw_socket_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:checked="true"
+                android:text="Use Raw TCP (Port 9100) - For Generic/Hoin" />
 
             <!-- Layout -->
             <TextView
@@ -237,6 +281,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Receive Beta Updates" />
+
+            <CheckBox
+                android:id="@+id/printAmmaQuoteCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Print Amma Quote on Receipts" />
 
             <TextView
                 android:id="@+id/versionInfoTV"

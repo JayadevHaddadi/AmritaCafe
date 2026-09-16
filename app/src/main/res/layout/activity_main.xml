@@ -166,9 +166,9 @@
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.2"
+                android:layout_weight="2.0"
                 android:orientation="vertical"
-                android:layout_marginEnd="2dp">
+                android:layout_marginEnd="4dp">
 
             <TextView
                     android:layout_width="wrap_content"

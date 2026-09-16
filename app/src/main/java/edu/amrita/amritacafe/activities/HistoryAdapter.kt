@@ -16,6 +16,7 @@ import edu.amrita.amritacafe.printer.*
 import edu.amrita.amritacafe.printer.bluetooth.bluetoothPrint
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.printer.writer.CashierReceiptWriter
 import edu.amrita.amritacafe.settings.Configuration
 
 class HistoryAdapter(
@@ -75,31 +76,31 @@ class HistoryAdapter(
                 // updateRenunciateUI()
             }
 
-            val isBluetooth = configuration.mode == mainActivity.BLUETOOTH
+            val isOrderTaker = configuration.workflowMode == Configuration.MODE_ORDER_TAKER
 
             val kitchenLayout = binding.root.findViewById<View>(R.id.kitchen_layout)
-            if (isBluetooth) {
-                kitchenLayout?.visibility = View.GONE
-                view.include.receiptTextTV.text = "Printer:"
-                view.include.receiptRetryButton.text = "PRINT NEW"
-            } else {
+            if (isOrderTaker) {
                 kitchenLayout?.visibility = View.VISIBLE
                 view.include.receiptTextTV.text = "Receipt Printer:"
                 view.include.receiptRetryButton.text = "Retry"
+            } else {
+                kitchenLayout?.visibility = View.GONE
+                view.include.receiptTextTV.text = "Receipt Printer:"
+                view.include.receiptRetryButton.text = "PRINT NEW"
             }
 
             // Reset visibilities - ensure progress is GONE by default
             view.include.kitchenProgress.visibility = View.GONE
             view.include.kitchenError.visibility = View.GONE
             view.include.kitchenDone.visibility = View.GONE
-            view.include.kitchenRetryButton.visibility = if (isBluetooth) View.GONE else View.VISIBLE
+            view.include.kitchenRetryButton.visibility = if (isOrderTaker) View.VISIBLE else View.GONE
 
             view.include.receiptProgress.visibility = View.GONE
             view.include.receiptError.visibility = View.GONE
             view.include.receiptDone.visibility = View.GONE
             view.include.receiptRetryButton.visibility = View.VISIBLE
 
-            if (!isBluetooth) {
+            if (isOrderTaker) {
                 when (historicalOrder.KitchenPrinted) {
                     PrintStatus.SUCCESS_PRINT -> view.include.kitchenDone.visibility = View.VISIBLE
                     PrintStatus.FAILED_PRINT -> view.include.kitchenError.visibility = View.VISIBLE
@@ -121,40 +122,62 @@ class HistoryAdapter(
                 view.include.kitchenError.visibility = View.GONE
                 view.include.kitchenDone.visibility = View.GONE
                 view.include.kitchenProgress.visibility = View.VISIBLE
-                val printerDispatch = ReceiptDispatch(
-                    configuration.kitchenPrinterConnStr,
-                    KitchenWriter,
-                    configuration,
-                    object : PrintStatusListener {
-                        override fun printComplete(status: PrintDispatchResponse) {
-                            mainActivity.runOnUiThread {
-                                view.include.kitchenProgress.visibility = View.GONE
-                            }
-                            if (status is PrintSuccess) {
-                                historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+
+                if (configuration.isKitchenBluetooth) {
+                    try {
+                        edu.amrita.amritacafe.printer.bluetooth.bluetoothPrintKitchen(
+                            mainActivity.mHoinPrinter,
+                            listOf(historicalOrder.order),
+                            configuration
+                        )
+                        historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+                        mainActivity.runOnUiThread {
+                            view.include.kitchenProgress.visibility = View.GONE
+                            view.include.kitchenDone.visibility = View.VISIBLE
+                        }
+                    } catch (e: Exception) {
+                        historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
+                        mainActivity.runOnUiThread {
+                            view.include.kitchenProgress.visibility = View.GONE
+                            view.include.kitchenError.visibility = View.VISIBLE
+                        }
+                    }
+                } else {
+                    val printerDispatch = ReceiptDispatch(
+                        configuration.kitchenPrinterConnStr,
+                        KitchenWriter,
+                        configuration,
+                        object : PrintStatusListener {
+                            override fun printComplete(status: PrintDispatchResponse) {
                                 mainActivity.runOnUiThread {
-                                    view.include.kitchenDone.visibility = View.VISIBLE
+                                    view.include.kitchenProgress.visibility = View.GONE
                                 }
-                            } else if (status is PrintFailed) {
+                                if (status is PrintSuccess) {
+                                    historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
+                                    mainActivity.runOnUiThread {
+                                        view.include.kitchenDone.visibility = View.VISIBLE
+                                    }
+                                } else if (status is PrintFailed) {
+                                    historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
+                                    mainActivity.runOnUiThread {
+                                        view.include.kitchenError.visibility = View.VISIBLE
+                                    }
+                                }
+                            }
+
+                            override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
                                 historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
                                 mainActivity.runOnUiThread {
+                                    view.include.kitchenProgress.visibility = View.GONE
                                     view.include.kitchenError.visibility = View.VISIBLE
                                 }
                             }
+
                         }
+                    )
 
-                        override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
-                            historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
-                            mainActivity.runOnUiThread {
-                                view.include.kitchenProgress.visibility = View.GONE
-                                view.include.kitchenError.visibility = View.VISIBLE
-                            }
-                        }
-
-                    }
-                )
-
-                printerDispatch.dispatchPrint(listOf(historicalOrder.order))
+                    printerDispatch.dispatchPrint(listOf(historicalOrder.order))
+                }
             }
 
             view.include.receiptRetryButton.setOnClickListener {
@@ -162,9 +185,13 @@ class HistoryAdapter(
                 view.include.receiptDone.visibility = View.GONE
                 view.include.receiptProgress.visibility = View.VISIBLE
 
-                if (isBluetooth) {
+                if (configuration.isReceiptBluetooth) {
                     try {
-                        bluetoothPrint(mainActivity.mHoinPrinter, listOf(historicalOrder.order))
+                        edu.amrita.amritacafe.printer.bluetooth.bluetoothPrintReceipt(
+                            mainActivity.mHoinPrinter,
+                            listOf(historicalOrder.order),
+                            configuration
+                        )
                         historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
                         mainActivity.runOnUiThread {
                             view.include.receiptProgress.visibility = View.GONE
@@ -178,9 +205,14 @@ class HistoryAdapter(
                         }
                     }
                 } else {
+                    val writer = if (configuration.workflowMode == Configuration.MODE_CASHIER) {
+                        CashierReceiptWriter
+                    } else {
+                        ReceiptWriter
+                    }
                     val receiptPrintDispatch = ReceiptDispatch(
                         configuration.receiptPrinterConnStr,
-                        ReceiptWriter,
+                        writer,
                         configuration,
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {

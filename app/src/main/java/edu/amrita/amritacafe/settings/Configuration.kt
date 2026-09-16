@@ -69,7 +69,21 @@ data class Configuration(private val preferences: SharedPreferences) {
     val showMenuItemNames get() = preferences.getBoolean(SHOW_FULL_NAMES, false)
 
     val receiptPrinterConnStr
-        get() = "TCP:" + receiptPrinterIP
+        get() = when (receiptPrinterTarget) {
+            RECEIPT_TARGET_WIFI_2 -> "TCP:" + kitchenPrinterIP
+            else -> "TCP:" + receiptPrinterIP
+        }
+
+    val kitchenPrinterConnStr
+        get() = when (kitchenPrinterTarget) {
+            KITCHEN_TARGET_WIFI_1 -> "TCP:" + receiptPrinterIP
+            else -> "TCP:" + kitchenPrinterIP
+        }
+
+    val isReceiptWifi get() = receiptPrinterTarget == RECEIPT_TARGET_WIFI_1 || receiptPrinterTarget == RECEIPT_TARGET_WIFI_2
+    val isReceiptBluetooth get() = receiptPrinterTarget == RECEIPT_TARGET_BLUETOOTH
+    val isKitchenWifi get() = kitchenPrinterTarget == KITCHEN_TARGET_WIFI_2 || kitchenPrinterTarget == KITCHEN_TARGET_WIFI_1
+    val isKitchenBluetooth get() = kitchenPrinterTarget == KITCHEN_TARGET_BLUETOOTH
 
     var tabletName
         get() = preferences.getString(TABLET_NAME_KEY, "Unnamed Tablet")!!
@@ -113,9 +127,6 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(BT_KEYWORDS, value).apply()
         }
 
-    val kitchenPrinterConnStr
-        get() = "TCP:" + kitchenPrinterIP
-
     var kitchenPrinterIP
         get() = preferences.getString(IP_KITCEN_PRINTER, "192.168.0.11")!!
         set(value) {
@@ -134,7 +145,60 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putInt(RANGE_TO, value).apply()
         }
 
+    var workflowMode: Int
+        get() = preferences.getInt(WORKFLOW_MODE, preferences.getInt(MODE, MODE_ORDER_TAKER))
+        set(value) {
+            preferences.edit().putInt(WORKFLOW_MODE, value).putInt(MODE, value).apply()
+        }
+
+    var receiptPrinterTarget: Int
+        get() = preferences.getInt(RECEIPT_PRINTER_TARGET, RECEIPT_TARGET_WIFI_1)
+        set(value) {
+            preferences.edit().putInt(RECEIPT_PRINTER_TARGET, value).apply()
+        }
+
+    var kitchenPrinterTarget: Int
+        get() = preferences.getInt(KITCHEN_PRINTER_TARGET, KITCHEN_TARGET_WIFI_2)
+        set(value) {
+            preferences.edit().putInt(KITCHEN_PRINTER_TARGET, value).apply()
+        }
+
+    var useRawSocket
+        get() = preferences.getBoolean(USE_RAW_SOCKET, true)
+        set(value) {
+            preferences.edit {
+                putBoolean(USE_RAW_SOCKET, value)
+                apply()
+            }
+        }
+
+    var printAmmaQuote
+        get() = preferences.getBoolean(PRINT_AMMA_QUOTE, false)
+        set(value) {
+            preferences.edit {
+                putBoolean(PRINT_AMMA_QUOTE, value)
+                apply()
+            }
+        }
+
     companion object {
+        const val MODE_ORDER_TAKER = 0
+        const val MODE_CASHIER = 1
+
+        const val RECEIPT_TARGET_WIFI_1 = 0
+        const val RECEIPT_TARGET_WIFI_2 = 1
+        const val RECEIPT_TARGET_BLUETOOTH = 2
+        const val RECEIPT_TARGET_NONE = 3
+
+        const val KITCHEN_TARGET_WIFI_2 = 0
+        const val KITCHEN_TARGET_WIFI_1 = 1
+        const val KITCHEN_TARGET_BLUETOOTH = 2
+        const val KITCHEN_TARGET_NONE = 3
+
+        const val WORKFLOW_MODE = "workflow_mode"
+        const val RECEIPT_PRINTER_TARGET = "receipt_printer_target"
+        const val KITCHEN_PRINTER_TARGET = "kitchen_printer_target"
+
         const val TABLET_NAME_KEY = "tablet name"
         const val RANGE_FROM = "range from"
         const val DO_PRINT_CSV_HISTORY = "DO_PRINT_CSV_HISTORY"
@@ -155,5 +219,7 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
         const val COLUMNS_AMOUNT = "COLUMNS_AMOUNT"
         const val DEFAULT_COLUMNS_AMOUNT = 8 // TODO for tablet 11
+        const val USE_RAW_SOCKET = "use_raw_socket"
+        const val PRINT_AMMA_QUOTE = "print_amma_quote"
     }
 }
