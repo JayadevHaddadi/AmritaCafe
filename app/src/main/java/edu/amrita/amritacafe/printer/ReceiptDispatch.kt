@@ -84,7 +84,7 @@ class ReceiptDispatch(
 
         val data = receiptWriter.writeToEscPos(orders, configuration)
 
-        Socket().use { socket ->
+        SocketHelper.createBoundSocket(edu.amrita.amritacafe.AmritaCafeApp.appContext).use { socket ->
             socket.connect(InetSocketAddress(host, port), 4000)
             socket.soTimeout = 4000
             socket.getOutputStream().use { out ->

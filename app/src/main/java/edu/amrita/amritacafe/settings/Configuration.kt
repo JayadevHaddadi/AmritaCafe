@@ -26,13 +26,28 @@ data class Configuration(private val preferences: SharedPreferences) {
             }
         }
 
-    var columns
+    var columnsLandscape: Int
         get() = preferences.getInt(COLUMNS_AMOUNT, DEFAULT_COLUMNS_AMOUNT)
         set(value) {
             preferences.edit {
                 putInt(COLUMNS_AMOUNT, value)
                 apply()
             }
+        }
+
+    var columnsPortrait: Int
+        get() = preferences.getInt(COLUMNS_AMOUNT_PORTRAIT, DEFAULT_COLUMNS_AMOUNT_PORTRAIT)
+        set(value) {
+            preferences.edit {
+                putInt(COLUMNS_AMOUNT_PORTRAIT, value)
+                apply()
+            }
+        }
+
+    var columns: Int
+        get() = columnsLandscape
+        set(value) {
+            columnsLandscape = value
         }
 
     var testing
@@ -81,9 +96,14 @@ data class Configuration(private val preferences: SharedPreferences) {
         }
 
     val isReceiptWifi get() = receiptPrinterTarget == RECEIPT_TARGET_WIFI_1 || receiptPrinterTarget == RECEIPT_TARGET_WIFI_2
-    val isReceiptBluetooth get() = receiptPrinterTarget == RECEIPT_TARGET_BLUETOOTH
+    val isReceiptBluetooth1 get() = receiptPrinterTarget == RECEIPT_TARGET_BLUETOOTH_1
+    val isReceiptBluetooth2 get() = receiptPrinterTarget == RECEIPT_TARGET_BLUETOOTH_2
+    val isReceiptBluetooth get() = isReceiptBluetooth1 || isReceiptBluetooth2
+
     val isKitchenWifi get() = kitchenPrinterTarget == KITCHEN_TARGET_WIFI_2 || kitchenPrinterTarget == KITCHEN_TARGET_WIFI_1
-    val isKitchenBluetooth get() = kitchenPrinterTarget == KITCHEN_TARGET_BLUETOOTH
+    val isKitchenBluetooth1 get() = kitchenPrinterTarget == KITCHEN_TARGET_BLUETOOTH_1
+    val isKitchenBluetooth2 get() = kitchenPrinterTarget == KITCHEN_TARGET_BLUETOOTH_2
+    val isKitchenBluetooth get() = isKitchenBluetooth1 || isKitchenBluetooth2
 
     var tabletName
         get() = preferences.getString(TABLET_NAME_KEY, "Unnamed Tablet")!!
@@ -107,6 +127,42 @@ data class Configuration(private val preferences: SharedPreferences) {
         set(value) {
             preferences.edit().putString(BLUETOOTH_ADDRESS, value).apply()
         }
+
+    var bluetoothPaperSize: Int
+        get() = preferences.getInt(BLUETOOTH_PAPER_SIZE, PAPER_SIZE_80MM)
+        set(value) {
+            preferences.edit().putInt(BLUETOOTH_PAPER_SIZE, value).apply()
+        }
+
+    val isBluetooth80mm get() = bluetoothPaperSize == PAPER_SIZE_80MM
+
+    var bluetooth2Name
+        get() = preferences.getString(BLUETOOTH_2_NAME, "")!!
+        set(value) {
+            preferences.edit().putString(BLUETOOTH_2_NAME, value).apply()
+        }
+
+    var bluetooth2Address
+        get() = preferences.getString(BLUETOOTH_2_ADDRESS, "")!!
+        set(value) {
+            preferences.edit().putString(BLUETOOTH_2_ADDRESS, value).apply()
+        }
+
+    var bluetooth2PaperSize: Int
+        get() = preferences.getInt(BLUETOOTH_2_PAPER_SIZE, PAPER_SIZE_80MM)
+        set(value) {
+            preferences.edit().putInt(BLUETOOTH_2_PAPER_SIZE, value).apply()
+        }
+
+    val isBluetooth280mm get() = bluetooth2PaperSize == PAPER_SIZE_80MM
+
+    val receiptBluetoothAddress get() = if (isReceiptBluetooth2) bluetooth2Address else bluetoothAddress
+    val receiptBluetoothPaperSize get() = if (isReceiptBluetooth2) bluetooth2PaperSize else bluetoothPaperSize
+    val isReceiptBluetooth80mm get() = (if (isReceiptBluetooth2) bluetooth2PaperSize else bluetoothPaperSize) == PAPER_SIZE_80MM
+
+    val kitchenBluetoothAddress get() = if (isKitchenBluetooth2) bluetooth2Address else bluetoothAddress
+    val kitchenBluetoothPaperSize get() = if (isKitchenBluetooth2) bluetooth2PaperSize else bluetoothPaperSize
+    val isKitchenBluetooth80mm get() = (if (isKitchenBluetooth2) bluetooth2PaperSize else bluetoothPaperSize) == PAPER_SIZE_80MM
 
     var mode
         get() = preferences.getInt(MODE, 0)
@@ -143,6 +199,12 @@ data class Configuration(private val preferences: SharedPreferences) {
         get() = preferences.getInt(RANGE_TO, RANGE_TO_DEFAULT)
         set(value) {
             preferences.edit().putInt(RANGE_TO, value).apply()
+        }
+
+    var currentOrderNumber: Int
+        get() = preferences.getInt(edu.amrita.amritacafe.printer.OrderNumberService.LAST_ORDER_NUMBER, RANGE_FROM_DEFAULT)
+        set(value) {
+            preferences.edit().putInt(edu.amrita.amritacafe.printer.OrderNumberService.LAST_ORDER_NUMBER, value).apply()
         }
 
     var workflowMode: Int
@@ -187,13 +249,19 @@ data class Configuration(private val preferences: SharedPreferences) {
 
         const val RECEIPT_TARGET_WIFI_1 = 0
         const val RECEIPT_TARGET_WIFI_2 = 1
-        const val RECEIPT_TARGET_BLUETOOTH = 2
-        const val RECEIPT_TARGET_NONE = 3
+        const val RECEIPT_TARGET_BLUETOOTH_1 = 2
+        const val RECEIPT_TARGET_BLUETOOTH_2 = 3
+        const val RECEIPT_TARGET_NONE = 4
 
         const val KITCHEN_TARGET_WIFI_2 = 0
         const val KITCHEN_TARGET_WIFI_1 = 1
-        const val KITCHEN_TARGET_BLUETOOTH = 2
-        const val KITCHEN_TARGET_NONE = 3
+        const val KITCHEN_TARGET_BLUETOOTH_1 = 2
+        const val KITCHEN_TARGET_BLUETOOTH_2 = 3
+        const val KITCHEN_TARGET_NONE = 4
+
+        // Backwards compatibility alias
+        const val RECEIPT_TARGET_BLUETOOTH = RECEIPT_TARGET_BLUETOOTH_1
+        const val KITCHEN_TARGET_BLUETOOTH = KITCHEN_TARGET_BLUETOOTH_1
 
         const val WORKFLOW_MODE = "workflow_mode"
         const val RECEIPT_PRINTER_TARGET = "receipt_printer_target"
@@ -210,6 +278,12 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val IP_RECEIPT_PRINTER = "receipt_printer_ip"
         const val BLUETOOTH_NAME = "bluetooth name"
         const val BLUETOOTH_ADDRESS = "bluetooth address"
+        const val PAPER_SIZE_80MM = 0
+        const val PAPER_SIZE_58MM = 1
+        const val BLUETOOTH_PAPER_SIZE = "bluetooth_paper_size"
+        const val BLUETOOTH_2_NAME = "bluetooth_2_name"
+        const val BLUETOOTH_2_ADDRESS = "bluetooth_2_address"
+        const val BLUETOOTH_2_PAPER_SIZE = "bluetooth_2_paper_size"
         const val MODE = "mode"
         const val WIFI_KEYWORDS = "wifi_keywords"
         const val BT_KEYWORDS = "bt_keywords"
@@ -219,6 +293,8 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val IS_BREAKFAST_MENU_KEY = "SHOW_BREAKFAST_MENU"
         const val COLUMNS_AMOUNT = "COLUMNS_AMOUNT"
         const val DEFAULT_COLUMNS_AMOUNT = 8 // TODO for tablet 11
+        const val COLUMNS_AMOUNT_PORTRAIT = "COLUMNS_AMOUNT_PORTRAIT"
+        const val DEFAULT_COLUMNS_AMOUNT_PORTRAIT = 4
         const val USE_RAW_SOCKET = "use_raw_socket"
         const val PRINT_AMMA_QUOTE = "print_amma_quote"
     }

@@ -179,7 +179,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bluetooth Printer:"
+                android:text="Bluetooth Printer 1:"
                 android:layout_marginTop="8dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -210,6 +210,62 @@
                     style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth 1 Paper Size:"
+                android:layout_marginTop="8dp"/>
+            <Spinner
+                android:id="@+id/bluetooth_paper_size_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:popupBackground="#263238" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth Printer 2:"
+                android:layout_marginTop="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <EditText
+                    android:id="@+id/bluetooth2_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Select a paired printer"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:inputType="none" />
+                <Button
+                    android:id="@+id/pair_button2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select"
+                    style="?android:attr/buttonStyleSmall" />
+                <Button
+                    android:id="@+id/test_bluetooth2_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test"
+                    style="?android:attr/buttonStyleSmall" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth 2 Paper Size:"
+                android:layout_marginTop="8dp"/>
+            <Spinner
+                android:id="@+id/bluetooth2_paper_size_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:popupBackground="#263238" />
+
             <CheckBox
                 android:id="@+id/raw_socket_checkbox"
                 android:layout_width="match_parent"
@@ -222,7 +278,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="App Layout"
+                android:text="Tablet &amp; Layout"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginTop="16dp"/>
@@ -230,12 +286,49 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Menu Columns:"
+                android:text="Tablet Name:"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/tablet_name_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g. Counter 1, Kitchen"
+                android:inputType="text" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current Order Number:"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/current_order_number_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="1"
+                android:inputType="number" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Menu Columns (Landscape / Horizontal):"
                 android:layout_marginTop="8dp"/>
             <EditText
                 android:id="@+id/column_numbers_ET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hint="8"
+                android:inputType="number" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Menu Columns (Portrait / Vertical):"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/column_numbers_portrait_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="4"
                 android:inputType="number" />
 
             <TextView

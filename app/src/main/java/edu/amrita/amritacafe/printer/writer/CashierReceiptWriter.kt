@@ -30,7 +30,15 @@ class CashierReceiptWriter(
             orders: List<Order>,
             configuration: Configuration
         ): ByteArray {
-            return CashierReceiptWriter(orders, configuration).writeToEscPos()
+            return CashierReceiptWriter(orders, configuration).writeToEscPos(42)
+        }
+
+        override fun writeToEscPos(
+            orders: List<Order>,
+            configuration: Configuration,
+            columns: Int
+        ): ByteArray {
+            return CashierReceiptWriter(orders, configuration).writeToEscPos(columns)
         }
     }
 
@@ -106,9 +114,10 @@ class CashierReceiptWriter(
         }
     }
 
-    private fun writeToEscPos(): ByteArray {
+    fun writeToEscPos(columns: Int = 42): ByteArray {
         val builder = EscPosBuilder()
-        val totalCols = 42
+        val totalCols = if (columns > 0) columns else 42
+        val doubleWidthCols = totalCols / 2
 
         orders.forEach { (orderNumber, orderItems, _, _) ->
             val orderTotalText = orderItems.map { it.totalPrice() }.sum().toString()
@@ -130,7 +139,7 @@ class CashierReceiptWriter(
             val pad1 = (totalCols - time.length).coerceAtLeast(line1Left.length)
             builder.line(line1Left.padEnd(pad1) + time)
 
-            val line2Left = "Amritapuri, Kollam-690546"
+            val line2Left = if (totalCols >= 42) "Amritapuri, Kollam-690546" else "Amritapuri, Kollam"
             val pad2 = (totalCols - date.length).coerceAtLeast(line2Left.length)
             builder.line(line2Left.padEnd(pad2) + date)
 
@@ -146,14 +155,15 @@ class CashierReceiptWriter(
             builder.bold(true)
             builder.textSize(2, 2)
             val totalPrefix = "Total"
-            val dotCount = (21 - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
+            val dotCount = (doubleWidthCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
             builder.line(totalPrefix + ".".repeat(dotCount) + orderTotalText)
             builder.bold(false)
             builder.textSize(1, 1)
 
             // Optional Amma Quote
             if (configuration.printAmmaQuote) {
-                val quoteLines = AmmaQuotes.getFormattedLines(orderNumber, 36)
+                val quoteChars = if (totalCols >= 42) 36 else 24
+                val quoteLines = AmmaQuotes.getFormattedLines(orderNumber, quoteChars)
                 builder.feedLines(1)
                 builder.alignCenter()
                 quoteLines.forEach { line ->

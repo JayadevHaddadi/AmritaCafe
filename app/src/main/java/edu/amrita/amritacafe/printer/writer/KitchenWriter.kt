@@ -94,11 +94,21 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             orders: List<Order>,
             configuration: Configuration
         ): ByteArray {
-            return KitchenWriter(orders, configuration).writeToEscPos()
+            return KitchenWriter(orders, configuration).writeToEscPos(42)
+        }
+
+        override fun writeToEscPos(
+            orders: List<Order>,
+            configuration: Configuration,
+            columns: Int
+        ): ByteArray {
+            return KitchenWriter(orders, configuration).writeToEscPos(columns)
         }
     }
 
-    private fun writeToEscPos(): ByteArray {
+    fun writeToEscPos(columns: Int = 42): ByteArray {
+        val totalCols = if (columns > 0) columns else 42
+        val doubleWidthCols = totalCols / 2
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         val builder = EscPosBuilder()
 
@@ -111,15 +121,15 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             val titleScale = if (titleSize > 1) 2 else 1
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
-            // 24 characters at 2x width on 80mm paper
-            val headerText = orderNumStr.padEnd(12) + time.padStart(12)
+            val headerPad = (doubleWidthCols - time.length).coerceAtLeast(orderNumStr.length)
+            val headerText = orderNumStr.padEnd(headerPad) + time
             builder.line(headerText)
             builder.bold(false)
 
             builder.feedLines(lineFeed)
             // Crucial: reset text size to 1x1 before drawing separator line to prevent wrapping
             builder.textSize(1, 1)
-            builder.horizontalLine('=', 48)
+            builder.horizontalLine('=', totalCols)
 
             // Large, bold font for kitchen staff (2x2 scale in normal mode)
             val textScale = if (configuration.testing) 1 else 2

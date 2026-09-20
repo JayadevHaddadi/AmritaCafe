@@ -7,18 +7,17 @@
         android:background="@color/white"
         tools:context=".activities.MainActivity">
 
-    <!-- Top Title Bar -->
     <LinearLayout
             android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
             android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_marginRight="4dp"
             android:background="@drawable/background_white_text"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -36,16 +35,16 @@
 
                 <ImageView
                     android:id="@+id/printer_indicator"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:layout_marginEnd="2dp"
                     app:srcCompat="@android:drawable/ic_menu_report_image"
                     app:tint="@android:color/darker_gray" />
 
                 <ImageView
                     android:id="@+id/sheets_indicator"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:layout_marginEnd="4dp"
                     app:srcCompat="@android:drawable/stat_sys_upload"
                     app:tint="@android:color/darker_gray" />
@@ -108,19 +107,57 @@
 
     </LinearLayout>
 
-    <!-- Menu Controls (Menu Category Spinner, Price Toggle, Short/Long Toggle) -->
+    <GridView
+            android:id="@+id/menuGridView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="1dp"
+            android:clipToPadding="false"
+            android:gravity="center_horizontal|center_vertical"
+            android:horizontalSpacing="4dp"
+            android:numColumns="auto_fit"
+            android:columnWidth="90dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="72dp"
+            android:verticalSpacing="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/item_menu" />
+
+    <ImageButton
+            android:id="@+id/button_cancel"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/background_payment"
+            android:onClick="deleteOrder"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/order_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/order_button"
+            app:layout_constraintWidth_percent="0.05"
+            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
+
     <LinearLayout
             android:id="@+id/menu_controls"
             android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="4dp"
+            android:layout_height="0dp"
             android:orientation="horizontal"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:baselineAligned="false"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline"
+            app:layout_constraintHeight_min="60dp"
+            app:layout_constraintHeight_percent="0.15"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title">
 
@@ -136,7 +173,7 @@
                     android:layout_height="wrap_content"
                     android:text="Menu:"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
             <Spinner
@@ -151,7 +188,7 @@
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:orientation="vertical"
                 android:layout_marginEnd="2dp">
 
@@ -161,7 +198,7 @@
                     android:layout_height="wrap_content"
                     android:text="Price:"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
             <Button
@@ -174,14 +211,14 @@
                     android:text="On"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:orientation="vertical">
 
             <TextView
@@ -190,7 +227,7 @@
                     android:layout_height="wrap_content"
                     android:text="Short:"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
             <Button
@@ -203,74 +240,20 @@
                     android:text="Off"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Horizontal Guideline separating Menu Grid (above) and Current Orders (below) -->
-    <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.55" />
-
-    <!-- Menu Items Grid (Upper ~55% of screen) -->
-    <GridView
-            android:id="@+id/menuGridView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="4dp"
-            android:clipToPadding="false"
-            android:gravity="center_horizontal|center_vertical"
-            android:horizontalSpacing="4dp"
-            android:numColumns="4"
-            android:paddingTop="2dp"
-            android:paddingBottom="50dp"
-            android:verticalSpacing="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/guideline"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/menu_controls"
-            tools:listitem="@layout/item_menu" />
-
-    <!-- Cafe Item button floating at bottom-right of menu grid -->
-    <Button
-            android:id="@+id/order_button2"
-            android:layout_width="140dp"
-            android:layout_height="44dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="6dp"
-            android:background="@drawable/background_payment"
-            android:onClick="cafeOrder"
-            android:padding="0dp"
-            android:text="Cafe Item"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/guideline"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Order Info Layout (Order #, order_number_TV) -->
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/order_info_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="4dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
+            android:layout_margin="0dp"
             android:background="@drawable/background_white_text"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/guideline">
+            app:layout_constraintTop_toBottomOf="@+id/menu_controls">
 
         <TextView
                 android:layout_width="wrap_content"
@@ -278,7 +261,7 @@
                 android:padding="0dp"
                 android:text="Order"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -290,7 +273,7 @@
                 android:padding="0dp"
                 android:text="1"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -298,35 +281,20 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Orders List View (Current order items) -->
-    <ListView
-            android:id="@+id/order_ListView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
-            android:paddingEnd="4dp"
-            android:clipToPadding="false"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="3dp"
-            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/order_info_layout"
-            tools:listitem="@layout/item_order" />
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.3" />
 
-    <!-- Sum / Total Cost Row -->
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout2"
             android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginBottom="4dp"
+            android:layout_height="wrap_content"
             android:background="@drawable/background_white_text"
             app:layout_constraintBottom_toTopOf="@+id/order_button"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline"
             app:layout_constraintStart_toStartOf="parent">
 
         <TextView
@@ -335,11 +303,10 @@
                 android:layout_height="wrap_content"
                 android:text="Sum"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginStart="8dp" />
+                app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
                 android:id="@+id/total_cost_TV"
@@ -347,47 +314,41 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/textView2"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="₹"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Cancel Order Button -->
-    <ImageButton
-            android:id="@+id/button_cancel"
-            android:layout_width="52dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/background_other_buttons"
-            android:onClick="cancelOrder"
-            app:layout_constraintBottom_toTopOf="@+id/history_button"
+    <ListView
+            android:id="@+id/order_ListView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="4dp"
+            android:paddingRight="4dp"
+            android:paddingEnd="4dp"
+            android:clipToPadding="false"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
+            app:layout_constraintTop_toBottomOf="@+id/order_info_layout"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/item_order" />
 
-    <!-- Big Order Button -->
+
     <Button
             android:id="@+id/order_button"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="0dp"
             android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
             android:layout_marginEnd="4dp"
+            android:layout_marginRight="4dp"
             android:layout_marginBottom="4dp"
             android:background="@drawable/background_payment"
             android:onClick="orderButtonPressed"
@@ -397,29 +358,48 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/history_button"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHeight_percent="0.1"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toEndOf="@+id/button_cancel" />
 
-    <!-- Order History Button -->
+    <Button
+            android:id="@+id/order_button2"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/background_payment"
+            android:onClick="cafeOrder"
+            android:padding="0dp"
+            android:text="Cafe Item"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.1" />
+
     <Button
             android:id="@+id/history_button"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_height="0dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
             android:layout_marginBottom="4dp"
             android:background="@drawable/background_other_buttons"
             android:onClick="openHistoryDialog"
             android:text="Order History"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/black"
-            android:textSize="16sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/menuGridView"
+            app:layout_constraintHeight_percent="0.08"
             app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Payment Dialog Overlay -->
     <include
             android:id="@+id/include_payment"
             layout="@layout/dialog_payment"
@@ -431,10 +411,12 @@
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
 
-    <!-- Easter Egg Container (Amma Photo) -->
+    <!-- Easter Egg Container -->
     <FrameLayout
             android:id="@+id/easter_egg_container"
             android:layout_width="match_parent"

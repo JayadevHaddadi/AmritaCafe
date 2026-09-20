@@ -136,6 +136,18 @@ object UpdateChecker {
             .setMessage(message)
             .setPositiveButton("Update") { _, _ ->
                 isShowing = false
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                    try {
+                        val permIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        context.startActivity(permIntent)
+                        Toast.makeText(context, "Please enable 'Install unknown apps' to allow updates", Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        Log.e("UpdateChecker", "Could not open unknown sources settings", e)
+                    }
+                }
                 startDownload(context, updateUrl)
             }
             .setNegativeButton("Later") { _, _ ->
@@ -169,37 +181,40 @@ object UpdateChecker {
             override fun onReceive(ctxt: Context, intent: Intent) {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                 if (downloadId == id) {
+                    try {
+                        context.applicationContext.unregisterReceiver(this)
+                    } catch (e: Exception) {
+                        // ignore if already unregistered
+                    }
+
                     val query = DownloadManager.Query().setFilterById(downloadId)
                     val cursor = downloadManager.query(query)
-                    if (cursor.moveToFirst()) {
+                    if (cursor != null && cursor.moveToFirst()) {
                         val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                        if (cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                        if (isValidApk(destination)) {
-                            Log.d("UpdateChecker", "Download success. Size: ${destination.length()} bytes")
-                            Toast.makeText(context, "Download complete. Starting update...", Toast.LENGTH_SHORT).show()
-                            context.unregisterReceiver(this)
-                            installApk(context, destination)
-                        } else {
+                        if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
+                            if (isValidApk(destination)) {
+                                Log.d("UpdateChecker", "Download success. Size: ${destination.length()} bytes")
+                                Toast.makeText(context, "Download complete. Starting update...", Toast.LENGTH_SHORT).show()
+                                installApk(context, destination)
+                            } else {
                                 val size = destination.length()
-                                context.unregisterReceiver(this)
                                 showFallbackDialog(context, url, "Invalid file received ($size bytes). The link might not be a direct download.")
                             }
                         } else {
                             val reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
-                            val reason = cursor.getInt(reasonIndex)
-                            context.unregisterReceiver(this)
+                            val reason = if (reasonIndex != -1) cursor.getInt(reasonIndex) else -1
                             showFallbackDialog(context, url, "Download failed (Error code: $reason).")
                         }
                     }
-                    cursor.close()
+                    cursor?.close()
                 }
             }
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_NOT_EXPORTED)
+            context.applicationContext.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED)
         } else {
-            context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+            context.applicationContext.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
         }
     }
 
@@ -271,6 +286,22 @@ object UpdateChecker {
         } catch (e: Exception) {
             Log.e("UpdateChecker", "Error starting installation", e)
             Toast.makeText(context, "Failed to launch installer: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun checkPendingInstall(context: Context) {
+        val destination = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "AmritaCafe_update.apk")
+        if (isValidApk(destination) && downloadId != -1L) {
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return
+            val query = DownloadManager.Query().setFilterById(downloadId)
+            val cursor = downloadManager.query(query)
+            if (cursor != null && cursor.moveToFirst()) {
+                val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
+                    installApk(context, destination)
+                }
+            }
+            cursor?.close()
         }
     }
 }

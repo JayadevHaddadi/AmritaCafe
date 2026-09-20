@@ -23,7 +23,15 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             orders: List<Order>,
             configuration: Configuration
         ): ByteArray {
-            return ReceiptWriter(orders, configuration).writeToEscPos()
+            return ReceiptWriter(orders, configuration).writeToEscPos(42)
+        }
+
+        override fun writeToEscPos(
+            orders: List<Order>,
+            configuration: Configuration,
+            columns: Int
+        ): ByteArray {
+            return ReceiptWriter(orders, configuration).writeToEscPos(columns)
         }
 
         fun orderItemsText(orderItems: List<RegularOrderItem>, totalColumns: Int = 32) =
@@ -94,7 +102,9 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
         }
     }
 
-    private fun writeToEscPos(): ByteArray {
+    fun writeToEscPos(columns: Int = 42): ByteArray {
+        val totalCols = if (columns > 0) columns else 42
+        val doubleWidthCols = totalCols / 2
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         val builder = EscPosBuilder()
 
@@ -107,28 +117,31 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             val titleScale = if (titleSize > 1) 2 else 1
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
-            // 24 characters at 2x width on 80mm roll
-            val headerText = orderNumStr.padEnd(12) + timeInHours.padStart(12)
+            val headerPad = (doubleWidthCols - timeInHours.length).coerceAtLeast(orderNumStr.length)
+            val headerText = orderNumStr.padEnd(headerPad) + timeInHours
             builder.line(headerText)
             builder.bold(false)
 
             builder.feedLines(lineFeed)
             builder.textSize(1, 1)
-            builder.horizontalLine('-', 42)
+            builder.horizontalLine('-', totalCols)
 
-            builder.line(orderItemsText(orderItems, 42))
+            builder.line(orderItemsText(orderItems, totalCols))
 
-            builder.horizontalLine('-', 42)
+            builder.horizontalLine('-', totalCols)
 
             builder.bold(true)
             builder.textSize(2, 2)
-            val totalLine = "TOTAL".padEnd(12) + orderTotalText.padStart(12)
+            val totalPrefix = "TOTAL"
+            val dotCount = (doubleWidthCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
+            val totalLine = totalPrefix + ".".repeat(dotCount) + orderTotalText
             builder.line(totalLine)
             builder.bold(false)
             builder.textSize(1, 1)
 
             if (configuration.printAmmaQuote) {
-                val quoteLines = edu.amrita.amritacafe.quotes.AmmaQuotes.getFormattedLines(orderNumber, 36)
+                val quoteChars = if (totalCols >= 42) 36 else 24
+                val quoteLines = edu.amrita.amritacafe.quotes.AmmaQuotes.getFormattedLines(orderNumber, quoteChars)
                 builder.feedLines(1)
                 builder.alignCenter()
                 quoteLines.forEach { line ->

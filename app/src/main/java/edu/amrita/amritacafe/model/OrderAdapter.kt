@@ -80,6 +80,12 @@ class OrderAdapter(context: Context) : BaseAdapter() {
         updateAll()
     }
 
+    fun restoreItems(items: List<RegularOrderItem>) {
+        orderList.clear()
+        orderList.addAll(items)
+        updateAll()
+    }
+
     private fun updateAll() {
         notifyDataSetChanged()
         orderChanged()

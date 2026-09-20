@@ -144,3 +144,113 @@ During major festival events like Amma's Birthday, the 2.4 GHz RF environment ha
     3. All legacy Epson wrapper classes and error handling.
   * This eliminates ~200 KB of binary bloat, prevents vendor lock-in, and standardizes the entire codebase on 100% open, universal ESC/POS.
 
+---
+
+## 7. Wi-Fi Hotspots: Why Printers Only Support 2.4 GHz (Not 5 GHz)
+
+### The Hardware Reality of POS Printers
+* **Why did the printer fail to connect to a 5 GHz phone hotspot?**
+  * Thermal POS receipt printers (including KP307, Xprinter, Shreyans, Netum, and budget Epson models) use low-cost embedded IoT Wi-Fi microcontrollers (such as Espressif ESP8266, ESP32-C3/S2, or Realtek RTL8711AM).
+  * These embedded chips **only have a 2.4 GHz radio (802.11 b/g/n)**. They physically lack the 5 GHz RF receiver, power amplifier, and ceramic filter required to detect or connect to 5 GHz (802.11 a/ac/ax) networks.
+  * In commercial kitchen and restaurant environments, 2.4 GHz is the industry standard because 2.4 GHz radio waves penetrate kitchen walls, metal counters, and human bodies significantly better than 5 GHz (which has very weak obstacle penetration).
+
+### How to Configure Your Phone's Hotspot for Cafe Use
+Modern smartphones default to 5 GHz for hotspot sharing. To allow the KP307 and other printers to connect:
+1. Open phone **Settings** \u2192 **Portable Hotspot / Tethering**.
+2. Look for **"Extend compatibility"** (Samsung Galaxy / Google Pixel) and toggle it **ON**.
+   - OR look for **AP Band / Wi-Fi Frequency** and change from **5 GHz Band** to **2.4 GHz Band**.
+3. Now the KP307 printer, kitchen tablets, and order-taker phones can all connect to the same hotspot simultaneously.
+
+---
+
+## 8. Offline Local Wi-Fi Printing with Mobile Data Enabled
+
+### The Problem
+* When phones or tablets connect to the cafe router (e.g. Tenda) that has **no internet connection** (no WAN uplink, IPs like `192.168.0.x`), Android detects "No Internet Access".
+* To keep internet working for apps (WhatsApp, Chrome), Android leaves **Mobile Data (Cellular)** as the *default network*.
+* In standard Java networking, `Socket.connect()` routes packets through the default network (Cellular). The cellular carrier cannot route private RFC 1918 IPs (`192.168.0.x`), causing the connection to fail or timeout unless Mobile Data was manually turned off.
+
+### The App Solution (`SocketHelper.kt`)
+* The app now uses Android's `ConnectivityManager` and `Network.bindSocket()` to explicitly bind raw TCP printer sockets to the Wi-Fi network interface (`TRANSPORT_WIFI`).
+* **Benefits:**
+  1. Print sockets travel directly over Wi-Fi (`wlan0`) straight to the printer at `192.168.0.x`.
+  2. **Mobile Data can stay ON at all times!**
+  3. Orders can post to Google Sheets in the cloud via Mobile Data while simultaneously printing locally to the kitchen printer over offline Wi-Fi!
+
+---
+
+## 9. Testing Summary & Verified Matrix
+
+| Setup | Printer Model | Protocol | Verified Behavior |
+| :--- | :--- | :--- | :--- |
+| **Wi-Fi / LAN** | Shreyans KP307 (New) | Raw TCP (Port 9100) | \u2705 Flawless printing, clean spacing, auto-cut working. |
+| **Wi-Fi / LAN** | Epson TM Series | Raw TCP (Port 9100) | \u2705 Confirmed working with Raw TCP (bypassing ePOS SDK). |
+| **Wi-Fi / LAN** | Shreyans Legacy 80mm | Raw TCP (Port 9100) | \u2705 Confirmed working with Raw TCP. |
+| **Bluetooth** | Shreyans KP307 | SPP (Raw ESC/POS) | \u2705 Full 80mm width (42 cols), auto-cut working, no double line spacing. |
+| **Bluetooth** | Hoin / PT-280 | SPP (Raw ESC/POS) | \u2705 58mm width (30 cols), clean tear-off feed. |
+| **Phone Hotspot** | KP307 + Tablets | 2.4 GHz Wi-Fi Hotspot | ✅ Both phone and tablet can print simultaneously. Requires 2.4 GHz band. |
+| **Offline Router** | Kitchen Tenda (No WAN) | Raw TCP with Mobile Data | ✅ Sockets bound to Wi-Fi; no need to disable cellular data. |
+
+---
+
+## 10. RF Interference at the Birthday Venue: Bluetooth vs. Wi-Fi
+
+During Amma's Birthday celebrations, with thousands of devotees packed into the ashram carrying smartphones, smartwatches, and wireless earbuds, the 2.4 GHz spectrum becomes heavily congested. Understanding the physics behind Bluetooth and Wi-Fi helps prevent dropped orders.
+
+### 1. What Band Does Bluetooth Use?
+* **Bluetooth uses the exact same 2.4 GHz ISM band** (2.402 GHz to 2.480 GHz) as 2.4 GHz Wi-Fi.
+* They share the exact same radio frequency airspace.
+
+### 2. How Each Technology Fights Congestion
+
+| Feature | 2.4 GHz Wi-Fi (Tenda Router) | Bluetooth (KP307 / PT-280) |
+| :--- | :--- | :--- |
+| **Frequency Strategy** | Parks on **one static 20 MHz channel** (e.g. Channel 11). | **Frequency Hopping (FHSS):** Hops across 79 distinct 1-MHz channels **1,600 times per second**. |
+| **Transmit Power** | **High** (~100–200 mW / +20 dBm) with external high-gain antennas. | **Low** (~2.5 mW / +4 dBm) with tiny internal PCB trace antennas. |
+| **Range Through Crowds** | **Long (20–50 meters)**. High power punches through air and around obstacles. | **Short (3–8 meters max)**. Human bodies are 70% water, which strongly absorbs 2.4 GHz radio waves. |
+| **Interference Behavior** | Contends for airtime if other routers/hotspots share Channel 11. | **Adaptive Frequency Hopping (AFH):** Automatically detects busy Wi-Fi channels and skips around them. |
+
+### 3. Which Suffers More Interference at the Venue?
+
+The winner depends entirely on **distance**:
+
+* **Close-Range (< 3 to 5 meters, e.g. Cashier Counter):**
+  * **Winner: Bluetooth.**
+  * Because the tablet is sitting right next to the printer, signal strength is high. Bluetooth's rapid 1,600 hops/second effectively dodges surrounding Wi-Fi traffic, giving an exceptionally clean, reliable connection at the counter.
+* **Medium-to-Long Range (> 5 to 20 meters, e.g. Kitchen Printing):**
+  * **Winner: Wi-Fi.**
+  * The low-power (2.5 mW) Bluetooth signal will be completely smothered by crowds of standing devotees absorbing the signal. Connections will drop, timeout, or fail to pair.
+  * The Tenda Wi-Fi router (100–200 mW) placed above crowd height will easily broadcast through the hall and kitchen.
+
+### 4. Golden Architecture for Festival Operations
+
+1. **Kitchen Order Printer (Long Range / Walls / Distance):**
+   * **Always use Wi-Fi.**
+   * Elevate the Tenda router at head height or higher.
+   * Lock router to **Channel 11** at **20 MHz** width (prevents channel-hopping drops).
+2. **Cashier / Counter Receipt Printer (Short Range):**
+   * **Use Bluetooth OR Wi-Fi.**
+   * If the cashier tablet is within 1–2 meters of the printer, Bluetooth is rock-solid and completely immune to Wi-Fi traffic.
+   * If using Wi-Fi, it shares the same high-speed network.
+
+---
+
+## 11. Dual Bluetooth Printer Architecture (Bluetooth 1 & Bluetooth 2)
+
+As of v7.2, the app supports configuring **two independent Bluetooth printers**:
+
+* **Bluetooth Printer 1:** Connected via Hoin SDK / direct RFCOMM socket. Has its own paired device selector, Test button, and Paper Size setting (58mm or 80mm).
+* **Bluetooth Printer 2:** Connected on-demand via direct Android RFCOMM socket (`BluetoothRawPrinter`). Has its own paired device selector, Test button, and Paper Size setting (58mm or 80mm).
+
+### Destination Routing
+In Settings, you can independently assign:
+* **Receipt Printer:** Wi-Fi 1, Wi-Fi 2, `Bluetooth 1 (<name>)`, `Bluetooth 2 (<name>)`, or None.
+* **Kitchen Printer:** Wi-Fi 2, Wi-Fi 1, `Bluetooth 1 (<name>)`, `Bluetooth 2 (<name>)`, or None.
+
+This allows setups such as:
+1. **Receipt on Bluetooth 1** (e.g., 58mm mobile belt printer or 80mm counter printer) + **Kitchen on Wi-Fi 2** (KP307 80mm in kitchen).
+2. **Receipt on Bluetooth 1** + **Kitchen on Bluetooth 2** (both printing via Bluetooth without dropping connections).
+3. **Receipt on Wi-Fi 1** + **Kitchen on Bluetooth 2**.
+
+
+

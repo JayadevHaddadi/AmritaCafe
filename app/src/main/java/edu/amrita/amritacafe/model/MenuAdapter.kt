@@ -53,7 +53,8 @@ class MenuAdapter(
             }.toMap()
 
             colors.recycle()
-            val columns = configuration.columns
+            val isPortrait = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+            val columns = if (isPortrait) configuration.columnsPortrait else configuration.columnsLandscape
             menuItems = menuByCategory.map { (category, items) ->
                 listOf(category) + items.sortedBy(menuItemDisplayNameHandler) +
                         Array((columns - (items.size + 1) % columns) % columns) { Unit }

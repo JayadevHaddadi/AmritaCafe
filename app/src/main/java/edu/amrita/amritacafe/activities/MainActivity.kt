@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         lateinit var BREAKFAST_FILE: File
         lateinit var LUNCH_DINNER_FILE: File
+        private var preservedOrders: List<RegularOrderItem>? = null
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -130,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         ConnectionIndicator.init(binding.printerIndicator, binding.sheetsIndicator)
@@ -153,6 +154,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.orderListView.adapter = orderAdapter
+        preservedOrders?.let {
+            orderAdapter.restoreItems(it)
+            preservedOrders = null
+            val sum = orderAdapter.orderItems.map { item -> item.priceWithoutExtras }.sum()
+            binding.totalCostTV.text = sum.toString()
+        }
 
         binding.orderButton.setOnClickListener {
             printOrder()
@@ -178,32 +185,29 @@ class MainActivity : AppCompatActivity() {
         tabletName = "Unknown Tablet"
         binding.userTV.text = "Amritapuri @ $tabletName"
 
-        binding.tabletNameMainET.addTextChangedListener(object : android.text.TextWatcher {
-            override fun afterTextChanged(s: android.text.Editable?) {
-                configuration.tabletName = s.toString()
-                if (s.toString().lowercase() == "amritanandamayi" && binding.tabletNameMainET.hasFocus()) {
-                    android.app.AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
-                        .setTitle("Play a Game?")
-                        .setMessage("Do you want to play a game AMMA?")
-                        .setPositiveButton("Yes") { _, _ ->
-                            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-                            imm.hideSoftInputFromWindow(binding.tabletNameMainET.windowToken, 0)
-                            binding.tabletNameMainET.clearFocus()
+        binding.tabletNameMainTV.text = configuration.tabletName
 
-                            val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
-                            val gameView = findViewById<edu.amrita.amritacafe.activities.DarshanGameView>(R.id.darshan_game_view)
-                            if (gameContainer != null && gameView != null) {
-                                gameContainer.visibility = android.view.View.VISIBLE
-                                gameView.startGame()
-                            }
-                        }
-                        .setNegativeButton("No", null)
-                        .show()
+        binding.amritaCafeTitleTv.setOnLongClickListener {
+            triggerAmmaEasterEgg()
+            true
+        }
+
+        binding.sumLabelTv.setOnLongClickListener {
+            android.app.AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
+                .setTitle("Play a Game?")
+                .setMessage("Do you want to play a game AMMA?")
+                .setPositiveButton("Yes") { _, _ ->
+                    val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
+                    val gameView = findViewById<edu.amrita.amritacafe.activities.DarshanGameView>(R.id.darshan_game_view)
+                    if (gameContainer != null && gameView != null) {
+                        gameContainer.visibility = android.view.View.VISIBLE
+                        gameView.startGame()
+                    }
                 }
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+                .setNegativeButton("No", null)
+                .show()
+            true
+        }
 
         val amritaCafeTitleTv = findViewById<TextView>(R.id.amrita_cafe_title_tv)
         amritaCafeTitleTv?.setOnClickListener {
@@ -230,8 +234,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-
         val closeGameButton = findViewById<Button>(R.id.close_darshan_game_button)
         closeGameButton?.setOnClickListener {
             val gameContainer = findViewById<android.widget.FrameLayout>(R.id.darshan_game_container)
@@ -244,24 +246,6 @@ class MainActivity : AppCompatActivity() {
 
         createDefaultFilesIfNecessary(baseContext)
         loadMenu()
-
-        binding.orderNumberET.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
-            if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                val enteredText = binding.orderNumberET.text.toString()
-                if (enteredText == "108") {
-                    triggerAmmaEasterEgg()
-                    binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
-                    // Hide keyboard
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(v.windowToken, 0)
-                    return@OnKeyListener true
-                }
-                makeToast(enteredText)
-                orderNumberService.currentOrderNumber = enteredText.toInt()
-                return@OnKeyListener true
-            }
-            false
-        })
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestMultiplePermissions.launch(
@@ -485,6 +469,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (isChangingConfigurations) {
+            preservedOrders = orderAdapter.orderItems.toList()
+        }
         scope.cancel()
     }
 
@@ -529,7 +516,8 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun setMenuAdapter(menu: List<MenuItem>) {
-        binding.menuGridView.numColumns = configuration.columns
+        val isPortrait = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+        binding.menuGridView.numColumns = if (isPortrait) configuration.columnsPortrait else configuration.columnsLandscape
         menuAdapter =
             MenuAdapter(menu, applicationContext, configuration.showMenuItemNames, showPrice, configuration) {
                 runOnUiThread { menuAdapter.notifyDataSetChanged() }
@@ -567,7 +555,9 @@ class MainActivity : AppCompatActivity() {
             fetchMenuUpdate(selectedMenuName)
         }
 
-        binding.tabletNameMainET.setText(configuration.tabletName)
+        binding.tabletNameMainTV.text = configuration.tabletName
+        orderNumberService.currentOrderNumber = configuration.currentOrderNumber
+        binding.orderNumberTV.text = orderNumberService.currentOrderNumber.toString()
         updateNameForToggleButton()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -575,6 +565,7 @@ class MainActivity : AppCompatActivity() {
         } else if (checkStoragePermission(this)) {
              UpdateChecker.checkForUpdates(this, true)
         }
+        UpdateChecker.checkPendingInstall(this)
         
         // Attempt to sync any offline orders that were queued
         OfflineOrderSync.syncPendingOrders(this, getOrderScriptUrl())
@@ -887,7 +878,7 @@ class MainActivity : AppCompatActivity() {
                         allCurrentCategories.add(it.category)
                 }
                 orderNumberService.updateRange()
-                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+                binding.orderNumberTV.text = orderNumberService.currentOrderNumber.toString()
                 setMenuAdapter(list)
                 Log.d("MainActivity", "Loaded menu from file: $fileName")
                 
@@ -918,7 +909,7 @@ class MainActivity : AppCompatActivity() {
                 allCurrentCategories.add(it.category)
         }
         orderNumberService.updateRange()
-        binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+        binding.orderNumberTV.text = orderNumberService.currentOrderNumber.toString()
         setMenuAdapter(list)
     }
 
@@ -956,7 +947,7 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             withContext(Dispatchers.Main) {
                 orderAdapter.clear()
-                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+                binding.orderNumberTV.text = orderNumberService.currentOrderNumber.toString()
             }
         }
     }
@@ -1024,7 +1015,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val orderNumberStr = binding.orderNumberET.text.toString()
+        val orderNumberStr = binding.orderNumberTV.text.toString()
         val orderNumber = if (orderNumberStr.isNotEmpty()) orderNumberStr.toInt() else orderNumberService.currentOrderNumber
         orderNumberService.currentOrderNumber = orderNumber
 
@@ -1225,7 +1216,7 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             orderNumberService.next()
             withContext(Dispatchers.Main) {
-                binding.orderNumberET.setText(orderNumberService.currentOrderNumber.toString())
+                binding.orderNumberTV.text = orderNumberService.currentOrderNumber.toString()
             }
         }
     }
@@ -1328,6 +1319,7 @@ class MainActivity : AppCompatActivity() {
         cafeOrderCostET.setPadding(20, 10, 5, 5)
         cafeOrderCostET.textSize = 30f
         cafeOrderCostET.inputType = InputType.TYPE_CLASS_NUMBER
+        cafeOrderCostET.imeOptions = EditorInfo.IME_ACTION_DONE
         cafeOrderCostET.requestFocus()
         layout.addView(cafeOrderCostET)
 
@@ -1337,6 +1329,12 @@ class MainActivity : AppCompatActivity() {
 
         val dialog = builder.create()
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        
+        dialog.setOnDismissListener {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(cafeOrderCostET.windowToken, 0)
+        }
+
         dialog.setOnShowListener {
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
@@ -1349,27 +1347,38 @@ class MainActivity : AppCompatActivity() {
             imm.showSoftInput(cafeOrderCostET, InputMethodManager.SHOW_IMPLICIT)
 
             positiveButton.setOnClickListener {
+                imm.hideSoftInputFromWindow(cafeOrderCostET.windowToken, 0)
                 try {
-                    orderAdapter.add(
-                        MenuItem(
-                            "Cafe Order ", //+ cafeOrderNumberET.text,
-                            "Cafe Order ", //+ cafeOrderNumberET.text,
-                            cafeOrderCostET.text.toString().toFloat(),
-                            "Cafe Order"
-                        ),
-                        uniqueItem = true
-                    )
+                    val costStr = cafeOrderCostET.text.toString().trim()
+                    if (costStr.isNotEmpty()) {
+                        orderAdapter.add(
+                            MenuItem(
+                                "Cafe Order ",
+                                "Cafe Order ",
+                                costStr.toFloat(),
+                                "Cafe Order"
+                            ),
+                            uniqueItem = true
+                        )
+                    }
                     dialog.dismiss()
                 } catch (e: Exception) {
                     makeToast("Not working")
                 }
             }
+
+            negativeButton.setOnClickListener {
+                imm.hideSoftInputFromWindow(cafeOrderCostET.windowToken, 0)
+                dialog.dismiss()
+            }
         }
 
-        dialog.show()
-
-        cafeOrderCostET.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
+        cafeOrderCostET.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                actionId == EditorInfo.IME_ACTION_GO ||
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(cafeOrderCostET.windowToken, 0)
                 val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 positiveButton.performClick()
                 true
@@ -1377,6 +1386,8 @@ class MainActivity : AppCompatActivity() {
                 false
             }
         }
+
+        dialog.show()
     }
 
     private fun triggerAmmaEasterEgg() {
