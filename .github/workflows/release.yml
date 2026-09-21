@@ -26,19 +26,18 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      - name: Create local.properties
+        run: |
+          cat << 'EOF' > local.properties
+          google.script.menu.url="https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec"
+          google.script.order.url="https://script.google.com/macros/s/AKfycbzQp6Ubp3lifOpr7kMwnTVVJoMQWPfNEsDv8W96clYZe10C9f2Sluy5jBXPNuJktERx/exec"
+          google.script.update.url="https://script.google.com/macros/s/AKfycbzsKjmn3n74W2kP1_FC1A93Cao5953VjswyVTPBkCFeiN46PpiMzWcXFY47d1VlQajm/exec"
+          EOF
 
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
