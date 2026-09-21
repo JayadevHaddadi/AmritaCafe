@@ -79,11 +79,11 @@ class DarshanGameView(context: Context, attrs: AttributeSet? = null) : View(cont
             val finalWidth: Float
             val finalHeight: Float
             if (aspect > 1) {
-                finalWidth = ammaRadius * 2
-                finalHeight = finalWidth / aspect
-            } else {
                 finalHeight = ammaRadius * 2
                 finalWidth = finalHeight * aspect
+            } else {
+                finalWidth = ammaRadius * 2
+                finalHeight = finalWidth / aspect
             }
             
             scaledAmmaBitmap = Bitmap.createScaledBitmap(bmp, finalWidth.toInt(), finalHeight.toInt(), true)
@@ -138,9 +138,24 @@ class DarshanGameView(context: Context, attrs: AttributeSet? = null) : View(cont
             }
         }
 
-        // Draw Amma
-        scaledAmmaBitmap?.let {
-            canvas.drawBitmap(it, ammaRect.left, ammaRect.top, null)
+        // Draw Amma as a circle
+        scaledAmmaBitmap?.let { bmp ->
+            val cx = width / 2f
+            val cy = height / 2f
+            val saveCount = canvas.save()
+            val clipPath = Path().apply {
+                addCircle(cx, cy, ammaRadius, Path.Direction.CCW)
+            }
+            canvas.clipPath(clipPath)
+            canvas.drawBitmap(bmp, ammaRect.left, ammaRect.top, null)
+            canvas.restoreToCount(saveCount)
+
+            val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#FFB300")
+                style = Paint.Style.STROKE
+                strokeWidth = 6f
+            }
+            canvas.drawCircle(cx, cy, ammaRadius, ringPaint)
         }
 
         // Draw Devotees

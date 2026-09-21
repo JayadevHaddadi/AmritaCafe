@@ -128,13 +128,18 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(BLUETOOTH_ADDRESS, value).apply()
         }
 
-    var bluetoothPaperSize: Int
+    var printer1PaperSize: Int
         get() = preferences.getInt(BLUETOOTH_PAPER_SIZE, PAPER_SIZE_80MM)
         set(value) {
             preferences.edit().putInt(BLUETOOTH_PAPER_SIZE, value).apply()
         }
 
-    val isBluetooth80mm get() = bluetoothPaperSize == PAPER_SIZE_80MM
+    var bluetoothPaperSize: Int
+        get() = printer1PaperSize
+        set(value) { printer1PaperSize = value }
+
+    val isPrinter180mm get() = printer1PaperSize == PAPER_SIZE_80MM
+    val isBluetooth80mm get() = isPrinter180mm
 
     var bluetooth2Name
         get() = preferences.getString(BLUETOOTH_2_NAME, "")!!
@@ -148,21 +153,62 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putString(BLUETOOTH_2_ADDRESS, value).apply()
         }
 
-    var bluetooth2PaperSize: Int
+    var printer2PaperSize: Int
         get() = preferences.getInt(BLUETOOTH_2_PAPER_SIZE, PAPER_SIZE_80MM)
         set(value) {
             preferences.edit().putInt(BLUETOOTH_2_PAPER_SIZE, value).apply()
         }
 
-    val isBluetooth280mm get() = bluetooth2PaperSize == PAPER_SIZE_80MM
+    var bluetooth2PaperSize: Int
+        get() = printer2PaperSize
+        set(value) { printer2PaperSize = value }
+
+    val isPrinter280mm get() = printer2PaperSize == PAPER_SIZE_80MM
+    val isBluetooth280mm get() = isPrinter280mm
 
     val receiptBluetoothAddress get() = if (isReceiptBluetooth2) bluetooth2Address else bluetoothAddress
-    val receiptBluetoothPaperSize get() = if (isReceiptBluetooth2) bluetooth2PaperSize else bluetoothPaperSize
-    val isReceiptBluetooth80mm get() = (if (isReceiptBluetooth2) bluetooth2PaperSize else bluetoothPaperSize) == PAPER_SIZE_80MM
+    val receiptBluetoothPaperSize get() = if (isReceiptBluetooth2) printer2PaperSize else printer1PaperSize
+    val isReceiptBluetooth80mm get() = receiptBluetoothPaperSize == PAPER_SIZE_80MM
 
     val kitchenBluetoothAddress get() = if (isKitchenBluetooth2) bluetooth2Address else bluetoothAddress
-    val kitchenBluetoothPaperSize get() = if (isKitchenBluetooth2) bluetooth2PaperSize else bluetoothPaperSize
-    val isKitchenBluetooth80mm get() = (if (isKitchenBluetooth2) bluetooth2PaperSize else bluetoothPaperSize) == PAPER_SIZE_80MM
+    val kitchenBluetoothPaperSize get() = if (isKitchenBluetooth2) printer2PaperSize else printer1PaperSize
+    val isKitchenBluetooth80mm get() = kitchenBluetoothPaperSize == PAPER_SIZE_80MM
+
+    fun getPaperSizeForTarget(target: Int): Int {
+        return when (target) {
+            RECEIPT_TARGET_WIFI_2, RECEIPT_TARGET_BLUETOOTH_2,
+            KITCHEN_TARGET_WIFI_2, KITCHEN_TARGET_BLUETOOTH_2 -> printer2PaperSize
+            else -> printer1PaperSize
+        }
+    }
+
+    fun getColumnsForTarget(target: Int): Int {
+        return if (getPaperSizeForTarget(target) == PAPER_SIZE_80MM) 42 else 32
+    }
+
+    var printLargeTextScale: Int
+        get() = preferences.getInt(PRINT_LARGE_TEXT_SCALE, 2)
+        set(value) {
+            preferences.edit().putInt(PRINT_LARGE_TEXT_SCALE, value.coerceIn(1, 4)).apply()
+        }
+
+    var printSmallTextScale: Int
+        get() = preferences.getInt(PRINT_SMALL_TEXT_SCALE, 1)
+        set(value) {
+            preferences.edit().putInt(PRINT_SMALL_TEXT_SCALE, value.coerceIn(1, 3)).apply()
+        }
+
+    var kitchenMarginFeedBefore: Int
+        get() = preferences.getInt(KITCHEN_MARGIN_FEED_BEFORE, 0)
+        set(value) {
+            preferences.edit().putInt(KITCHEN_MARGIN_FEED_BEFORE, value.coerceIn(0, 10)).apply()
+        }
+
+    var kitchenMarginFeedAfter: Int
+        get() = preferences.getInt(KITCHEN_MARGIN_FEED_AFTER, 2)
+        set(value) {
+            preferences.edit().putInt(KITCHEN_MARGIN_FEED_AFTER, value.coerceIn(0, 10)).apply()
+        }
 
     var mode
         get() = preferences.getInt(MODE, 0)
@@ -297,5 +343,11 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val DEFAULT_COLUMNS_AMOUNT_PORTRAIT = 4
         const val USE_RAW_SOCKET = "use_raw_socket"
         const val PRINT_AMMA_QUOTE = "print_amma_quote"
+        const val PRINTER_1_PAPER_SIZE = "bluetooth_paper_size"
+        const val PRINTER_2_PAPER_SIZE = "bluetooth_2_paper_size"
+        const val PRINT_LARGE_TEXT_SCALE = "print_large_text_scale"
+        const val PRINT_SMALL_TEXT_SCALE = "print_small_text_scale"
+        const val KITCHEN_MARGIN_FEED_BEFORE = "kitchen_margin_feed_before"
+        const val KITCHEN_MARGIN_FEED_AFTER = "kitchen_margin_feed_after"
     }
 }

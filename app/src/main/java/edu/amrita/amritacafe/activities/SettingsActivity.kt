@@ -44,6 +44,12 @@ import java.net.InetSocketAddress
 import edu.amrita.amritacafe.printer.escpos.EscPosBuilder
 import edu.amrita.amritacafe.printer.SocketHelper
 import edu.amrita.amritacafe.printer.bluetooth.BluetoothRawPrinter
+import edu.amrita.amritacafe.menu.MenuItem
+import edu.amrita.amritacafe.menu.RegularOrderItem
+import edu.amrita.amritacafe.model.Order
+import edu.amrita.amritacafe.printer.writer.CashierReceiptWriter
+import edu.amrita.amritacafe.printer.writer.KitchenWriter
+import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 
 class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var pref: SharedPreferences
@@ -153,7 +159,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             )
             val paperAdapter = ArrayAdapter(
                 this@SettingsActivity,
-                R.layout.spinner_item,
+                R.layout.spinner_item_settings,
                 paperOptions
             )
             paperAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
@@ -179,7 +185,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
             val paperAdapter2 = ArrayAdapter(
                 this@SettingsActivity,
-                R.layout.spinner_item,
+                R.layout.spinner_item_settings,
                 paperOptions
             )
             paperAdapter2.setDropDownViewResource(R.layout.spinner_dropdown_item)
@@ -203,7 +209,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             )
             val modeAdapter = ArrayAdapter(
                 this@SettingsActivity,
-                R.layout.spinner_item,
+                R.layout.spinner_item_settings,
                 modeOptions
             )
             modeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
@@ -228,6 +234,60 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 val ip = kitchenIpET.text.toString().trim()
                 testPrinterConnection(ip, testWifi2Button, "Wi-Fi / LAN 2")
             }
+
+            // Font Scaling Controls
+            fun updateFontScaleViews() {
+                fontLargeTv.text = "Large Text: ${configuration.printLargeTextScale}x"
+                fontSmallTv.text = "Small Text: ${configuration.printSmallTextScale}x"
+            }
+            fontLargeMinusBtn.setOnClickListener {
+                configuration.printLargeTextScale = (configuration.printLargeTextScale - 1).coerceAtLeast(1)
+                updateFontScaleViews()
+            }
+            fontLargePlusBtn.setOnClickListener {
+                configuration.printLargeTextScale = (configuration.printLargeTextScale + 1).coerceAtMost(4)
+                updateFontScaleViews()
+            }
+            fontSmallMinusBtn.setOnClickListener {
+                configuration.printSmallTextScale = (configuration.printSmallTextScale - 1).coerceAtLeast(1)
+                updateFontScaleViews()
+            }
+            fontSmallPlusBtn.setOnClickListener {
+                configuration.printSmallTextScale = (configuration.printSmallTextScale + 1).coerceAtMost(3)
+                updateFontScaleViews()
+            }
+            updateFontScaleViews()
+
+            testReceiptPrintBtn.setOnClickListener {
+                testReceiptPrint()
+            }
+
+            // Kitchen Margins Controls
+            fun updateMarginViews() {
+                marginBeforeTv.text = "Feed Before: ${configuration.kitchenMarginFeedBefore} lines"
+                marginAfterTv.text = "Feed After: ${configuration.kitchenMarginFeedAfter} lines"
+            }
+            marginBeforeMinusBtn.setOnClickListener {
+                configuration.kitchenMarginFeedBefore = (configuration.kitchenMarginFeedBefore - 1).coerceAtLeast(0)
+                updateMarginViews()
+            }
+            marginBeforePlusBtn.setOnClickListener {
+                configuration.kitchenMarginFeedBefore = (configuration.kitchenMarginFeedBefore + 1).coerceAtMost(10)
+                updateMarginViews()
+            }
+            marginAfterMinusBtn.setOnClickListener {
+                configuration.kitchenMarginFeedAfter = (configuration.kitchenMarginFeedAfter - 1).coerceAtLeast(0)
+                updateMarginViews()
+            }
+            marginAfterPlusBtn.setOnClickListener {
+                configuration.kitchenMarginFeedAfter = (configuration.kitchenMarginFeedAfter + 1).coerceAtMost(10)
+                updateMarginViews()
+            }
+            updateMarginViews()
+
+            testKitchenPrintBtn.setOnClickListener {
+                testKitchenPrint()
+            }
         }
     }
 
@@ -251,7 +311,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         )
         val receiptAdapter = ArrayAdapter(
             this@SettingsActivity,
-            R.layout.spinner_item,
+            R.layout.spinner_item_settings,
             receiptOptions
         )
         receiptAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
@@ -286,7 +346,7 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         )
         val kitchenAdapter = ArrayAdapter(
             this@SettingsActivity,
-            R.layout.spinner_item,
+            R.layout.spinner_item_settings,
             kitchenOptions
         )
         kitchenAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
@@ -743,6 +803,133 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 rangeTo = rangeToET.text.toString().trim().toIntOrNull() ?: 999
                 columnsLandscape = columnNumbersET.text.toString().trim().toIntOrNull() ?: 8
                 columnsPortrait = columnNumbersPortraitET.text.toString().trim().toIntOrNull() ?: 4
+            }
+        }
+    }
+
+    private fun testReceiptPrint() {
+        val target = configuration.receiptPrinterTarget
+        if (target == Configuration.RECEIPT_TARGET_NONE) {
+            Toast.makeText(this, "Receipt printer is set to None", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.testReceiptPrintBtn.isEnabled = false
+        binding.testReceiptPrintBtn.text = "Printing..."
+
+        val dummyItems = listOf(
+            RegularOrderItem(MenuItem("Psto Om", "Psto Om", 80f, "Cafe"), 1),
+            RegularOrderItem(MenuItem("Chai", "Chai", 20f, "Cafe"), 2)
+        )
+        val dummyOrder = Order(469, dummyItems, System.currentTimeMillis(), "09:30")
+        val cols = configuration.getColumnsForTarget(target)
+        val isCashier = configuration.workflowMode == Configuration.MODE_CASHIER
+        val data = if (isCashier) {
+            CashierReceiptWriter(listOf(dummyOrder), configuration).writeToEscPos(cols)
+        } else {
+            ReceiptWriter(listOf(dummyOrder), configuration).writeToEscPos(cols)
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var success = false
+            var errorMsg = ""
+            try {
+                if (configuration.isReceiptBluetooth) {
+                    val address = configuration.receiptBluetoothAddress
+                    if (address.isEmpty()) throw Exception("Bluetooth device not selected")
+                    success = BluetoothRawPrinter.print(address, data)
+                    if (!success) errorMsg = "Could not send data to Bluetooth printer"
+                } else {
+                    val connStr = configuration.receiptPrinterConnStr
+                    val cleanIp = connStr.removePrefix("TCP:").trim()
+                    val parts = cleanIp.split(":")
+                    val host = parts[0].trim()
+                    val port = if (parts.size > 1) parts[1].toIntOrNull() ?: 9100 else 9100
+                    if (host.isEmpty()) throw Exception("IP address is empty")
+
+                    SocketHelper.createBoundSocket(this@SettingsActivity).use { socket ->
+                        socket.connect(InetSocketAddress(host, port), 4000)
+                        socket.soTimeout = 4000
+                        socket.getOutputStream().use { out ->
+                            out.write(data)
+                            out.flush()
+                        }
+                    }
+                    success = true
+                }
+            } catch (e: Exception) {
+                errorMsg = e.localizedMessage ?: e.message ?: "Print failed"
+            }
+
+            withContext(Dispatchers.Main) {
+                binding.testReceiptPrintBtn.isEnabled = true
+                binding.testReceiptPrintBtn.text = "Test Receipt Print"
+                if (success) {
+                    Toast.makeText(this@SettingsActivity, "Test receipt printed!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@SettingsActivity, "Test receipt failed: $errorMsg", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun testKitchenPrint() {
+        val target = configuration.kitchenPrinterTarget
+        if (target == Configuration.KITCHEN_TARGET_NONE) {
+            Toast.makeText(this, "Kitchen printer is set to None", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.testKitchenPrintBtn.isEnabled = false
+        binding.testKitchenPrintBtn.text = "Printing..."
+
+        val dummyItems = listOf(
+            RegularOrderItem(MenuItem("Pesto Omelette", "PSTO OM", 80f, "Kitchen"), 1, comment = "Well done"),
+            RegularOrderItem(MenuItem("Masala Dosa", "DOSA", 50f, "Kitchen"), 1)
+        )
+        val dummyOrder = Order(469, dummyItems, System.currentTimeMillis(), "09:30")
+        val cols = configuration.getColumnsForTarget(target)
+        val data = KitchenWriter(listOf(dummyOrder), configuration).writeToEscPos(cols)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var success = false
+            var errorMsg = ""
+            try {
+                if (configuration.isKitchenBluetooth) {
+                    val address = configuration.kitchenBluetoothAddress
+                    if (address.isEmpty()) throw Exception("Bluetooth device not selected")
+                    success = BluetoothRawPrinter.print(address, data)
+                    if (!success) errorMsg = "Could not send data to Bluetooth printer"
+                } else {
+                    val connStr = configuration.kitchenPrinterConnStr
+                    val cleanIp = connStr.removePrefix("TCP:").trim()
+                    val parts = cleanIp.split(":")
+                    val host = parts[0].trim()
+                    val port = if (parts.size > 1) parts[1].toIntOrNull() ?: 9100 else 9100
+                    if (host.isEmpty()) throw Exception("IP address is empty")
+
+                    SocketHelper.createBoundSocket(this@SettingsActivity).use { socket ->
+                        socket.connect(InetSocketAddress(host, port), 4000)
+                        socket.soTimeout = 4000
+                        socket.getOutputStream().use { out ->
+                            out.write(data)
+                            out.flush()
+                        }
+                    }
+                    success = true
+                }
+            } catch (e: Exception) {
+                errorMsg = e.localizedMessage ?: e.message ?: "Print failed"
+            }
+
+            withContext(Dispatchers.Main) {
+                binding.testKitchenPrintBtn.isEnabled = true
+                binding.testKitchenPrintBtn.text = "Test Kitchen Print"
+                if (success) {
+                    Toast.makeText(this@SettingsActivity, "Test kitchen ticket printed!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@SettingsActivity, "Test kitchen failed: $errorMsg", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

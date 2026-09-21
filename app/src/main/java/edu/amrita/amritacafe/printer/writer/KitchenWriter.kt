@@ -117,11 +117,16 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             val itemCount = itemList.map { 1 }.sum()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
+            if (configuration.kitchenMarginFeedBefore > 0) {
+                builder.feedLines(configuration.kitchenMarginFeedBefore)
+            }
+
             builder.alignLeft()
-            val titleScale = if (titleSize > 1) 2 else 1
+            val titleScale = configuration.printLargeTextScale
+            val effectiveHeaderCols = totalCols / titleScale
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
-            val headerPad = (doubleWidthCols - time.length).coerceAtLeast(orderNumStr.length)
+            val headerPad = (effectiveHeaderCols - time.length).coerceAtLeast(orderNumStr.length)
             val headerText = orderNumStr.padEnd(headerPad) + time
             builder.line(headerText)
             builder.bold(false)
@@ -131,14 +136,16 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             builder.textSize(1, 1)
             builder.horizontalLine('=', totalCols)
 
-            // Large, bold font for kitchen staff (2x2 scale in normal mode)
-            val textScale = if (configuration.testing) 1 else 2
+            // Large, bold font for kitchen staff
+            val textScale = if (configuration.testing) 1 else configuration.printLargeTextScale
             builder.textSize(textScale, textScale)
             builder.bold(true)
             builder.line(orderItemsText)
             builder.bold(false)
             builder.textSize(1, 1)
-            builder.cut(1)
+
+            val feedAfter = configuration.kitchenMarginFeedAfter.coerceAtLeast(1)
+            builder.cut(feedAfter)
         }
         return builder.build()
     }

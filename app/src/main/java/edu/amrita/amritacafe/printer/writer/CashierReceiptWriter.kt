@@ -148,14 +148,19 @@ class CashierReceiptWriter(
             builder.feedLines(1)
 
             // Items
-            builder.line(ReceiptWriter.orderItemsText(orderItems, totalCols))
+            val smallScale = configuration.printSmallTextScale
+            builder.textSize(smallScale, smallScale)
+            val effectiveCols = totalCols / smallScale
+            builder.line(ReceiptWriter.orderItemsText(orderItems, effectiveCols))
             builder.feedLines(1)
 
-            // Total line (Bold, double size)
+            // Total line
             builder.bold(true)
-            builder.textSize(2, 2)
+            val totalScale = configuration.printLargeTextScale
+            val effectiveTotalCols = totalCols / totalScale
+            builder.textSize(totalScale, totalScale)
             val totalPrefix = "Total"
-            val dotCount = (doubleWidthCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
+            val dotCount = (effectiveTotalCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
             builder.line(totalPrefix + ".".repeat(dotCount) + orderTotalText)
             builder.bold(false)
             builder.textSize(1, 1)

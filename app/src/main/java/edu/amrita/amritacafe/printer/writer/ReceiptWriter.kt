@@ -114,10 +114,11 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             builder.alignLeft()
-            val titleScale = if (titleSize > 1) 2 else 1
+            val titleScale = configuration.printLargeTextScale
+            val effectiveHeaderCols = totalCols / titleScale
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
-            val headerPad = (doubleWidthCols - timeInHours.length).coerceAtLeast(orderNumStr.length)
+            val headerPad = (effectiveHeaderCols - timeInHours.length).coerceAtLeast(orderNumStr.length)
             val headerText = orderNumStr.padEnd(headerPad) + timeInHours
             builder.line(headerText)
             builder.bold(false)
@@ -126,14 +127,20 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             builder.textSize(1, 1)
             builder.horizontalLine('-', totalCols)
 
-            builder.line(orderItemsText(orderItems, totalCols))
+            val smallScale = configuration.printSmallTextScale
+            builder.textSize(smallScale, smallScale)
+            val effectiveCols = totalCols / smallScale
+            builder.line(orderItemsText(orderItems, effectiveCols))
 
+            builder.textSize(1, 1)
             builder.horizontalLine('-', totalCols)
 
             builder.bold(true)
-            builder.textSize(2, 2)
+            val totalScale = configuration.printLargeTextScale
+            val effectiveTotalCols = totalCols / totalScale
+            builder.textSize(totalScale, totalScale)
             val totalPrefix = "TOTAL"
-            val dotCount = (doubleWidthCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
+            val dotCount = (effectiveTotalCols - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
             val totalLine = totalPrefix + ".".repeat(dotCount) + orderTotalText
             builder.line(totalLine)
             builder.bold(false)

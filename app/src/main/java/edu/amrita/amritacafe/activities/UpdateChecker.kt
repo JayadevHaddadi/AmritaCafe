@@ -26,6 +26,7 @@ import java.io.File
 import java.io.FileInputStream
 
 object UpdateChecker {
+    private const val GITHUB_RELEASES_URL = "https://api.github.com/repos/JayadevHaddadi/AmritaCafe/releases?per_page=10"
     private val UPDATE_INFO_URL = BuildConfig.UPDATE_SCRIPT_URL
     
     private var isShowing = false
@@ -40,6 +41,118 @@ object UpdateChecker {
         }
         
         lastCheckTime = currentTime
+        val queue = Volley.newRequestQueue(context)
+        
+        // 1. Query GitHub Releases API directly
+        val githubRequest = object : StringRequest(
+            Request.Method.GET, GITHUB_RELEASES_URL,
+            { response ->
+                try {
+                    val releases = org.json.JSONArray(response)
+                    var standardVersionCode = 0
+                    var standardUpdateUrl = ""
+                    var betaVersionCode = 0
+                    var betaUpdateUrl = ""
+
+                    for (i in 0 until releases.length()) {
+                        val rel = releases.getJSONObject(i)
+                        val isPrerelease = rel.optBoolean("prerelease", false)
+                        val isDraft = rel.optBoolean("draft", false)
+                        if (isDraft) continue
+
+                        val tag = rel.optString("tag_name", "")
+                        val vCode = tag.replace(Regex("[^0-9]"), "").toIntOrNull() ?: 0
+
+                        var apkUrl = ""
+                        val assets = rel.optJSONArray("assets")
+                        if (assets != null) {
+                            for (j in 0 until assets.length()) {
+                                val asset = assets.getJSONObject(j)
+                                val assetName = asset.optString("name", "")
+                                if (assetName.endsWith(".apk", ignoreCase = true)) {
+                                    val url = asset.optString("browser_download_url", "")
+                                    if (assetName.equals("app-release.apk", ignoreCase = true)) {
+                                        apkUrl = url
+                                        break
+                                    } else if (apkUrl.isEmpty()) {
+                                        apkUrl = url
+                                    }
+                                }
+                            }
+                        }
+
+                        if (apkUrl.isNotEmpty() && vCode > 0) {
+                            if (isPrerelease && betaVersionCode == 0) {
+                                betaVersionCode = vCode
+                                betaUpdateUrl = apkUrl
+                            } else if (!isPrerelease && standardVersionCode == 0) {
+                                standardVersionCode = vCode
+                                standardUpdateUrl = apkUrl
+                            }
+                        }
+
+                        if (standardVersionCode > 0 && betaVersionCode > 0) {
+                            break
+                        }
+                    }
+
+                    val pref = PreferenceManager.getDefaultSharedPreferences(context)
+                    val isBetaUser = pref.getBoolean("beta_updates", false)
+
+                    var latestVersionCode = standardVersionCode
+                    var updateUrl = standardUpdateUrl
+                    var isFinalBeta = false
+
+                    if (isBetaUser && betaVersionCode > standardVersionCode) {
+                        latestVersionCode = betaVersionCode
+                        updateUrl = betaUpdateUrl
+                        isFinalBeta = true
+                    }
+
+                    if (latestVersionCode > 0 && updateUrl.isNotEmpty()) {
+                        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                        val currentVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            packageInfo.longVersionCode.toInt()
+                        } else {
+                            @Suppress("DEPRECATION")
+                            packageInfo.versionCode
+                        }
+
+                        if (latestVersionCode > currentVersionCode) {
+                            showUpdateDialog(context, updateUrl, isFinalBeta)
+                        }
+                    } else if (UPDATE_INFO_URL.isNotEmpty()) {
+                        // Fallback to Google Sheets update script if no GitHub APK found
+                        checkForUpdatesFallback(context)
+                    }
+                } catch (e: Exception) {
+                    Log.e("UpdateChecker", "Error parsing GitHub releases, trying fallback", e)
+                    checkForUpdatesFallback(context)
+                }
+            },
+            { error ->
+                Log.e("UpdateChecker", "GitHub API error: ${error.message}, trying fallback")
+                checkForUpdatesFallback(context)
+            }
+        ) {
+            override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                headers["User-Agent"] = "AmritaCafe-App"
+                headers["Accept"] = "application/vnd.github.v3+json"
+                return headers
+            }
+        }
+
+        githubRequest.retryPolicy = DefaultRetryPolicy(
+            10000,
+            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        )
+        queue.add(githubRequest)
+    }
+
+    private fun checkForUpdatesFallback(context: Context) {
+        if (UPDATE_INFO_URL.isEmpty()) return
         val queue = Volley.newRequestQueue(context)
         val stringRequest = StringRequest(
             Request.Method.GET, UPDATE_INFO_URL,
@@ -67,7 +180,6 @@ object UpdateChecker {
                     }
 
                     if (latestVersionCode == 0) {
-                        // Fallback for very old sheet formats if needed
                         checkForUpdatesLegacy(context, json)
                         return@StringRequest
                     }
@@ -84,16 +196,16 @@ object UpdateChecker {
                         showUpdateDialog(context, updateUrl, isFinalBeta)
                     }
                 } catch (e: Exception) {
-                    Log.e("UpdateChecker", "Error parsing update info", e)
+                    Log.e("UpdateChecker", "Error parsing update info in fallback", e)
                 }
             },
             { error ->
-                Log.e("UpdateChecker", "Error checking for updates", error)
+                Log.e("UpdateChecker", "Error checking for updates in fallback", error)
             }
         )
         
         stringRequest.retryPolicy = DefaultRetryPolicy(
-            15000,
+            10000,
             DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
             DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         )

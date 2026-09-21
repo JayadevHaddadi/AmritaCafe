@@ -1,0 +1,73 @@
+name: Build & Pre-Release
+
+on:
+  push:
+    branches: [ master, main, 7008 ]
+    tags:
+      - 'v*'
+      - '[0-9]*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
+
+      - name: Extract Version from build.gradle
+        id: version_info
+        run: |
+          VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | tr -dc '0-9')
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | cut -d'"' -f2)
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION_NAME ($VERSION_CODE)"
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Create GitHub Pre-Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/7008' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ steps.version_info.outputs.VERSION_CODE }}
+          name: "Amrita Cafe ${{ steps.version_info.outputs.VERSION_NAME }} (${{ steps.version_info.outputs.VERSION_CODE }})"
+          body: |
+            Amrita Cafe Build ${{ steps.version_info.outputs.VERSION_CODE }}
+            - Published automatically as Pre-Release (Beta).
+            - Test this build, and when ready, edit this release on GitHub to uncheck 'Set as a pre-release' to promote it to Standard/Stable.
+          prerelease: true
+          draft: false
+          files: |
+            app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

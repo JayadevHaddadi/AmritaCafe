@@ -186,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         binding.userTV.text = "Amritapuri @ $tabletName"
 
         binding.tabletNameMainTV.text = configuration.tabletName
+        binding.appVersionTv.text = "(${edu.amrita.amritacafe.BuildConfig.VERSION_CODE})"
 
         binding.amritaCafeTitleTv.setOnLongClickListener {
             triggerAmmaEasterEgg()
@@ -193,7 +194,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.sumLabelTv.setOnLongClickListener {
-            android.app.AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
+            val dialog = androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                 .setTitle("Play a Game?")
                 .setMessage("Do you want to play a game AMMA?")
                 .setPositiveButton("Yes") { _, _ ->
@@ -206,6 +207,13 @@ class MainActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("No", null)
                 .show()
+
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)?.setTextColor(
+                androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.colorAccent)
+            )
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
+                androidx.core.content.ContextCompat.getColor(this@MainActivity, android.R.color.darker_gray)
+            )
             true
         }
 
@@ -1266,15 +1274,22 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(true)
             .show()
 
-        // Set up the RecyclerView with the appropriate layout manager and adapter
-        val layoutManager = LinearLayoutManager(this)
-        binding.historyRV.layoutManager = layoutManager
+        if (orderHistory.isEmpty()) {
+            binding.emptyHistoryTv.visibility = View.VISIBLE
+            binding.historyRV.visibility = View.GONE
+        } else {
+            binding.emptyHistoryTv.visibility = View.GONE
+            binding.historyRV.visibility = View.VISIBLE
+            // Set up the RecyclerView with the appropriate layout manager and adapter
+            val layoutManager = LinearLayoutManager(this)
+            binding.historyRV.layoutManager = layoutManager
 
-        val historyAdapter = HistoryAdapter(orderHistory, configuration, this)
-        binding.historyRV.adapter = historyAdapter
+            val historyAdapter = HistoryAdapter(orderHistory, configuration, this)
+            binding.historyRV.adapter = historyAdapter
 
-        // Scroll to the last position
-        binding.historyRV.scrollToPosition(orderHistory.size - 1)
+            // Scroll to the last position
+            binding.historyRV.scrollToPosition(orderHistory.size - 1)
+        }
     }
 
 
@@ -1393,28 +1408,47 @@ class MainActivity : AppCompatActivity() {
     private fun triggerAmmaEasterEgg() {
         val container = findViewById<android.widget.FrameLayout>(R.id.easter_egg_container) ?: return
         val ammaImage = findViewById<android.widget.ImageView>(R.id.amma_image_view) ?: return
-        
+        val closeBtn = findViewById<android.widget.ImageButton>(R.id.close_amma_easter_egg_button)
+
+        fun dismissEasterEgg() {
+            container.animate().alpha(0f).setDuration(500).withEndAction {
+                container.visibility = View.GONE
+            }.start()
+        }
+
+        closeBtn?.setOnClickListener {
+            dismissEasterEgg()
+        }
+
         container.visibility = View.VISIBLE
         container.alpha = 0f
         container.animate().alpha(1f).setDuration(1000).start()
-        
+
         var lastHeartTime = 0L
+        val gestureDetector = android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: android.view.MotionEvent): Boolean {
+                dismissEasterEgg()
+                return true
+            }
+        })
+
         ammaImage.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
             if (event.action == android.view.MotionEvent.ACTION_DOWN || event.action == android.view.MotionEvent.ACTION_MOVE) {
                 val now = System.currentTimeMillis()
                 if (now - lastHeartTime > 100) { // Max 1 heart per 100ms
                     lastHeartTime = now
                     val heart = android.widget.ImageView(this)
                     heart.setImageResource(R.drawable.ic_heart)
-                    
+
                     val size = (40..100).random()
                     val params = android.widget.FrameLayout.LayoutParams(size, size)
-                    params.leftMargin = event.x.toInt() + v.left - size/2
-                    params.topMargin = event.y.toInt() + v.top - size/2
+                    params.leftMargin = event.x.toInt() + v.left - size / 2
+                    params.topMargin = event.y.toInt() + v.top - size / 2
                     heart.layoutParams = params
-                    
+
                     container.addView(heart)
-                    
+
                     heart.animate()
                         .translationYBy(-300f - (0..200).random())
                         .translationXBy((-50..50).random().toFloat())
@@ -1428,11 +1462,9 @@ class MainActivity : AppCompatActivity() {
             }
             true // return true to consume touch
         }
-        
+
         container.setOnClickListener {
-            container.animate().alpha(0f).setDuration(500).withEndAction {
-                container.visibility = View.GONE
-            }.start()
+            dismissEasterEgg()
         }
     }
 

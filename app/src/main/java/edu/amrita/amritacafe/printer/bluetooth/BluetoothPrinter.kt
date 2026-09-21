@@ -45,7 +45,7 @@ fun bluetoothPrint(mHoinPrinter: HoinPrinter, orders: List<Order>, configuration
 fun bluetoothPrintReceipt(mHoinPrinter: HoinPrinter, orders: List<Order>, configuration: Configuration? = null) {
     val cfg = configuration ?: Configuration(androidx.preference.PreferenceManager.getDefaultSharedPreferences(AmritaCafeApp.appContext))
     val is80mm = cfg.isReceiptBluetooth80mm
-    val cols = if (is80mm) 42 else 30
+    val cols = if (is80mm) 42 else 32
     val isCashier = cfg.workflowMode == Configuration.MODE_CASHIER
 
     // 1. Primary: Send raw ESC/POS byte stream (fixes double spacing, alignment, and auto-cuts)
@@ -153,7 +153,7 @@ fun bluetoothPrintReceipt(mHoinPrinter: HoinPrinter, orders: List<Order>, config
 fun bluetoothPrintKitchen(mHoinPrinter: HoinPrinter, orders: List<Order>, configuration: Configuration? = null) {
     val cfg = configuration ?: Configuration(androidx.preference.PreferenceManager.getDefaultSharedPreferences(AmritaCafeApp.appContext))
     val is80mm = cfg.isKitchenBluetooth80mm
-    val cols = if (is80mm) 42 else 30
+    val cols = if (is80mm) 42 else 32
 
     // 1. Primary: Send raw ESC/POS byte stream
     val rawData = KitchenWriter(orders, cfg).writeToEscPos(cols)

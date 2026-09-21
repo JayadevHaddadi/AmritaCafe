@@ -60,12 +60,13 @@
                         android:textSize="20sp" />
 
                 <TextView
+                        android:id="@+id/app_version_tv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:text="@string/versionName"
+                        android:text="(70805)"
                         android:textColor="@color/black"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textStyle="italic" />
 
                 <TextView
@@ -127,7 +128,7 @@
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="2.0"
+                android:layout_weight="1.6"
                 android:orientation="vertical"
                 android:layout_marginEnd="4dp">
 
@@ -151,7 +152,7 @@
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.6"
+                android:layout_weight="0.7"
                 android:orientation="vertical"
                 android:layout_marginEnd="2dp">
 
@@ -160,8 +161,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Price:"
+                    android:singleLine="true"
+                    android:maxLines="1"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
             <Button
@@ -181,7 +184,7 @@
         <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.6"
+                android:layout_weight="0.7"
                 android:orientation="vertical">
 
             <TextView
@@ -189,8 +192,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Short:"
+                    android:singleLine="true"
+                    android:maxLines="1"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
             <Button
@@ -214,7 +219,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.55" />
+            app:layout_constraintGuide_percent="0.65" />
 
     <!-- Menu Items Grid (Upper ~55% of screen) -->
     <GridView
@@ -455,6 +460,18 @@
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 android:src="@drawable/amma_face_splash" />
+
+        <ImageButton
+                android:id="@+id/close_amma_easter_egg_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="24dp"
+                android:background="@drawable/background_other_buttons"
+                android:src="@drawable/ic_clear_black_24dp"
+                android:contentDescription="Close"
+                android:elevation="10dp" />
     </FrameLayout>
 
     <!-- Eternal Joy Easter Egg -->

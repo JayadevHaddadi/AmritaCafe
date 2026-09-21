@@ -82,7 +82,12 @@ class ReceiptDispatch(
         val host = parts[0]
         val port = if (parts.size > 1) parts[1].toIntOrNull() ?: 9100 else 9100
 
-        val data = receiptWriter.writeToEscPos(orders, configuration)
+        val isPrinter2 = host.equals(configuration.kitchenPrinterIP.split(":")[0], ignoreCase = true) &&
+                         (configuration.kitchenPrinterTarget == Configuration.KITCHEN_TARGET_WIFI_2 || configuration.receiptPrinterTarget == Configuration.RECEIPT_TARGET_WIFI_2)
+        val paperSize = if (isPrinter2) configuration.printer2PaperSize else configuration.printer1PaperSize
+        val columns = if (paperSize == Configuration.PAPER_SIZE_80MM) 42 else 32
+
+        val data = receiptWriter.writeToEscPos(orders, configuration, columns)
 
         SocketHelper.createBoundSocket(edu.amrita.amritacafe.AmritaCafeApp.appContext).use { socket ->
             socket.connect(InetSocketAddress(host, port), 4000)
