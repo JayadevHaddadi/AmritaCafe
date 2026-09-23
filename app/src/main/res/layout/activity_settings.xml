@@ -294,11 +294,11 @@
                 android:layout_height="48dp"
                 android:popupBackground="#263238" />
 
-            <!-- Print Font Scaling & Receipt Test -->
+            <!-- Receipt Print Settings -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Print Font Scaling"
+                android:text="Receipt Print Settings"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:layout_marginTop="16dp"/>
@@ -308,29 +308,57 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="4dp">
                 <Button
-                    android:id="@+id/font_large_minus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/receipt_font_large_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="-"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
                 <TextView
-                    android:id="@+id/font_large_tv"
+                    android:id="@+id/receipt_font_large_tv"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Large Text: 2x"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Large: 2x"
+                    android:textSize="13sp" />
                 <Button
-                    android:id="@+id/font_large_plus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/receipt_font_large_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="+"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+
+                <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/receipt_font_small_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+                <TextView
+                    android:id="@+id/receipt_font_small_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Small: 1x"
+                    android:textSize="13sp" />
+                <Button
+                    android:id="@+id/receipt_font_small_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
@@ -339,29 +367,57 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="2dp">
                 <Button
-                    android:id="@+id/font_small_minus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/receipt_margin_before_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="-"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
                 <TextView
-                    android:id="@+id/font_small_tv"
+                    android:id="@+id/receipt_margin_before_tv"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Small Text: 1x"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Before: 0"
+                    android:textSize="13sp" />
                 <Button
-                    android:id="@+id/font_small_plus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/receipt_margin_before_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="+"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+
+                <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/receipt_margin_after_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+                <TextView
+                    android:id="@+id/receipt_margin_after_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="After: 2"
+                    android:textSize="13sp" />
+                <Button
+                    android:id="@+id/receipt_margin_after_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
@@ -369,49 +425,77 @@
                 android:id="@+id/test_receipt_print_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/background_other_buttons"
                 android:text="Test Receipt Print"
                 android:textColor="@color/black"
                 android:textStyle="bold" />
 
-            <!-- Kitchen Print Margins & Test -->
+            <!-- Kitchen Print Settings -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kitchen Print Margins"
+                android:text="Kitchen Print Settings"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="12dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="4dp">
                 <Button
-                    android:id="@+id/margin_before_minus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/kitchen_font_large_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="-"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
                 <TextView
-                    android:id="@+id/margin_before_tv"
+                    android:id="@+id/kitchen_font_large_tv"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Feed Before: 0 lines"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Large: 2x"
+                    android:textSize="13sp" />
                 <Button
-                    android:id="@+id/margin_before_plus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/kitchen_font_large_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="+"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+
+                <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/kitchen_font_small_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+                <TextView
+                    android:id="@+id/kitchen_font_small_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Small: 1x"
+                    android:textSize="13sp" />
+                <Button
+                    android:id="@+id/kitchen_font_small_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
@@ -420,29 +504,57 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="2dp">
                 <Button
-                    android:id="@+id/margin_after_minus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/kitchen_margin_before_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="-"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
                 <TextView
-                    android:id="@+id/margin_after_tv"
+                    android:id="@+id/kitchen_margin_before_tv"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Feed After: 2 lines"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Before: 0"
+                    android:textSize="13sp" />
                 <Button
-                    android:id="@+id/margin_after_plus_btn"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/kitchen_margin_before_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
                     android:text="+"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+
+                <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/kitchen_margin_after_minus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:padding="0dp"
+                    style="?android:attr/buttonStyleSmall" />
+                <TextView
+                    android:id="@+id/kitchen_margin_after_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="After: 2"
+                    android:textSize="13sp" />
+                <Button
+                    android:id="@+id/kitchen_margin_after_plus_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="36dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:padding="0dp"
                     style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
@@ -450,7 +562,7 @@
                 android:id="@+id/test_kitchen_print_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/background_other_buttons"
                 android:text="Test Kitchen Print"
                 android:textColor="@color/black"

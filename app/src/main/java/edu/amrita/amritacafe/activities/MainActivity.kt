@@ -747,7 +747,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.printBottom.setOnClickListener {
             if (configuration.isReceiptBluetooth) {
-                bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                scope.launch(Dispatchers.IO) {
+                    bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                }
                 currentOrdersHistories.forEach {
                     it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                 }
@@ -1055,11 +1057,15 @@ class MainActivity : AppCompatActivity() {
 
         if (configuration.workflowMode == Configuration.MODE_ORDER_TAKER) {
             if (configuration.isReceiptBluetooth) {
-                bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                scope.launch(Dispatchers.IO) {
+                    bluetoothPrintReceipt(mHoinPrinter, orders, configuration)
+                }
                 histories.forEach { it.RecipePrinted = PrintStatus.SUCCESS_PRINT }
             }
             if (configuration.isKitchenBluetooth) {
-                bluetoothPrintKitchen(mHoinPrinter, orders, configuration)
+                scope.launch(Dispatchers.IO) {
+                    bluetoothPrintKitchen(mHoinPrinter, orders, configuration)
+                }
                 histories.forEach { it.KitchenPrinted = PrintStatus.SUCCESS_PRINT }
             }
 
@@ -1425,15 +1431,8 @@ class MainActivity : AppCompatActivity() {
         container.animate().alpha(1f).setDuration(1000).start()
 
         var lastHeartTime = 0L
-        val gestureDetector = android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: android.view.MotionEvent): Boolean {
-                dismissEasterEgg()
-                return true
-            }
-        })
 
         ammaImage.setOnTouchListener { v, event ->
-            gestureDetector.onTouchEvent(event)
             if (event.action == android.view.MotionEvent.ACTION_DOWN || event.action == android.view.MotionEvent.ACTION_MOVE) {
                 val now = System.currentTimeMillis()
                 if (now - lastHeartTime > 100) { // Max 1 heart per 100ms
@@ -1460,7 +1459,7 @@ class MainActivity : AppCompatActivity() {
                         .start()
                 }
             }
-            true // return true to consume touch
+            true // return true to consume touch so it doesn't bubble to container
         }
 
         container.setOnClickListener {

@@ -235,55 +235,91 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 testPrinterConnection(ip, testWifi2Button, "Wi-Fi / LAN 2")
             }
 
-            // Font Scaling Controls
-            fun updateFontScaleViews() {
-                fontLargeTv.text = "Large Text: ${configuration.printLargeTextScale}x"
-                fontSmallTv.text = "Small Text: ${configuration.printSmallTextScale}x"
+            // Receipt Font Scaling & Margin Controls
+            fun updateReceiptViews() {
+                receiptFontLargeTv.text = "Large: ${configuration.receiptLargeTextScale}x"
+                receiptFontSmallTv.text = "Small: ${configuration.receiptSmallTextScale}x"
+                receiptMarginBeforeTv.text = "Before: ${configuration.receiptMarginFeedBefore}"
+                receiptMarginAfterTv.text = "After: ${configuration.receiptMarginFeedAfter}"
             }
-            fontLargeMinusBtn.setOnClickListener {
-                configuration.printLargeTextScale = (configuration.printLargeTextScale - 1).coerceAtLeast(1)
-                updateFontScaleViews()
+            receiptFontLargeMinusBtn.setOnClickListener {
+                configuration.receiptLargeTextScale = (configuration.receiptLargeTextScale - 1).coerceAtLeast(1)
+                updateReceiptViews()
             }
-            fontLargePlusBtn.setOnClickListener {
-                configuration.printLargeTextScale = (configuration.printLargeTextScale + 1).coerceAtMost(4)
-                updateFontScaleViews()
+            receiptFontLargePlusBtn.setOnClickListener {
+                configuration.receiptLargeTextScale = (configuration.receiptLargeTextScale + 1).coerceAtMost(4)
+                updateReceiptViews()
             }
-            fontSmallMinusBtn.setOnClickListener {
-                configuration.printSmallTextScale = (configuration.printSmallTextScale - 1).coerceAtLeast(1)
-                updateFontScaleViews()
+            receiptFontSmallMinusBtn.setOnClickListener {
+                configuration.receiptSmallTextScale = (configuration.receiptSmallTextScale - 1).coerceAtLeast(1)
+                updateReceiptViews()
             }
-            fontSmallPlusBtn.setOnClickListener {
-                configuration.printSmallTextScale = (configuration.printSmallTextScale + 1).coerceAtMost(3)
-                updateFontScaleViews()
+            receiptFontSmallPlusBtn.setOnClickListener {
+                configuration.receiptSmallTextScale = (configuration.receiptSmallTextScale + 1).coerceAtMost(3)
+                updateReceiptViews()
             }
-            updateFontScaleViews()
+            receiptMarginBeforeMinusBtn.setOnClickListener {
+                configuration.receiptMarginFeedBefore = (configuration.receiptMarginFeedBefore - 1).coerceAtLeast(0)
+                updateReceiptViews()
+            }
+            receiptMarginBeforePlusBtn.setOnClickListener {
+                configuration.receiptMarginFeedBefore = (configuration.receiptMarginFeedBefore + 1).coerceAtMost(10)
+                updateReceiptViews()
+            }
+            receiptMarginAfterMinusBtn.setOnClickListener {
+                configuration.receiptMarginFeedAfter = (configuration.receiptMarginFeedAfter - 1).coerceAtLeast(0)
+                updateReceiptViews()
+            }
+            receiptMarginAfterPlusBtn.setOnClickListener {
+                configuration.receiptMarginFeedAfter = (configuration.receiptMarginFeedAfter + 1).coerceAtMost(10)
+                updateReceiptViews()
+            }
+            updateReceiptViews()
 
             testReceiptPrintBtn.setOnClickListener {
                 testReceiptPrint()
             }
 
-            // Kitchen Margins Controls
-            fun updateMarginViews() {
-                marginBeforeTv.text = "Feed Before: ${configuration.kitchenMarginFeedBefore} lines"
-                marginAfterTv.text = "Feed After: ${configuration.kitchenMarginFeedAfter} lines"
+            // Kitchen Font Scaling & Margin Controls
+            fun updateKitchenViews() {
+                kitchenFontLargeTv.text = "Large: ${configuration.kitchenLargeTextScale}x"
+                kitchenFontSmallTv.text = "Small: ${configuration.kitchenSmallTextScale}x"
+                kitchenMarginBeforeTv.text = "Before: ${configuration.kitchenMarginFeedBefore}"
+                kitchenMarginAfterTv.text = "After: ${configuration.kitchenMarginFeedAfter}"
             }
-            marginBeforeMinusBtn.setOnClickListener {
+            kitchenFontLargeMinusBtn.setOnClickListener {
+                configuration.kitchenLargeTextScale = (configuration.kitchenLargeTextScale - 1).coerceAtLeast(1)
+                updateKitchenViews()
+            }
+            kitchenFontLargePlusBtn.setOnClickListener {
+                configuration.kitchenLargeTextScale = (configuration.kitchenLargeTextScale + 1).coerceAtMost(4)
+                updateKitchenViews()
+            }
+            kitchenFontSmallMinusBtn.setOnClickListener {
+                configuration.kitchenSmallTextScale = (configuration.kitchenSmallTextScale - 1).coerceAtLeast(1)
+                updateKitchenViews()
+            }
+            kitchenFontSmallPlusBtn.setOnClickListener {
+                configuration.kitchenSmallTextScale = (configuration.kitchenSmallTextScale + 1).coerceAtMost(3)
+                updateKitchenViews()
+            }
+            kitchenMarginBeforeMinusBtn.setOnClickListener {
                 configuration.kitchenMarginFeedBefore = (configuration.kitchenMarginFeedBefore - 1).coerceAtLeast(0)
-                updateMarginViews()
+                updateKitchenViews()
             }
-            marginBeforePlusBtn.setOnClickListener {
+            kitchenMarginBeforePlusBtn.setOnClickListener {
                 configuration.kitchenMarginFeedBefore = (configuration.kitchenMarginFeedBefore + 1).coerceAtMost(10)
-                updateMarginViews()
+                updateKitchenViews()
             }
-            marginAfterMinusBtn.setOnClickListener {
+            kitchenMarginAfterMinusBtn.setOnClickListener {
                 configuration.kitchenMarginFeedAfter = (configuration.kitchenMarginFeedAfter - 1).coerceAtLeast(0)
-                updateMarginViews()
+                updateKitchenViews()
             }
-            marginAfterPlusBtn.setOnClickListener {
+            kitchenMarginAfterPlusBtn.setOnClickListener {
                 configuration.kitchenMarginFeedAfter = (configuration.kitchenMarginFeedAfter + 1).coerceAtMost(10)
-                updateMarginViews()
+                updateKitchenViews()
             }
-            updateMarginViews()
+            updateKitchenViews()
 
             testKitchenPrintBtn.setOnClickListener {
                 testKitchenPrint()

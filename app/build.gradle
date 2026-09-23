@@ -8,7 +8,7 @@ android {
     compileSdk 37
 
     defaultConfig {
-        applicationId "edu.amrita.amritacafe3"
+        applicationId "edu.amrita.amritacafe"
         minSdkVersion 21
         targetSdkVersion 34
         versionCode 80101

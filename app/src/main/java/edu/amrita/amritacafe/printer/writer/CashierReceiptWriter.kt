@@ -124,9 +124,14 @@ class CashierReceiptWriter(
             val time = getCurrentTime()
             val date = getCurrentDate()
 
+            if (configuration.receiptMarginFeedBefore > 0) {
+                builder.feedLines(configuration.receiptMarginFeedBefore)
+            }
+
             // Header (Centered)
             builder.alignCenter()
-            builder.textSize(2, 2)
+            val headerScale = configuration.receiptLargeTextScale
+            builder.textSize(headerScale, headerScale)
             builder.bold(true)
             builder.line("Western Cafe")
             builder.textSize(1, 1)
@@ -148,7 +153,7 @@ class CashierReceiptWriter(
             builder.feedLines(1)
 
             // Items
-            val smallScale = configuration.printSmallTextScale
+            val smallScale = configuration.receiptSmallTextScale
             builder.textSize(smallScale, smallScale)
             val effectiveCols = totalCols / smallScale
             builder.line(ReceiptWriter.orderItemsText(orderItems, effectiveCols))
@@ -156,7 +161,7 @@ class CashierReceiptWriter(
 
             // Total line
             builder.bold(true)
-            val totalScale = configuration.printLargeTextScale
+            val totalScale = configuration.receiptLargeTextScale
             val effectiveTotalCols = totalCols / totalScale
             builder.textSize(totalScale, totalScale)
             val totalPrefix = "Total"
@@ -177,7 +182,8 @@ class CashierReceiptWriter(
                 builder.alignLeft()
             }
 
-            builder.cut(1)
+            val feedAfter = configuration.receiptMarginFeedAfter.coerceAtLeast(1)
+            builder.cut(feedAfter)
         }
         return builder.build()
     }

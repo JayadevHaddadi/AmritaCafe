@@ -122,7 +122,7 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             }
 
             builder.alignLeft()
-            val titleScale = configuration.printLargeTextScale
+            val titleScale = configuration.kitchenLargeTextScale
             val effectiveHeaderCols = totalCols / titleScale
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
@@ -137,7 +137,7 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             builder.horizontalLine('=', totalCols)
 
             // Large, bold font for kitchen staff
-            val textScale = if (configuration.testing) 1 else configuration.printLargeTextScale
+            val textScale = if (configuration.testing) 1 else configuration.kitchenSmallTextScale
             builder.textSize(textScale, textScale)
             builder.bold(true)
             builder.line(orderItemsText)

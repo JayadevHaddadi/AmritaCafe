@@ -113,8 +113,12 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             val itemCount = orderItems.map { 1 }.sum()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
+            if (configuration.receiptMarginFeedBefore > 0) {
+                builder.feedLines(configuration.receiptMarginFeedBefore)
+            }
+
             builder.alignLeft()
-            val titleScale = configuration.printLargeTextScale
+            val titleScale = configuration.receiptLargeTextScale
             val effectiveHeaderCols = totalCols / titleScale
             builder.textSize(titleScale, titleScale)
             builder.bold(true)
@@ -127,7 +131,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             builder.textSize(1, 1)
             builder.horizontalLine('-', totalCols)
 
-            val smallScale = configuration.printSmallTextScale
+            val smallScale = configuration.receiptSmallTextScale
             builder.textSize(smallScale, smallScale)
             val effectiveCols = totalCols / smallScale
             builder.line(orderItemsText(orderItems, effectiveCols))
@@ -136,7 +140,7 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
             builder.horizontalLine('-', totalCols)
 
             builder.bold(true)
-            val totalScale = configuration.printLargeTextScale
+            val totalScale = configuration.receiptLargeTextScale
             val effectiveTotalCols = totalCols / totalScale
             builder.textSize(totalScale, totalScale)
             val totalPrefix = "TOTAL"
@@ -157,7 +161,8 @@ class ReceiptWriter(private val orders: List<Order>, private val configuration: 
                 builder.alignLeft()
             }
 
-            builder.cut(1)
+            val feedAfter = configuration.receiptMarginFeedAfter.coerceAtLeast(1)
+            builder.cut(feedAfter)
         }
         return builder.build()
     }

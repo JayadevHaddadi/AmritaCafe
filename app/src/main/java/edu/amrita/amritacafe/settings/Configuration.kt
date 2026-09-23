@@ -186,18 +186,46 @@ data class Configuration(private val preferences: SharedPreferences) {
         return if (getPaperSizeForTarget(target) == PAPER_SIZE_80MM) 42 else 32
     }
 
-    var printLargeTextScale: Int
+    // Receipt font scaling (backwards compat: reads from old shared keys)
+    var receiptLargeTextScale: Int
         get() = preferences.getInt(PRINT_LARGE_TEXT_SCALE, 2)
         set(value) {
             preferences.edit().putInt(PRINT_LARGE_TEXT_SCALE, value.coerceIn(1, 4)).apply()
         }
 
-    var printSmallTextScale: Int
+    var receiptSmallTextScale: Int
         get() = preferences.getInt(PRINT_SMALL_TEXT_SCALE, 1)
         set(value) {
             preferences.edit().putInt(PRINT_SMALL_TEXT_SCALE, value.coerceIn(1, 3)).apply()
         }
 
+    // Kitchen font scaling
+    var kitchenLargeTextScale: Int
+        get() = preferences.getInt(KITCHEN_LARGE_TEXT_SCALE, 2)
+        set(value) {
+            preferences.edit().putInt(KITCHEN_LARGE_TEXT_SCALE, value.coerceIn(1, 4)).apply()
+        }
+
+    var kitchenSmallTextScale: Int
+        get() = preferences.getInt(KITCHEN_SMALL_TEXT_SCALE, 1)
+        set(value) {
+            preferences.edit().putInt(KITCHEN_SMALL_TEXT_SCALE, value.coerceIn(1, 3)).apply()
+        }
+
+    // Receipt margins
+    var receiptMarginFeedBefore: Int
+        get() = preferences.getInt(RECEIPT_MARGIN_FEED_BEFORE, 0)
+        set(value) {
+            preferences.edit().putInt(RECEIPT_MARGIN_FEED_BEFORE, value.coerceIn(0, 10)).apply()
+        }
+
+    var receiptMarginFeedAfter: Int
+        get() = preferences.getInt(RECEIPT_MARGIN_FEED_AFTER, 2)
+        set(value) {
+            preferences.edit().putInt(RECEIPT_MARGIN_FEED_AFTER, value.coerceIn(0, 10)).apply()
+        }
+
+    // Kitchen margins
     var kitchenMarginFeedBefore: Int
         get() = preferences.getInt(KITCHEN_MARGIN_FEED_BEFORE, 0)
         set(value) {
@@ -209,6 +237,17 @@ data class Configuration(private val preferences: SharedPreferences) {
         set(value) {
             preferences.edit().putInt(KITCHEN_MARGIN_FEED_AFTER, value.coerceIn(0, 10)).apply()
         }
+
+    // Deprecated aliases for backward compatibility with printer writers
+    @Deprecated("Use receiptLargeTextScale or kitchenLargeTextScale", ReplaceWith("receiptLargeTextScale"))
+    var printLargeTextScale: Int
+        get() = receiptLargeTextScale
+        set(value) { receiptLargeTextScale = value }
+
+    @Deprecated("Use receiptSmallTextScale or kitchenSmallTextScale", ReplaceWith("receiptSmallTextScale"))
+    var printSmallTextScale: Int
+        get() = receiptSmallTextScale
+        set(value) { receiptSmallTextScale = value }
 
     var mode
         get() = preferences.getInt(MODE, 0)
@@ -347,7 +386,11 @@ data class Configuration(private val preferences: SharedPreferences) {
         const val PRINTER_2_PAPER_SIZE = "bluetooth_2_paper_size"
         const val PRINT_LARGE_TEXT_SCALE = "print_large_text_scale"
         const val PRINT_SMALL_TEXT_SCALE = "print_small_text_scale"
+        const val KITCHEN_LARGE_TEXT_SCALE = "kitchen_large_text_scale"
+        const val KITCHEN_SMALL_TEXT_SCALE = "kitchen_small_text_scale"
         const val KITCHEN_MARGIN_FEED_BEFORE = "kitchen_margin_feed_before"
         const val KITCHEN_MARGIN_FEED_AFTER = "kitchen_margin_feed_after"
+        const val RECEIPT_MARGIN_FEED_BEFORE = "receipt_margin_feed_before"
+        const val RECEIPT_MARGIN_FEED_AFTER = "receipt_margin_feed_after"
     }
 }
