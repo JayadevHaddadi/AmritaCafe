@@ -54,19 +54,25 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace
 
+      - name: Prepare Release Notes
+        run: |
+          if [ ! -f RELEASE_NOTES.md ]; then
+            echo "### Changes in Build ${{ steps.version_info.outputs.VERSION_CODE }}" > RELEASE_NOTES.md
+            git log -1 --pretty=format:"%B" >> RELEASE_NOTES.md
+          fi
+
       - name: Create GitHub Pre-Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/7008' || github.event_name == 'workflow_dispatch'
         with:
           tag_name: ${{ steps.version_info.outputs.VERSION_CODE }}
           name: "Amrita Cafe ${{ steps.version_info.outputs.VERSION_NAME }} (${{ steps.version_info.outputs.VERSION_CODE }})"
-          body: |
-            Amrita Cafe Build ${{ steps.version_info.outputs.VERSION_CODE }}
-            - Published automatically as Pre-Release (Beta).
-            - Test this build, and when ready, edit this release on GitHub to uncheck 'Set as a pre-release' to promote it to Standard/Stable.
+          body_path: RELEASE_NOTES.md
+          generate_release_notes: true
           prerelease: true
           draft: false
           files: |
             app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
