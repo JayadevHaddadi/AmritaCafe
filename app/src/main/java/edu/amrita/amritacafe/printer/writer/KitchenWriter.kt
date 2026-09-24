@@ -76,8 +76,6 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             builder.bold(false)
 
             builder.feedLines(lineFeed)
-            builder.textSize(1, 1)
-            builder.horizontalLine('=', totalCols)
 
             // Large, bold font for kitchen staff
             val textScale = if (configuration.testing) 1 else configuration.kitchenSmallTextScale
