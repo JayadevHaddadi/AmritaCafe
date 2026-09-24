@@ -14,7 +14,7 @@ import java.io.File
 object HistoryPersistence {
     private const val TAG = "HistoryPersistence"
     private const val FILE_NAME = "order_history.json"
-    private const val MAX_HISTORY_ITEMS = 20
+    private const val MAX_HISTORY_ITEMS = 50
 
     @Synchronized
     fun saveHistory(context: Context, history: List<HistoricalOrder>) {

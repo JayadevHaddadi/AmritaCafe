@@ -1351,7 +1351,7 @@ class MainActivity : AppCompatActivity() {
         currentOrdersHistories.forEach {
             orderHistory.add(it)
         }
-        while (orderHistory.size > 20) {
+        while (orderHistory.size > 50) {
             orderHistory.removeAt(0)
         }
         edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this, orderHistory)

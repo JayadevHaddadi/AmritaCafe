@@ -1,4 +1,15 @@
-# Amrita Cafe — Build 80108
+# Amrita Cafe — Build 80109
+
+### 🛡️ Google Sheets Duplicate Prevention (Idempotent Orders)
+- **Zero Duplicate Orders on Reconnection / Retry**: If an order was received by Google Sheets but the connection dropped before the tablet received the confirmation (or if network retries resend an order), `OrderEntry.gs` now inspects the sheet history (matching exact `TIME`, `TABLET`, and `ORDER`).
+- Duplicate pushes are cleanly acknowledged without inserting duplicate rows, and the tablet safely clears the item from its durable offline queue.
+
+### 📜 History Expanded to 50 Orders
+- **50 Orders Capped Persistence**: Expanded the persistent order history limit from 20 to 50 items. History remains fully persistent across app restarts and orientation changes while staying lean and performant.
+
+---
+
+# Previous Changes — Build 80108
 
 ### 🔒 Ultra-Reliable Google Sheets Offline Sync (Multi-Day Resilience)
 - **Power-Cut & Crash Safe Storage**: Replaced asynchronous `SharedPreferences` with a dedicated disk queue (`google_sheets_pending_queue.json`) using atomic temporary file swaps and physical hardware flush (`fsync`). Orders are physically committed to flash memory immediately upon order placement, ensuring zero data loss even if the battery dies or power is abruptly cut.

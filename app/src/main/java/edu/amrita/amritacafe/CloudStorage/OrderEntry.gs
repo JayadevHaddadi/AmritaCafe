@@ -119,6 +119,24 @@ function doPost(e) {
   var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
   var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
 
+  // Deduplication Check: Prevent inserting duplicate rows if this exact order was already recorded
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 2) {
+    var searchDepth = 2000;
+    var startRow = Math.max(2, lastRow - searchDepth + 1);
+    var numRows = lastRow - startRow + 1;
+    var checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
+    var targetOrder = order.toString();
+    for (var k = checkValues.length - 1; k >= 0; k--) {
+      var rowTime = checkValues[k][0].toString();
+      var rowTablet = checkValues[k][1].toString();
+      var rowOrder = checkValues[k][2].toString();
+      if (rowTablet === tablet && rowOrder === targetOrder && rowTime === timeFormat) {
+        return ContentService.createTextOutput("Order already exists. Skipped duplicate insertion.");
+      }
+    }
+  }
+
   for (var i = 0; i < items.length; i++) {
     var gpayAmount = isGpay ? items[i].total : 0;
     var rowValues = [timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount];
