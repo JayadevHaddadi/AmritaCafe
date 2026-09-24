@@ -14,6 +14,10 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
@@ -137,6 +141,28 @@ class MainActivity : AppCompatActivity() {
         ConnectionIndicator.init(binding.printerIndicator, binding.sheetsIndicator)
         ConnectionIndicator.setPrinterConnected(false)
         ConnectionIndicator.setSheetsConnected(false)
+
+        binding.sheetsIndicator.setOnClickListener {
+            val pending = edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.getPendingCount(this)
+            if (pending > 0) {
+                Toast.makeText(this, "Google Sheets: $pending orders waiting to sync. Retrying now...", Toast.LENGTH_SHORT).show()
+                edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(this)
+            } else {
+                Toast.makeText(this, "Google Sheets: All orders synced ✓", Toast.LENGTH_SHORT).show()
+                edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(this)
+            }
+        }
+
+        registerNetworkCallback()
+
+        scope.launch {
+            while (isActive) {
+                delay(30000L)
+                if (edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.getPendingCount(applicationContext) > 0) {
+                    edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(applicationContext)
+                }
+            }
+        }
 
         BREAKFAST_FILE = File(filesDir, "Breakfast.txt")
         LUNCH_DINNER_FILE = File(filesDir, "LunchDinner.txt")
@@ -479,8 +505,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+
+    private fun registerNetworkCallback() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            if (cm != null) {
+                val request = NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build()
+                val callback = object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) {
+                        runOnUiThread {
+                            edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(applicationContext)
+                        }
+                    }
+                }
+                cm.registerNetworkCallback(request, callback)
+                networkCallback = callback
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        networkCallback?.let {
+            try {
+                val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                cm?.unregisterNetworkCallback(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         if (isChangingConfigurations) {
             preservedOrders = orderAdapter.orderItems.toList()
         }
@@ -1292,6 +1350,9 @@ class MainActivity : AppCompatActivity() {
     private fun orderDone(orders: List<Order>) {
         currentOrdersHistories.forEach {
             orderHistory.add(it)
+        }
+        while (orderHistory.size > 20) {
+            orderHistory.removeAt(0)
         }
         edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this, orderHistory)
 

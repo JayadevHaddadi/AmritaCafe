@@ -82,24 +82,11 @@ fun updateGPayOnSheets(
     }
     
     val jsonString = jsonData.toString()
-    val requestQueue = Volley.newRequestQueue(context)
-    val stringRequest = object : StringRequest(
-        Method.POST,
+    OfflineOrderSync.addOrder(
+        context,
+        jsonString,
         url,
-        { response ->
-            Log.d("Connection", "Update GPay Response: $response")
-            ConnectionIndicator.setSheetsConnected(true)
-        },
-        { error ->
-            Log.e("Connection", "Update GPay Error: ${error.message}")
-            ConnectionIndicator.setSheetsConnected(false)
-            // Note: We might want an offline queue for updates too, 
-            // but starting with immediate sync for simplicity.
-        }) {
-        override fun getBodyContentType(): String = "application/json; charset=utf-8"
-        override fun getBody(): ByteArray = jsonString.toByteArray(Charsets.UTF_8)
-    }
-    
-    stringRequest.setRetryPolicy(DefaultRetryPolicy(10000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
-    requestQueue.add(stringRequest)
+        "Update GPay Order ${historicalOrder.order.orderNumber}"
+    )
+    OfflineOrderSync.syncPendingOrders(context, url)
 }
