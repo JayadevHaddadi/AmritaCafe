@@ -310,14 +310,9 @@ data class Configuration(private val preferences: SharedPreferences) {
             preferences.edit().putInt(KITCHEN_PRINTER_TARGET, value).apply()
         }
 
-    var useRawSocket
-        get() = preferences.getBoolean(USE_RAW_SOCKET, true)
-        set(value) {
-            preferences.edit {
-                putBoolean(USE_RAW_SOCKET, value)
-                apply()
-            }
-        }
+    var useRawSocket: Boolean
+        get() = true
+        set(_) {}
 
     var printAmmaQuote
         get() = preferences.getBoolean(PRINT_AMMA_QUOTE, false)

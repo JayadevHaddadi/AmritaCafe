@@ -401,15 +401,6 @@
                     android:textColor="@color/black"
                     android:textStyle="bold" />
 
-                <!-- Printer Checkboxes -->
-                <CheckBox
-                    android:id="@+id/raw_socket_checkbox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:checked="true"
-                    android:text="Use Raw TCP (Port 9100)" />
-
                 <CheckBox
                     android:id="@+id/printAmmaQuoteCheckBox"
                     android:layout_width="wrap_content"

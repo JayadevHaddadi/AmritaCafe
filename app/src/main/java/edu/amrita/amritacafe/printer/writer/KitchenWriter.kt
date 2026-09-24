@@ -1,6 +1,5 @@
 package edu.amrita.amritacafe.printer.writer
 
-import com.epson.epos2.printer.Printer
 import edu.amrita.amritacafe.menu.RegularOrderItem
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.escpos.EscPosBuilder
@@ -30,66 +29,13 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
                             "  "
                         } else {
                             it.quantity.toString().padEnd(2)
-                        } + it.menuItem.code //+ "+ "
+                        } + it.menuItem.code
                     }
                 } else {
                     ""
                 }
 
-
-    private fun writeTo(printer: Printer) {
-        val (titleSize, textSize, lineFeed) = configuration.textConfig
-        orders.forEach { (orderNumber, itemList, date, time) ->
-
-            val orderItemsText =
-                itemList.map(::writeLine).joinToString("\n")
-            val itemCount =
-                itemList.map { 1 }.sum()
-
-            printer.addTextSize(titleSize, titleSize)
-            val orderNumStr = orderNumber.toString().padStart(3, '0')
-            printer.addText("$orderNumStr        $time")
-
-            printer.addFeedLine(lineFeed)
-            printer.addHLine(1, 2400, Printer.LINE_THICK_DOUBLE)
-
-            printer.addFeedLine(lineFeed)
-
-            printer.addTextSize(textSize, textSize)
-            printer.addText(orderItemsText)
-            printer.addFeedLine(lineFeed)
-            printer.addCut(Printer.CUT_FEED)
-        }
-    }
-
-    private fun printItem(orderItem: RegularOrderItem): String {
-        val toppingsString = StringBuffer()
-        orderItem.toppings.forEach {
-            toppingsString.append("\n  + " + it.quantity + " " + it.code)
-        }
-
-        return if (orderItem.quantity == 1) {
-            "  "
-        } else {
-            orderItem.quantity.toString().padEnd(2)
-        } + orderItem.code +
-                if (orderItem.comment.isBlank()) {
-                    ""
-                } else {
-                    "\n  * ${orderItem.comment}"
-                } + toppingsString.toString()
-    }
-
     companion object : Writer {
-
-        override fun writeToPrinter(
-            orders: List<Order>,
-            printer: Printer,
-            configuration: Configuration
-        ) {
-            KitchenWriter(orders, configuration).writeTo(printer)
-        }
-
         override fun writeToEscPos(
             orders: List<Order>,
             configuration: Configuration
@@ -108,13 +54,11 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
 
     fun writeToEscPos(columns: Int = 42): ByteArray {
         val totalCols = if (columns > 0) columns else 42
-        val doubleWidthCols = totalCols / 2
         val (titleSize, textSize, lineFeed) = configuration.textConfig
         val builder = EscPosBuilder()
 
         orders.forEach { (orderNumber, itemList, date, time) ->
             val orderItemsText = itemList.map(::writeLine).joinToString("\n")
-            val itemCount = itemList.map { 1 }.sum()
             val orderNumStr = orderNumber.toString().padStart(3, '0')
 
             if (configuration.kitchenMarginFeedBefore > 0) {
@@ -132,7 +76,6 @@ class KitchenWriter(private val orders: List<Order>, private val configuration: 
             builder.bold(false)
 
             builder.feedLines(lineFeed)
-            // Crucial: reset text size to 1x1 before drawing separator line to prevent wrapping
             builder.textSize(1, 1)
             builder.horizontalLine('=', totalCols)
 

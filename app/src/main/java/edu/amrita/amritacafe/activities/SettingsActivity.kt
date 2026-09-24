@@ -101,10 +101,28 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             // Bind Views
             receiptIpET.setText(configuration.receiptPrinterIP)
             kitchenIpET.setText(configuration.kitchenPrinterIP)
-            rawSocketCheckbox.isChecked = configuration.useRawSocket
-            rawSocketCheckbox.setOnCheckedChangeListener { _, isChecked ->
-                configuration.useRawSocket = isChecked
-            }
+
+            receiptIpET.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val ip = s?.toString()?.trim() ?: ""
+                    if (ip.isNotEmpty()) {
+                        configuration.receiptPrinterIP = ip
+                    }
+                }
+            })
+
+            kitchenIpET.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val ip = s?.toString()?.trim() ?: ""
+                    if (ip.isNotEmpty()) {
+                        configuration.kitchenPrinterIP = ip
+                    }
+                }
+            })
 
             testingCheckBox.isChecked = configuration.testing
             testingCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -227,11 +245,17 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
             testWifi1Button.setOnClickListener {
                 val ip = receiptIpET.text.toString().trim()
+                if (ip.isNotEmpty()) {
+                    configuration.receiptPrinterIP = ip
+                }
                 testPrinterConnection(ip, testWifi1Button, "Wi-Fi / LAN 1")
             }
 
             testWifi2Button.setOnClickListener {
                 val ip = kitchenIpET.text.toString().trim()
+                if (ip.isNotEmpty()) {
+                    configuration.kitchenPrinterIP = ip
+                }
                 testPrinterConnection(ip, testWifi2Button, "Wi-Fi / LAN 2")
             }
 
@@ -834,7 +858,6 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 currentOrderNumber = currentOrderNumberET.text.toString().trim().toIntOrNull() ?: currentOrderNumber
                 kitchenPrinterIP = kitchenIpET.text.toString().trim()
                 receiptPrinterIP = receiptIpET.text.toString().trim()
-                useRawSocket = rawSocketCheckbox.isChecked
                 rangeFrom = rangeFromET.text.toString().trim().toIntOrNull() ?: 1
                 rangeTo = rangeToET.text.toString().trim().toIntOrNull() ?: 999
                 columnsLandscape = columnNumbersET.text.toString().trim().toIntOrNull() ?: 8
@@ -844,6 +867,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     }
 
     private fun testReceiptPrint() {
+        val inputIp = binding.receiptIpET.text.toString().trim()
+        if (inputIp.isNotEmpty()) {
+            configuration.receiptPrinterIP = inputIp
+        }
         val target = configuration.receiptPrinterTarget
         if (target == Configuration.RECEIPT_TARGET_NONE) {
             Toast.makeText(this, "Receipt printer is set to None", Toast.LENGTH_SHORT).show()
@@ -910,6 +937,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     }
 
     private fun testKitchenPrint() {
+        val inputIp = binding.kitchenIpET.text.toString().trim()
+        if (inputIp.isNotEmpty()) {
+            configuration.kitchenPrinterIP = inputIp
+        }
         val target = configuration.kitchenPrinterTarget
         if (target == Configuration.KITCHEN_TARGET_NONE) {
             Toast.makeText(this, "Kitchen printer is set to None", Toast.LENGTH_SHORT).show()

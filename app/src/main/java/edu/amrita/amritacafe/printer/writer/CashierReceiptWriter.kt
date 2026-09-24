@@ -1,7 +1,6 @@
 package edu.amrita.amritacafe.printer.writer
 
 import android.os.Build
-import com.epson.epos2.printer.Printer
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.escpos.EscPosBuilder
 import edu.amrita.amritacafe.quotes.AmmaQuotes
@@ -18,14 +17,6 @@ class CashierReceiptWriter(
 ) {
 
     companion object : Writer {
-        override fun writeToPrinter(
-            orders: List<Order>,
-            printer: Printer,
-            configuration: Configuration
-        ) {
-            CashierReceiptWriter(orders, configuration).writeToPrinter(printer)
-        }
-
         override fun writeToEscPos(
             orders: List<Order>,
             configuration: Configuration
@@ -58,66 +49,9 @@ class CashierReceiptWriter(
         }
     }
 
-    private fun writeToPrinter(printer: Printer) {
-        val totalCols = 42
-        orders.forEach { (orderNumber, orderItems, _, _) ->
-            val orderTotalText = orderItems.map { it.totalPrice() }.sum().toString()
-            val time = getCurrentTime()
-            val date = getCurrentDate()
-
-            // Header (Centered)
-            printer.addTextAlign(Printer.ALIGN_CENTER)
-            printer.addTextSize(2, 2)
-            printer.addTextStyle(Printer.PARAM_DEFAULT, Printer.PARAM_DEFAULT, Printer.TRUE, Printer.PARAM_DEFAULT)
-            printer.addText("Western Cafe\n\n")
-
-            // Address (Left) with Time & Date (Right) on 2 lines
-            printer.addTextAlign(Printer.ALIGN_LEFT)
-            printer.addTextSize(1, 1)
-            printer.addTextStyle(Printer.PARAM_DEFAULT, Printer.PARAM_DEFAULT, Printer.FALSE, Printer.PARAM_DEFAULT)
-
-            val line1Left = "Sree Bhadra Amrita"
-            val pad1 = (totalCols - time.length).coerceAtLeast(line1Left.length)
-            printer.addText(line1Left.padEnd(pad1) + time + "\n")
-
-            val line2Left = "Amritapuri, Kollam-690546"
-            val pad2 = (totalCols - date.length).coerceAtLeast(line2Left.length)
-            printer.addText(line2Left.padEnd(pad2) + date + "\n")
-
-            // Divider
-            printer.addHLine(1, 2400, Printer.LINE_THIN)
-            printer.addFeedLine(1)
-
-            // Items
-            printer.addText(ReceiptWriter.orderItemsText(orderItems, totalCols) + "\n\n")
-
-            // Total (Bold, double size)
-            printer.addTextSize(2, 2)
-            printer.addTextStyle(Printer.PARAM_DEFAULT, Printer.PARAM_DEFAULT, Printer.TRUE, Printer.PARAM_DEFAULT)
-            val totalPrefix = "Total"
-            val dotCount = (21 - totalPrefix.length - orderTotalText.length).coerceAtLeast(1)
-            printer.addText(totalPrefix + ".".repeat(dotCount) + orderTotalText + "\n")
-
-            // Optional Amma Quote
-            if (configuration.printAmmaQuote) {
-                val quoteLines = AmmaQuotes.getFormattedLines(orderNumber, 36)
-                printer.addFeedLine(1)
-                printer.addTextAlign(Printer.ALIGN_CENTER)
-                printer.addTextSize(1, 1)
-                quoteLines.forEach { line ->
-                    printer.addText(line + "\n")
-                }
-            }
-
-            printer.addFeedLine(1)
-            printer.addCut(Printer.CUT_FEED)
-        }
-    }
-
     fun writeToEscPos(columns: Int = 42): ByteArray {
         val builder = EscPosBuilder()
         val totalCols = if (columns > 0) columns else 42
-        val doubleWidthCols = totalCols / 2
 
         orders.forEach { (orderNumber, orderItems, _, _) ->
             val orderTotalText = orderItems.map { it.totalPrice() }.sum().toString()

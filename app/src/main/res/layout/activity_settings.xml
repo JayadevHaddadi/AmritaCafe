@@ -569,14 +569,6 @@
                 android:textStyle="bold" />
 
             <CheckBox
-                android:id="@+id/raw_socket_checkbox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:checked="true"
-                android:text="Use Raw TCP (Port 9100) - For Generic/Hoin" />
-
-            <CheckBox
                 android:id="@+id/printAmmaQuoteCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -1,4 +1,17 @@
-# Amrita Cafe — Build 80103
+# Amrita Cafe — Build 80104
+
+### 🖨️ Raw TCP ESC/POS as Universal Default
+- **Standardized on Raw TCP (Port 9100)**: Raw socket communication is now the standard and only network printing engine across all Wi-Fi/LAN printers.
+- **Removed Legacy Epson ePOS SDK System**: Eliminated the proprietary Epson ePOS SDK print path that bypassed standard ESC/POS commands and caused cut/margin discrepancies.
+- **Cleaned Settings UI**: Removed the obsolete "Use Raw TCP" checkbox from settings (both portrait and landscape layouts).
+
+### ⚡ Immediate Printer IP Updates
+- **Real-Time IP Saving**: Changes made to printer IP addresses in Settings are now synchronized immediately into memory and SharedPreferences.
+- **Instant Test Printing**: Tapping **Test Receipt Print** or **Test Kitchen Print** immediately uses the updated IP without needing to exit the screen or trigger an `onPause` lifecycle event.
+
+---
+
+# Previous Changes — Build 80103
 
 ### 🏷️ Branding & Package
 - **App Name**: Renamed to **"Amrita Cafe"** (removed outdated "v5" suffix).

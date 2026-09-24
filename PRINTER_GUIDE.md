@@ -41,16 +41,11 @@ The KP307 thermal receipt printer includes an embedded Wi-Fi module that hosts a
 ### Will the app print with Epson printers or will there be an issue?
 **Yes, it will print with Epson printers smoothly!**
 
-In the Amrita Cafe app (`ReceiptDispatch.kt`), there are two printing backends:
-1. **Raw TCP (Port 9100)** (`useRawSocket = true` in Settings):
-   - Streams standard ESC/POS command bytes (`EscPosBuilder`) over socket port 9100.
-   - **ESC/POS was created by Epson**, and virtually all Epson network printers (TM-m30, TM-T88, TM-T20) have standard RAW/JetDirect Port 9100 enabled by default.
-   - **Recommendation:** Keep **"Use Raw TCP (Port 9100)" CHECKED** in the app Settings. Raw TCP works universally across **both Epson and KP307/Hoin** printers without requiring vendor-specific drivers or SDKs.
-
-2. **Epson ePOS2 SDK Mode** (`useRawSocket = false` in Settings):
-   - Uses Epson's proprietary Android SDK (`com.epson.epos2.printer.Printer`).
-   - **Crucial Warning:** The ePOS2 SDK uses proprietary Epson handshakes and will **FAIL** if connected to non-Epson printers like the KP307.
-   - Only turn OFF Raw TCP if you are using genuine Epson printers AND specifically need bidirectional status feedback (e.g. paper out detection via SDK).
+In the Amrita Cafe app (`ReceiptDispatch.kt`), network printing is standardized on **Raw TCP (Port 9100)**:
+- Streams standard ESC/POS command bytes (`EscPosBuilder`) over socket port 9100.
+- **ESC/POS was created by Epson**, and virtually all Epson network printers (TM-m30, TM-T88, TM-T20) have standard RAW/JetDirect Port 9100 enabled by default.
+- Raw TCP works universally across **both Epson and KP307/Hoin** printers without requiring vendor-specific drivers or SDKs.
+- The legacy proprietary Epson ePOS2 SDK and the "Use Raw TCP" toggle have been retired to guarantee consistent cuts and margins.
 
 ### Can the tablet auto-detect which printer is connected?
 **No, and it should NOT rely on auto-detection.**
@@ -130,19 +125,11 @@ During major festival events like Amma's Birthday, the 2.4 GHz RF environment ha
 
 ---
 
-## 6. Migration Roadmap: Retiring the Epson SDK
-
-* **Current Architecture:**
-  * The app provides a setting `useRawSocket` ("Use Raw TCP (Universal ESC/POS)"), enabled by default.
-  * `ReceiptDispatch.kt` routes print jobs either via direct TCP socket (port 9100) or through Epson's `com.epson.epos2.printer.Printer`.
-* **Testing Milestone:**
-  * Test the remaining Epson printer using Raw TCP (port 9100). Because ESC/POS was created by Epson, all network Epson printers natively listen on port 9100.
-* **Final Cleanup:**
-  * Once the Epson printer confirms flawless printing and cutting via Raw TCP, we can remove:
-    1. The `com.epson.epos2` proprietary SDK (`ePOS2.jar`).
-    2. The "Use Raw TCP" toggle in Settings and Configuration.
-    3. All legacy Epson wrapper classes and error handling.
-  * This eliminates ~200 KB of binary bloat, prevents vendor lock-in, and standardizes the entire codebase on 100% open, universal ESC/POS.
+## 6. Migration Status: Epson SDK Retired
+* **Completed in Build 80104:**
+  * Network printing has been unified on standard Raw TCP (Port 9100) ESC/POS.
+  * The "Use Raw TCP" checkbox has been removed from Settings.
+  * The app directly formats ESC/POS commands with customizable font sizes, line feeds, and auto-cuts.
 
 ---
 
