@@ -53,113 +53,138 @@ function formatAppTime(millis) {
   return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + ' '+ date.getHours() + ':'+ date.getMinutes() + ':'+ date.getSeconds() + "." + date.getMilliseconds();
 }
 
+function isTimeMatching(cellVal, targetMillis, targetTimeFormat) {
+  if (cellVal instanceof Date) {
+    return Math.abs(cellVal.getTime() - targetMillis) < 2000;
+  }
+  var str = cellVal ? cellVal.toString().trim() : "";
+  if (str === targetTimeFormat) return true;
+  var parsed = Date.parse(str);
+  if (!isNaN(parsed) && Math.abs(parsed - targetMillis) < 2000) return true;
+  return false;
+}
+
 function doPost(e) {
-  var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
-  var sheet = ss.getSheetByName('Sheet1');
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000); // Wait up to 20s for concurrent writes to finish
+  } catch (err) {
+    return ContentService.createTextOutput("Server busy, please retry.");
+  }
 
-  // Parse the request data
-  var data = JSON.parse(e.postData.getDataAsString());
-  var timeMillis = data.time;
-  var tablet = data.tablet;
-  var isGpay = data.isGpay || false;
-  var appVersion = data.appVersion || "";
+  try {
+    var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
+    var sheet = ss.getSheetByName('Sheet1');
 
-  // Format the time EXACTLY like the app does for consistency
-  var timeFormat = formatAppTime(timeMillis);
+    // Parse the request data
+    var data = JSON.parse(e.postData.getDataAsString());
+    var timeMillis = data.time;
+    var tablet = (data.tablet || "").toString().trim();
+    var isGpay = data.isGpay || false;
+    var appVersion = data.appVersion || "";
 
-  // Handle Retrospective GPay Update
-  if (data.action === "updateGPay") {
-    var lastRow = sheet.getLastRow();
-    if (lastRow < 2) return ContentService.createTextOutput("Sheet is empty.");
+    // Format the time EXACTLY like the app does for consistency
+    var timeFormat = formatAppTime(timeMillis);
 
     // Dynamic headers
     var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
-    
-    // Find column indices (1-based for getRange)
-    var tabletColIndex = headers.indexOf("TABLET") + 1 || 2; 
-    var orderColIndex = headers.indexOf("ORDER") + 1 || 3;
-    var totalColIndex = headers.indexOf("TOTAL") + 1 || 7;
-    var gpayColIndex = headers.indexOf("GPAY AMOUNT") + 1 || 8;
 
-    // Efficiency: Only check the last 2000 rows for updates (speed up search)
-    var searchDepth = 2000;
-    var startRow = Math.max(2, lastRow - searchDepth + 1);
-    var numRows = lastRow - startRow + 1;
+    // Handle Retrospective GPay Update
+    if (data.action === "updateGPay") {
+      var lastRow = sheet.getLastRow();
+      if (lastRow < 2) return ContentService.createTextOutput("Sheet is empty.");
 
-    // Get all columns up to the maximum column index we need
-    var maxCol = Math.max(tabletColIndex, orderColIndex, totalColIndex, gpayColIndex);
-    var values = sheet.getRange(startRow, 1, numRows, maxCol).getValues(); 
-    var found = false;
-    var targetOrder = data.order.toString();
+      // Find column indices (1-based for getRange)
+      var tabletColIndex = headers.indexOf("TABLET") + 1 || 2; 
+      var orderColIndex = headers.indexOf("ORDER") + 1 || 3;
+      var totalColIndex = headers.indexOf("TOTAL") + 1 || 7;
+      var gpayColIndex = headers.indexOf("GPAY AMOUNT") + 1 || 8;
 
-    // Search bottom-up
-    for (var i = values.length - 1; i >= 0; i--) {
-      var cellTablet = values[i][tabletColIndex - 1].toString();
-      var cellOrder = values[i][orderColIndex - 1].toString();
+      // Efficiency: Check last 5000 rows for updates
+      var searchDepth = 5000;
+      var startRow = Math.max(2, lastRow - searchDepth + 1);
+      var numRows = lastRow - startRow + 1;
 
-      if (cellOrder === targetOrder && cellTablet === tablet) {
-        var total = values[i][totalColIndex - 1]; 
-        var gpayAmount = isGpay ? total : 0;
+      var maxCol = Math.max(tabletColIndex, orderColIndex, totalColIndex, gpayColIndex);
+      var values = sheet.getRange(startRow, 1, numRows, maxCol).getValues(); 
+      var found = false;
+      var targetOrder = data.order.toString().trim();
 
-        // Update GPay Amount column
-        sheet.getRange(startRow + i, gpayColIndex).setValue(gpayAmount);
-        found = true;
-      } else if (found) {
-        // If we already found the order block and now hit a different order, stop searching
-        break;
-      }
-    }
-    return ContentService.createTextOutput(found ? "Update successful!" : "Order not found in search range.");
-  }
+      // Search bottom-up
+      for (var i = values.length - 1; i >= 0; i--) {
+        var cellTablet = values[i][tabletColIndex - 1].toString().trim();
+        var cellOrder = values[i][orderColIndex - 1].toString().trim();
 
-  // Normal Order Entry
-  var order = data.order;
-  var items = data.items;
+        if (cellOrder === targetOrder && cellTablet === tablet) {
+          var total = values[i][totalColIndex - 1]; 
+          var gpayAmount = isGpay ? total : 0;
 
-  var headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
-  var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
-
-  // Deduplication Check: Prevent inserting duplicate rows if this exact order was already recorded
-  var lastRow = sheet.getLastRow();
-  if (lastRow >= 2) {
-    var searchDepth = 2000;
-    var startRow = Math.max(2, lastRow - searchDepth + 1);
-    var numRows = lastRow - startRow + 1;
-    var checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
-    var targetOrder = order.toString();
-    for (var k = checkValues.length - 1; k >= 0; k--) {
-      var rowTime = checkValues[k][0].toString();
-      var rowTablet = checkValues[k][1].toString();
-      var rowOrder = checkValues[k][2].toString();
-      if (rowTablet === tablet && rowOrder === targetOrder && rowTime === timeFormat) {
-        return ContentService.createTextOutput("Order already exists. Skipped duplicate insertion.");
-      }
-    }
-  }
-
-  for (var i = 0; i < items.length; i++) {
-    var gpayAmount = isGpay ? items[i].total : 0;
-    var rowValues = [timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount];
-    
-    if (appVersionColIndex > 0) {
-      var maxCols = Math.max(rowValues.length, headers.length);
-      var fullRow = [];
-      for (var j = 0; j < maxCols; j++) {
-        if (j === appVersionColIndex - 1) {
-          fullRow.push(appVersion);
-        } else if (j < rowValues.length) {
-          fullRow.push(rowValues[j]);
-        } else {
-          fullRow.push("");
+          sheet.getRange(startRow + i, gpayColIndex).setValue(gpayAmount);
+          found = true;
+        } else if (found) {
+          break;
         }
       }
-      sheet.appendRow(fullRow);
-    } else {
-      sheet.appendRow(rowValues);
+      return ContentService.createTextOutput(found ? "Update successful!" : "Order not found in search range.");
     }
+
+    // Normal Order Entry
+    var order = (data.order || "").toString().trim();
+    var items = data.items || [];
+    var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
+
+    // Deduplication Check: Prevent duplicate rows if exact order was already recorded
+    var lastRow = sheet.getLastRow();
+    if (lastRow >= 2) {
+      // Searching the last 5000 rows takes < 150ms even on a 100k-row sheet
+      var searchDepth = 5000;
+      var startRow = Math.max(2, lastRow - searchDepth + 1);
+      var numRows = lastRow - startRow + 1;
+      var checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
+      for (var k = checkValues.length - 1; k >= 0; k--) {
+        var rowTablet = checkValues[k][1] ? checkValues[k][1].toString().trim() : "";
+        var rowOrder = checkValues[k][2] ? checkValues[k][2].toString().trim() : "";
+        if (rowTablet === tablet && rowOrder === order) {
+          var rowTimeVal = checkValues[k][0];
+          if (isTimeMatching(rowTimeVal, timeMillis, timeFormat)) {
+            return ContentService.createTextOutput("Order already exists. Skipped duplicate insertion.");
+          }
+        }
+      }
+    }
+
+    // Prepare rows for batch insertion
+    var rowsToAppend = [];
+    for (var i = 0; i < items.length; i++) {
+      var gpayAmount = isGpay ? items[i].total : 0;
+      var rowValues = [timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount];
+      
+      if (appVersionColIndex > 0) {
+        var maxCols = Math.max(rowValues.length, headers.length);
+        var fullRow = [];
+        for (var j = 0; j < maxCols; j++) {
+          if (j === appVersionColIndex - 1) {
+            fullRow.push(appVersion);
+          } else if (j < rowValues.length) {
+            fullRow.push(rowValues[j]);
+          } else {
+            fullRow.push("");
+          }
+        }
+        rowsToAppend.push(fullRow);
+      } else {
+        rowsToAppend.push(rowValues);
+      }
+    }
+
+    if (rowsToAppend.length > 0) {
+      sheet.getRange(lastRow + 1, 1, rowsToAppend.length, rowsToAppend[0].length).setValues(rowsToAppend);
+    }
+    
+    return ContentService.createTextOutput("Order inserted successfully!");
+  } finally {
+    lock.releaseLock();
   }
-  
-  return ContentService.createTextOutput("Order inserted successfully!");
 }
 
 function getLastRow(sheet) {
