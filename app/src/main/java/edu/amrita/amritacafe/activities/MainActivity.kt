@@ -28,6 +28,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -106,7 +107,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var orderAdapter: OrderAdapter
     private lateinit var configuration: Configuration
     private lateinit var orderNumberService: OrderNumberService
-    private val orderHistory = mutableListOf<HistoricalOrder>()
     private var amritaCafeTapCount = 0
     private var lastAmritaCafeTapTime = 0L
 
@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         lateinit var BREAKFAST_FILE: File
         lateinit var LUNCH_DINNER_FILE: File
         private var preservedOrders: List<RegularOrderItem>? = null
+        val orderHistory = mutableListOf<HistoricalOrder>()
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -158,6 +159,10 @@ class MainActivity : AppCompatActivity() {
             preservedOrders = null
             val sum = orderAdapter.orderItems.map { item -> item.priceWithoutExtras }.sum()
             binding.totalCostTV.text = sum.toString()
+        }
+
+        if (orderHistory.isEmpty()) {
+            orderHistory.addAll(edu.amrita.amritacafe.history.HistoryPersistence.loadHistory(this))
         }
 
         binding.orderButton.setOnClickListener {
@@ -752,6 +757,7 @@ class MainActivity : AppCompatActivity() {
                 currentOrdersHistories.forEach {
                     it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                 }
+                edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
             } else if (configuration.isReceiptWifi) {
                 val dispatch = edu.amrita.amritacafe.printer.ReceiptDispatch(
                     configuration.receiptPrinterConnStr,
@@ -763,6 +769,7 @@ class MainActivity : AppCompatActivity() {
                                 currentOrdersHistories.forEach {
                                     it.RecipePrinted = if (status is edu.amrita.amritacafe.printer.PrintSuccess) PrintStatus.SUCCESS_PRINT else PrintStatus.FAILED_PRINT
                                 }
+                                edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                             }
                         }
                         override fun error(errorStatus: ErrorStatus, exception: Exception) {
@@ -770,6 +777,7 @@ class MainActivity : AppCompatActivity() {
                                 currentOrdersHistories.forEach {
                                     it.RecipePrinted = PrintStatus.FAILED_PRINT
                                 }
+                                edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                             }
                         }
                     }
@@ -1088,9 +1096,16 @@ class MainActivity : AppCompatActivity() {
 
                 currentDialog = dialog
 
+                val displayMetrics = resources.displayMetrics
+                val printDialogWidth = (displayMetrics.widthPixels * 0.94).toInt()
+                dialog.window?.let { window ->
+                    window.setBackgroundDrawableResource(android.R.color.transparent)
+                    window.setLayout(printDialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+
                 if (!configuration.isKitchenWifi) {
                     dialogBinding.include2.kitchenProgress.visibility = View.GONE
-                    dialogBinding.include2.kitchenDone.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenDone.visibility = View.GONE
                     dialogBinding.include2.kitchenStatusTV.visibility = View.VISIBLE
                     dialogBinding.include2.kitchenStatusTV.text = "Skipped"
                     dialogBinding.include2.kitchenStatusTV.setTextColor(Color.LTGRAY)
@@ -1106,7 +1121,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (!configuration.isReceiptWifi) {
                     dialogBinding.include2.receiptProgress.visibility = View.GONE
-                    dialogBinding.include2.receiptDone.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptDone.visibility = View.GONE
                     dialogBinding.include2.receiptStatusTV.visibility = View.VISIBLE
                     dialogBinding.include2.receiptStatusTV.text = "Skipped"
                     dialogBinding.include2.receiptStatusTV.setTextColor(Color.LTGRAY)
@@ -1126,10 +1141,11 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.kitchenProgress.visibility = View.GONE
                             include2.kitchenError.visibility = View.GONE
-                            include2.kitchenDone.visibility = View.VISIBLE
+                            include2.kitchenDone.visibility = View.GONE
                             include2.kitchenStatusTV.visibility = View.VISIBLE
                             include2.kitchenStatusTV.text = "PRINTED ✓"
                             include2.kitchenStatusTV.setTextColor(Color.parseColor("#4CAF50"))
@@ -1141,12 +1157,13 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.KitchenPrinted = PrintStatus.FAILED_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.kitchenProgress.visibility = View.GONE
                             include2.kitchenDone.visibility = View.GONE
-                            include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenError.visibility = View.GONE
                             include2.kitchenStatusTV.visibility = View.VISIBLE
-                            include2.kitchenStatusTV.text = "FAILED ✗ (Out of Paper / Power Cut)"
+                            include2.kitchenStatusTV.text = "FAILED ✗"
                             include2.kitchenStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.kitchenRetryButton.visibility = View.VISIBLE
                         }
@@ -1159,12 +1176,13 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.KitchenPrinted = PrintStatus.FAILED_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.kitchenProgress.visibility = View.GONE
                             include2.kitchenDone.visibility = View.GONE
-                            include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenError.visibility = View.GONE
                             include2.kitchenStatusTV.visibility = View.VISIBLE
-                            include2.kitchenStatusTV.text = "FAILED ✗ (Check Kitchen Printer)"
+                            include2.kitchenStatusTV.text = "FAILED ✗"
                             include2.kitchenStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.kitchenRetryButton.visibility = View.VISIBLE
                         }
@@ -1174,10 +1192,11 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.receiptProgress.visibility = View.GONE
                             include2.receiptError.visibility = View.GONE
-                            include2.receiptDone.visibility = View.VISIBLE
+                            include2.receiptDone.visibility = View.GONE
                             include2.receiptStatusTV.visibility = View.VISIBLE
                             include2.receiptStatusTV.text = "PRINTED ✓"
                             include2.receiptStatusTV.setTextColor(Color.parseColor("#4CAF50"))
@@ -1189,12 +1208,13 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.RecipePrinted = PrintStatus.FAILED_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.receiptProgress.visibility = View.GONE
                             include2.receiptDone.visibility = View.GONE
-                            include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptError.visibility = View.GONE
                             include2.receiptStatusTV.visibility = View.VISIBLE
-                            include2.receiptStatusTV.text = "FAILED ✗ (Out of Paper / Power Cut)"
+                            include2.receiptStatusTV.text = "FAILED ✗"
                             include2.receiptStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.receiptRetryButton.visibility = View.VISIBLE
                         }
@@ -1207,12 +1227,13 @@ class MainActivity : AppCompatActivity() {
                         histories.forEach {
                             it.RecipePrinted = PrintStatus.FAILED_PRINT
                         }
+                        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this@MainActivity, orderHistory)
                         dialogBinding.run {
                             include2.receiptProgress.visibility = View.GONE
                             include2.receiptDone.visibility = View.GONE
-                            include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptError.visibility = View.GONE
                             include2.receiptStatusTV.visibility = View.VISIBLE
-                            include2.receiptStatusTV.text = "FAILED ✗ (Check Receipt Printer)"
+                            include2.receiptStatusTV.text = "FAILED ✗"
                             include2.receiptStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.receiptRetryButton.visibility = View.VISIBLE
                         }
@@ -1272,6 +1293,7 @@ class MainActivity : AppCompatActivity() {
         currentOrdersHistories.forEach {
             orderHistory.add(it)
         }
+        edu.amrita.amritacafe.history.HistoryPersistence.saveHistory(this, orderHistory)
 
         if (configuration.printToFile)
             writeToCSV(orders, configuration)
@@ -1328,6 +1350,18 @@ class MainActivity : AppCompatActivity() {
             .setView(binding.root)
             .setCancelable(true)
             .show()
+
+        val displayMetrics = resources.displayMetrics
+        val dialogWidth = (displayMetrics.widthPixels * 0.96).toInt()
+        val dialogHeight = if (orderHistory.isEmpty()) {
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        } else {
+            (displayMetrics.heightPixels * 0.85).toInt()
+        }
+        dialog.window?.let { window ->
+            window.setBackgroundDrawableResource(android.R.color.transparent)
+            window.setLayout(dialogWidth, dialogHeight)
+        }
 
         if (orderHistory.isEmpty()) {
             binding.emptyHistoryTv.visibility = View.VISIBLE

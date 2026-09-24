@@ -1,32 +1,35 @@
-# Amrita Cafe — Build 80106
+# Amrita Cafe — Build 80107
 
-### 🚨 Prominent Kitchen & Receipt Print Status Indicators
-- **High-Visibility Status in Order Dialog**:
-  - Clear **green checkmark (`#4CAF50`)** and `"PRINTED ✓"` label on success.
-  - High-visibility **bright red warning icon (`#FF3B30`)** and `"FAILED ✗ (Out of Paper / Power Cut)"` label when a printer is offline, out of paper, or disconnected.
-  - One-tap `"Retry"` button right alongside the status message.
-- **Instant Identification in Order History**:
-  - Added prominent print status badges directly in the header of every order card next to the order number:
-    - **`🍳 KITCHEN FAILED ✗`** in bold red if the kitchen ticket failed or was not printed.
-    - **`🍳 KITCHEN ✓`** in green when successfully printed to the kitchen.
-    - **`🧾 RECEIPT FAILED ✗`** in bold red if the receipt print failed.
-    - **`🧾 RECEIPT ✓`** in green when receipt printed.
-  - Tapping any failed badge directly triggers an immediate re-print without opening submenus.
-  - Bottom print detail section now uses colored icons (`#4CAF50` green and `#FF3B30` red) and status text.
+### 💾 Persistent Order History Across Tablet Rotation & App Restarts
+- **Orientation Rotation Resilient**: Moved history data storage to static companion storage so rotating between portrait and landscape never clears or resets historical orders.
+- **Disk Persistence**: Added `HistoryPersistence` that automatically serializes and restores historical orders and their print statuses to internal storage (`order_history.json`).
+
+### 🎯 Clean Text-Based Print Status & No Overlapping Icons
+- **Dialog & History Refinements**:
+  - Removed duplicate icon overlays in the print dialog and history rows.
+  - Simplified failure message to clean, bold **`FAILED ✗`** (print dialog) and **`NOT PRINTED ✗`** (history) in bright red (`#FF3B30`), and **`PRINTED ✓`** in green (`#4CAF50`).
+  - Removed the bulky `(Out of Paper / Power Cut)` and `(Check Printer)` parentheticals so the text fits comfortably without squeezing adjacent controls.
+  - Placed a clean spacer so `Retry` and `Re-print` buttons are neatly right-aligned and fully visible.
+
+### 📐 Full-Width Dialog Sizing & Clean Vertical Mode Layout
+- **Full Width with Dismiss Margin**:
+  - Dialogs now expand horizontally to ~94–96% of the screen width.
+  - History dialog height is constrained to a maximum of 85% of screen height so workers can always tap outside the dialog or press back to dismiss it.
+  - In vertical (portrait) mode, order items (e.g. `1 Med Pza...................200`) now fit comfortably on a single line instead of wrapping onto two lines.
+- **Uncluttered History Cards**:
+  - Removed top badge tabs from the header of history cards, leaving room for Order Number, GPay/Renunciate toggles, and timestamp.
+  - Kitchen and receipt print status and retry buttons are cleanly positioned in the dedicated print section at the bottom of each card.
+
+---
+
+# Previous Changes — Build 80106
+
+### 🚨 Kitchen & Receipt Print Status
+- Initial introduction of high-visibility print status indicators and one-tap retry in order dialog and history.
 
 ---
 
 # Previous Changes — Build 80105
 
 ### 🧹 Complete Removal of Legacy Epson SDK & Native Libraries
-- **Deleted `ePOS2.jar` & `libepos2.so`**: Completely purged all proprietary Epson SDK binaries and native `.so` files from the project.
-- **Removed ABI Filtering Constraints**: Removed legacy 32-bit `ndk { abiFilters "armeabi", "x86" }`, allowing modern 64-bit Android tablets to run natively with full performance.
-- **Decoupled Status & Exception Handlers**: Refactored `CompletedJobStatus`, `ErrorStatus`, `PrinterStatus`, `PrintStatusListener`, and `PrintService` to standard Java/Kotlin exceptions with zero vendor library coupling.
-- **Cleaned Gradle & ProGuard**: Removed obsolete Epson ProGuard rules and dependency declarations.
-
-### 🍳 Kitchen Printing Formatting
-- **Clean Ticket Output**: Removed the horizontal separator line (`====`) above the kitchen items so tickets flow cleanly and compactly.
-
-### 🌿 Git Branch Consolidation
-- **Master-Only Repository**: Consolidated all active development into `master`. Removed obsolete branches (`main`, `7008`, `v5`) both locally and remotely.
-- **CI/CD Workflow**: Updated GitHub Actions release workflow to trigger exclusively on `master` pushes and release tags.
+- Deleted `ePOS2.jar` & `libepos2.so`, removed ABI filtering, and switched exclusively to raw TCP ESC/POS printing.

@@ -2,11 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="12dp"
     android:background="@drawable/background_login_buttons"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/dialog_title"
@@ -22,9 +22,10 @@
     <include
         android:id="@+id/include2"
         layout="@layout/include_print"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dialog_title" />
 
@@ -32,11 +33,11 @@
         android:id="@+id/next_order_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/background_login_buttons"
         android:onClick="nextOrder"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="12dp"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="14dp"
         android:text="Next Order"
         android:textColor="@color/white"
         android:textSize="18sp"
