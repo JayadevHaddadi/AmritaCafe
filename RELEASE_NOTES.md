@@ -1,4 +1,22 @@
-# Amrita Cafe — Build 80105
+# Amrita Cafe — Build 80106
+
+### 🚨 Prominent Kitchen & Receipt Print Status Indicators
+- **High-Visibility Status in Order Dialog**:
+  - Clear **green checkmark (`#4CAF50`)** and `"PRINTED ✓"` label on success.
+  - High-visibility **bright red warning icon (`#FF3B30`)** and `"FAILED ✗ (Out of Paper / Power Cut)"` label when a printer is offline, out of paper, or disconnected.
+  - One-tap `"Retry"` button right alongside the status message.
+- **Instant Identification in Order History**:
+  - Added prominent print status badges directly in the header of every order card next to the order number:
+    - **`🍳 KITCHEN FAILED ✗`** in bold red if the kitchen ticket failed or was not printed.
+    - **`🍳 KITCHEN ✓`** in green when successfully printed to the kitchen.
+    - **`🧾 RECEIPT FAILED ✗`** in bold red if the receipt print failed.
+    - **`🧾 RECEIPT ✓`** in green when receipt printed.
+  - Tapping any failed badge directly triggers an immediate re-print without opening submenus.
+  - Bottom print detail section now uses colored icons (`#4CAF50` green and `#FF3B30` red) and status text.
+
+---
+
+# Previous Changes — Build 80105
 
 ### 🧹 Complete Removal of Legacy Epson SDK & Native Libraries
 - **Deleted `ePOS2.jar` & `libepos2.so`**: Completely purged all proprietary Epson SDK binaries and native `.so` files from the project.
@@ -12,12 +30,3 @@
 ### 🌿 Git Branch Consolidation
 - **Master-Only Repository**: Consolidated all active development into `master`. Removed obsolete branches (`main`, `7008`, `v5`) both locally and remotely.
 - **CI/CD Workflow**: Updated GitHub Actions release workflow to trigger exclusively on `master` pushes and release tags.
-
----
-
-# Previous Changes — Build 80104
-
-### 🖨️ Raw TCP ESC/POS Universal Default
-- **Standardized on Raw TCP (Port 9100)**: Direct socket communication is now the standard network printing engine across all Wi-Fi/LAN printers.
-- **Settings UI Cleanup**: Removed the "Use Raw TCP" checkbox.
-- **Real-Time IP Saving**: Changes made to printer IP addresses in Settings are synchronized immediately for test prints.

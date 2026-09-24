@@ -1089,16 +1089,36 @@ class MainActivity : AppCompatActivity() {
                 currentDialog = dialog
 
                 if (!configuration.isKitchenWifi) {
-                    dialogBinding.include2.kitchenProgress.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenProgress.visibility = View.GONE
                     dialogBinding.include2.kitchenDone.visibility = View.VISIBLE
-                    dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
-                    dialogBinding.include2.kitchenRetryButton.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenStatusTV.text = "Skipped"
+                    dialogBinding.include2.kitchenStatusTV.setTextColor(Color.LTGRAY)
+                    dialogBinding.include2.kitchenError.visibility = View.GONE
+                    dialogBinding.include2.kitchenRetryButton.visibility = View.GONE
+                } else {
+                    dialogBinding.include2.kitchenProgress.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenDone.visibility = View.GONE
+                    dialogBinding.include2.kitchenError.visibility = View.GONE
+                    dialogBinding.include2.kitchenStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenStatusTV.text = "Printing..."
+                    dialogBinding.include2.kitchenStatusTV.setTextColor(Color.parseColor("#FFC107"))
                 }
                 if (!configuration.isReceiptWifi) {
-                    dialogBinding.include2.receiptProgress.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptProgress.visibility = View.GONE
                     dialogBinding.include2.receiptDone.visibility = View.VISIBLE
-                    dialogBinding.include2.receiptError.visibility = View.INVISIBLE
-                    dialogBinding.include2.receiptRetryButton.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptStatusTV.text = "Skipped"
+                    dialogBinding.include2.receiptStatusTV.setTextColor(Color.LTGRAY)
+                    dialogBinding.include2.receiptError.visibility = View.GONE
+                    dialogBinding.include2.receiptRetryButton.visibility = View.GONE
+                } else {
+                    dialogBinding.include2.receiptProgress.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptDone.visibility = View.GONE
+                    dialogBinding.include2.receiptError.visibility = View.GONE
+                    dialogBinding.include2.receiptStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptStatusTV.text = "Printing..."
+                    dialogBinding.include2.receiptStatusTV.setTextColor(Color.parseColor("#FFC107"))
                 }
 
                 val listener = object : PrintService.PrintServiceListener {
@@ -1107,10 +1127,13 @@ class MainActivity : AppCompatActivity() {
                             it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
                         }
                         dialogBinding.run {
-                            include2.kitchenProgress.visibility = View.INVISIBLE
-                            include2.kitchenError.visibility = View.INVISIBLE
+                            include2.kitchenProgress.visibility = View.GONE
+                            include2.kitchenError.visibility = View.GONE
                             include2.kitchenDone.visibility = View.VISIBLE
-                            include2.kitchenRetryButton.visibility = View.INVISIBLE
+                            include2.kitchenStatusTV.visibility = View.VISIBLE
+                            include2.kitchenStatusTV.text = "PRINTED ✓"
+                            include2.kitchenStatusTV.setTextColor(Color.parseColor("#4CAF50"))
+                            include2.kitchenRetryButton.visibility = View.GONE
                         }
                     }
 
@@ -1119,8 +1142,12 @@ class MainActivity : AppCompatActivity() {
                             it.KitchenPrinted = PrintStatus.FAILED_PRINT
                         }
                         dialogBinding.run {
-                            include2.kitchenProgress.visibility = View.INVISIBLE
+                            include2.kitchenProgress.visibility = View.GONE
+                            include2.kitchenDone.visibility = View.GONE
                             include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenStatusTV.visibility = View.VISIBLE
+                            include2.kitchenStatusTV.text = "FAILED ✗ (Out of Paper / Power Cut)"
+                            include2.kitchenStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.kitchenRetryButton.visibility = View.VISIBLE
                         }
                     }
@@ -1133,8 +1160,12 @@ class MainActivity : AppCompatActivity() {
                             it.KitchenPrinted = PrintStatus.FAILED_PRINT
                         }
                         dialogBinding.run {
-                            include2.kitchenProgress.visibility = View.INVISIBLE
+                            include2.kitchenProgress.visibility = View.GONE
+                            include2.kitchenDone.visibility = View.GONE
                             include2.kitchenError.visibility = View.VISIBLE
+                            include2.kitchenStatusTV.visibility = View.VISIBLE
+                            include2.kitchenStatusTV.text = "FAILED ✗ (Check Kitchen Printer)"
+                            include2.kitchenStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.kitchenRetryButton.visibility = View.VISIBLE
                         }
                     }
@@ -1144,10 +1175,13 @@ class MainActivity : AppCompatActivity() {
                             it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                         }
                         dialogBinding.run {
-                            include2.receiptProgress.visibility = View.INVISIBLE
-                            include2.receiptError.visibility = View.INVISIBLE
+                            include2.receiptProgress.visibility = View.GONE
+                            include2.receiptError.visibility = View.GONE
                             include2.receiptDone.visibility = View.VISIBLE
-                            include2.receiptRetryButton.visibility = View.INVISIBLE
+                            include2.receiptStatusTV.visibility = View.VISIBLE
+                            include2.receiptStatusTV.text = "PRINTED ✓"
+                            include2.receiptStatusTV.setTextColor(Color.parseColor("#4CAF50"))
+                            include2.receiptRetryButton.visibility = View.GONE
                         }
                     }
 
@@ -1156,8 +1190,12 @@ class MainActivity : AppCompatActivity() {
                             it.RecipePrinted = PrintStatus.FAILED_PRINT
                         }
                         dialogBinding.run {
-                            include2.receiptProgress.visibility = View.INVISIBLE
+                            include2.receiptProgress.visibility = View.GONE
+                            include2.receiptDone.visibility = View.GONE
                             include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptStatusTV.visibility = View.VISIBLE
+                            include2.receiptStatusTV.text = "FAILED ✗ (Out of Paper / Power Cut)"
+                            include2.receiptStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.receiptRetryButton.visibility = View.VISIBLE
                         }
                     }
@@ -1170,8 +1208,12 @@ class MainActivity : AppCompatActivity() {
                             it.RecipePrinted = PrintStatus.FAILED_PRINT
                         }
                         dialogBinding.run {
-                            include2.receiptProgress.visibility = View.INVISIBLE
+                            include2.receiptProgress.visibility = View.GONE
+                            include2.receiptDone.visibility = View.GONE
                             include2.receiptError.visibility = View.VISIBLE
+                            include2.receiptStatusTV.visibility = View.VISIBLE
+                            include2.receiptStatusTV.text = "FAILED ✗ (Check Receipt Printer)"
+                            include2.receiptStatusTV.setTextColor(Color.parseColor("#FF3B30"))
                             include2.receiptRetryButton.visibility = View.VISIBLE
                         }
                     }
@@ -1191,20 +1233,28 @@ class MainActivity : AppCompatActivity() {
                     histories.forEach {
                         it.KitchenPrinted = PrintStatus.PRINTING
                     }
-                    printService.retry()
-                    it.visibility = View.INVISIBLE
-                    dialogBinding.include2.kitchenError.visibility = View.INVISIBLE
+                    dialogBinding.include2.kitchenError.visibility = View.GONE
+                    dialogBinding.include2.kitchenDone.visibility = View.GONE
                     dialogBinding.include2.kitchenProgress.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.kitchenStatusTV.text = "Retrying..."
+                    dialogBinding.include2.kitchenStatusTV.setTextColor(Color.parseColor("#FFC107"))
+                    dialogBinding.include2.kitchenRetryButton.visibility = View.GONE
+                    printService.retry()
                 }
 
                 dialogBinding.include2.receiptRetryButton.setOnClickListener {
                     histories.forEach {
                         it.RecipePrinted = PrintStatus.PRINTING
                     }
-                    printService.retry()
-                    it.visibility = View.INVISIBLE
-                    dialogBinding.include2.receiptError.visibility = View.INVISIBLE
+                    dialogBinding.include2.receiptError.visibility = View.GONE
+                    dialogBinding.include2.receiptDone.visibility = View.GONE
                     dialogBinding.include2.receiptProgress.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptStatusTV.visibility = View.VISIBLE
+                    dialogBinding.include2.receiptStatusTV.text = "Retrying..."
+                    dialogBinding.include2.receiptStatusTV.setTextColor(Color.parseColor("#FFC107"))
+                    dialogBinding.include2.receiptRetryButton.visibility = View.GONE
+                    printService.retry()
                 }
             } else {
                 startNewOrder()

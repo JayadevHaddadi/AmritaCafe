@@ -24,23 +24,20 @@ class HistoryAdapter(
     val mainActivity: MainActivity
 ) : RecyclerView.Adapter<HistoryAdapter.HistoryHolder>() {
 
-    inner class HistoryHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root) {
-
+    inner class HistoryHolder(val binding: ItemHistoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(historicalOrder: HistoricalOrder) {
             val view = binding
-
+            view.historyOrderNrTV.text = "Order ${historicalOrder.order.orderNumber}"
+            view.historyOrderTV.text = ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)
             view.historyTimeTV.text = historicalOrder.order.orderTime
-            view.historyOrderNrTV.text = historicalOrder.order.orderNumber.toString()
-
-            view.historyOrderTV.text =
-                ReceiptWriter.orderItemsText(historicalOrder.order.orderItems)
 
             fun updateGPayUI() {
                 if (historicalOrder.order.isGpay) {
-                    view.gpayIndicator.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                    view.gpayIndicator.visibility = View.VISIBLE
                     view.gpayIndicator.alpha = 1.0f
                 } else {
-                    view.gpayIndicator.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#808080"))
+                    view.gpayIndicator.visibility = View.VISIBLE
                     view.gpayIndicator.alpha = 0.2f
                 }
             }
@@ -50,7 +47,7 @@ class HistoryAdapter(
                     view.renunciateIndicator.visibility = View.VISIBLE
                     view.renunciateIndicator.alpha = 1.0f
                 } else {
-                    view.renunciateIndicator.visibility = View.VISIBLE // Make always visible as requested?
+                    view.renunciateIndicator.visibility = View.VISIBLE
                     view.renunciateIndicator.alpha = 0.2f
                 }
             }
@@ -68,59 +65,126 @@ class HistoryAdapter(
                 )
             }
 
-            // User didn't ask for retrospective Renunciate toggle yet, but let's keep it consistent
-            view.renunciateIndicator.setOnClickListener {
-                // For now just toggle UI, or maybe do nothing if not supported by backend
-                // historicalOrder.order.isRenunciate = !historicalOrder.order.isRenunciate
-                // updateRenunciateUI()
-            }
-
             val isOrderTaker = configuration.workflowMode == Configuration.MODE_ORDER_TAKER
 
-            val kitchenLayout = binding.root.findViewById<View>(R.id.kitchen_layout)
-            if (isOrderTaker) {
-                kitchenLayout?.visibility = View.VISIBLE
-                view.include.receiptTextTV.text = "Receipt Printer:"
-                view.include.receiptRetryButton.text = "Retry"
-            } else {
-                kitchenLayout?.visibility = View.GONE
-                view.include.receiptTextTV.text = "Receipt Printer:"
-                view.include.receiptRetryButton.text = "PRINT NEW"
-            }
+            fun updateKitchenPrintUI() {
+                if (isOrderTaker) {
+                    view.kitchenStatusBadge.visibility = View.VISIBLE
+                    when (historicalOrder.KitchenPrinted) {
+                        PrintStatus.SUCCESS_PRINT -> {
+                            view.kitchenStatusBadge.text = "🍳 KITCHEN ✓"
+                            view.kitchenStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2E7D32"))
+                            view.kitchenStatusBadge.alpha = 0.9f
 
-            // Reset visibilities - ensure progress is GONE by default
-            view.include.kitchenProgress.visibility = View.GONE
-            view.include.kitchenError.visibility = View.GONE
-            view.include.kitchenDone.visibility = View.GONE
-            view.include.kitchenRetryButton.visibility = if (isOrderTaker) View.VISIBLE else View.GONE
+                            view.include.kitchenProgress.visibility = View.GONE
+                            view.include.kitchenDone.visibility = View.VISIBLE
+                            view.include.kitchenError.visibility = View.GONE
+                            view.include.kitchenStatusTV.visibility = View.VISIBLE
+                            view.include.kitchenStatusTV.text = "PRINTED ✓"
+                            view.include.kitchenStatusTV.setTextColor(Color.parseColor("#4CAF50"))
+                            view.include.kitchenRetryButton.visibility = View.VISIBLE
+                            view.include.kitchenRetryButton.text = "Re-print"
+                        }
+                        PrintStatus.FAILED_PRINT, PrintStatus.NONE -> {
+                            view.kitchenStatusBadge.text = "🍳 KITCHEN FAILED ✗"
+                            view.kitchenStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#D32F2F"))
+                            view.kitchenStatusBadge.alpha = 1.0f
 
-            view.include.receiptProgress.visibility = View.GONE
-            view.include.receiptError.visibility = View.GONE
-            view.include.receiptDone.visibility = View.GONE
-            view.include.receiptRetryButton.visibility = View.VISIBLE
+                            view.include.kitchenProgress.visibility = View.GONE
+                            view.include.kitchenDone.visibility = View.GONE
+                            view.include.kitchenError.visibility = View.VISIBLE
+                            view.include.kitchenStatusTV.visibility = View.VISIBLE
+                            view.include.kitchenStatusTV.text = "NOT PRINTED ✗"
+                            view.include.kitchenStatusTV.setTextColor(Color.parseColor("#FF3B30"))
+                            view.include.kitchenRetryButton.visibility = View.VISIBLE
+                            view.include.kitchenRetryButton.text = "Retry"
+                        }
+                        PrintStatus.PRINTING -> {
+                            view.kitchenStatusBadge.text = "🍳 KITCHEN ⏳"
+                            view.kitchenStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F57C00"))
+                            view.kitchenStatusBadge.alpha = 1.0f
 
-            if (isOrderTaker) {
-                when (historicalOrder.KitchenPrinted) {
-                    PrintStatus.SUCCESS_PRINT -> view.include.kitchenDone.visibility = View.VISIBLE
-                    PrintStatus.FAILED_PRINT -> view.include.kitchenError.visibility = View.VISIBLE
-                    PrintStatus.PRINTING -> view.include.kitchenProgress.visibility = View.VISIBLE
-                    PrintStatus.NONE -> {}
+                            view.include.kitchenProgress.visibility = View.VISIBLE
+                            view.include.kitchenDone.visibility = View.GONE
+                            view.include.kitchenError.visibility = View.GONE
+                            view.include.kitchenStatusTV.visibility = View.VISIBLE
+                            view.include.kitchenStatusTV.text = "Printing..."
+                            view.include.kitchenStatusTV.setTextColor(Color.parseColor("#FFC107"))
+                            view.include.kitchenRetryButton.visibility = View.GONE
+                        }
+                    }
+                } else {
+                    view.kitchenStatusBadge.visibility = View.GONE
+                    view.include.kitchenLayout.visibility = View.GONE
                 }
             }
 
-            when (historicalOrder.RecipePrinted) {
-                PrintStatus.SUCCESS_PRINT -> view.include.receiptDone.visibility = View.VISIBLE
-                PrintStatus.FAILED_PRINT -> view.include.receiptError.visibility = View.VISIBLE
-                PrintStatus.PRINTING -> view.include.receiptProgress.visibility = View.VISIBLE
-                PrintStatus.NONE -> {}
+            fun updateReceiptPrintUI() {
+                when (historicalOrder.RecipePrinted) {
+                    PrintStatus.SUCCESS_PRINT -> {
+                        view.receiptStatusBadge.visibility = View.VISIBLE
+                        view.receiptStatusBadge.text = "🧾 RECEIPT ✓"
+                        view.receiptStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2E7D32"))
+                        view.receiptStatusBadge.alpha = 0.9f
+
+                        view.include.receiptProgress.visibility = View.GONE
+                        view.include.receiptDone.visibility = View.VISIBLE
+                        view.include.receiptError.visibility = View.GONE
+                        view.include.receiptStatusTV.visibility = View.VISIBLE
+                        view.include.receiptStatusTV.text = "PRINTED ✓"
+                        view.include.receiptStatusTV.setTextColor(Color.parseColor("#4CAF50"))
+                        view.include.receiptRetryButton.visibility = View.VISIBLE
+                        view.include.receiptRetryButton.text = if (isOrderTaker) "Re-print" else "PRINT NEW"
+                    }
+                    PrintStatus.FAILED_PRINT -> {
+                        view.receiptStatusBadge.visibility = View.VISIBLE
+                        view.receiptStatusBadge.text = "🧾 RECEIPT FAILED ✗"
+                        view.receiptStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#D32F2F"))
+                        view.receiptStatusBadge.alpha = 1.0f
+
+                        view.include.receiptProgress.visibility = View.GONE
+                        view.include.receiptDone.visibility = View.GONE
+                        view.include.receiptError.visibility = View.VISIBLE
+                        view.include.receiptStatusTV.visibility = View.VISIBLE
+                        view.include.receiptStatusTV.text = "NOT PRINTED ✗"
+                        view.include.receiptStatusTV.setTextColor(Color.parseColor("#FF3B30"))
+                        view.include.receiptRetryButton.visibility = View.VISIBLE
+                        view.include.receiptRetryButton.text = "Retry"
+                    }
+                    PrintStatus.PRINTING -> {
+                        view.receiptStatusBadge.visibility = View.VISIBLE
+                        view.receiptStatusBadge.text = "🧾 RECEIPT ⏳"
+                        view.receiptStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F57C00"))
+                        view.receiptStatusBadge.alpha = 1.0f
+
+                        view.include.receiptProgress.visibility = View.VISIBLE
+                        view.include.receiptDone.visibility = View.GONE
+                        view.include.receiptError.visibility = View.GONE
+                        view.include.receiptStatusTV.visibility = View.VISIBLE
+                        view.include.receiptStatusTV.text = "Printing..."
+                        view.include.receiptStatusTV.setTextColor(Color.parseColor("#FFC107"))
+                        view.include.receiptRetryButton.visibility = View.GONE
+                    }
+                    PrintStatus.NONE -> {
+                        view.receiptStatusBadge.visibility = View.GONE
+                        view.include.receiptProgress.visibility = View.GONE
+                        view.include.receiptDone.visibility = View.GONE
+                        view.include.receiptError.visibility = View.GONE
+                        view.include.receiptStatusTV.visibility = View.GONE
+                        view.include.receiptRetryButton.visibility = View.VISIBLE
+                        view.include.receiptRetryButton.text = "Print"
+                    }
+                }
             }
+
+            updateKitchenPrintUI()
+            updateReceiptPrintUI()
 
             view.historyItemSumTV.text = historicalOrder.order.sum.toString()
 
-            view.include.kitchenRetryButton.setOnClickListener {
-                view.include.kitchenError.visibility = View.GONE
-                view.include.kitchenDone.visibility = View.GONE
-                view.include.kitchenProgress.visibility = View.VISIBLE
+            fun retryKitchenPrint() {
+                historicalOrder.KitchenPrinted = PrintStatus.PRINTING
+                mainActivity.runOnUiThread { updateKitchenPrintUI() }
 
                 if (configuration.isKitchenBluetooth) {
                     try {
@@ -130,16 +194,10 @@ class HistoryAdapter(
                             configuration
                         )
                         historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
-                        mainActivity.runOnUiThread {
-                            view.include.kitchenProgress.visibility = View.GONE
-                            view.include.kitchenDone.visibility = View.VISIBLE
-                        }
+                        mainActivity.runOnUiThread { updateKitchenPrintUI() }
                     } catch (e: Exception) {
                         historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
-                        mainActivity.runOnUiThread {
-                            view.include.kitchenProgress.visibility = View.GONE
-                            view.include.kitchenError.visibility = View.VISIBLE
-                        }
+                        mainActivity.runOnUiThread { updateKitchenPrintUI() }
                     }
                 } else {
                     val printerDispatch = ReceiptDispatch(
@@ -148,41 +206,27 @@ class HistoryAdapter(
                         configuration,
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {
-                                mainActivity.runOnUiThread {
-                                    view.include.kitchenProgress.visibility = View.GONE
+                                historicalOrder.KitchenPrinted = if (status is PrintSuccess) {
+                                    PrintStatus.SUCCESS_PRINT
+                                } else {
+                                    PrintStatus.FAILED_PRINT
                                 }
-                                if (status is PrintSuccess) {
-                                    historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
-                                    mainActivity.runOnUiThread {
-                                        view.include.kitchenDone.visibility = View.VISIBLE
-                                    }
-                                } else if (status is PrintFailed) {
-                                    historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
-                                    mainActivity.runOnUiThread {
-                                        view.include.kitchenError.visibility = View.VISIBLE
-                                    }
-                                }
+                                mainActivity.runOnUiThread { updateKitchenPrintUI() }
                             }
 
                             override fun error(errorStatus: ErrorStatus, exception: Exception) {
                                 historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
-                                mainActivity.runOnUiThread {
-                                    view.include.kitchenProgress.visibility = View.GONE
-                                    view.include.kitchenError.visibility = View.VISIBLE
-                                }
+                                mainActivity.runOnUiThread { updateKitchenPrintUI() }
                             }
-
                         }
                     )
-
                     printerDispatch.dispatchPrint(listOf(historicalOrder.order))
                 }
             }
 
-            view.include.receiptRetryButton.setOnClickListener {
-                view.include.receiptError.visibility = View.GONE
-                view.include.receiptDone.visibility = View.GONE
-                view.include.receiptProgress.visibility = View.VISIBLE
+            fun retryReceiptPrint() {
+                historicalOrder.RecipePrinted = PrintStatus.PRINTING
+                mainActivity.runOnUiThread { updateReceiptPrintUI() }
 
                 if (configuration.isReceiptBluetooth) {
                     try {
@@ -192,16 +236,10 @@ class HistoryAdapter(
                             configuration
                         )
                         historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
-                        mainActivity.runOnUiThread {
-                            view.include.receiptProgress.visibility = View.GONE
-                            view.include.receiptDone.visibility = View.VISIBLE
-                        }
+                        mainActivity.runOnUiThread { updateReceiptPrintUI() }
                     } catch (e: Exception) {
                         historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
-                        mainActivity.runOnUiThread {
-                            view.include.receiptProgress.visibility = View.GONE
-                            view.include.receiptError.visibility = View.VISIBLE
-                        }
+                        mainActivity.runOnUiThread { updateReceiptPrintUI() }
                     }
                 } else {
                     val writer = if (configuration.workflowMode == Configuration.MODE_CASHIER) {
@@ -215,34 +253,42 @@ class HistoryAdapter(
                         configuration,
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {
-                                mainActivity.runOnUiThread {
-                                    view.include.receiptProgress.visibility = View.GONE
+                                historicalOrder.RecipePrinted = if (status is PrintSuccess) {
+                                    PrintStatus.SUCCESS_PRINT
+                                } else {
+                                    PrintStatus.FAILED_PRINT
                                 }
-                                if (status is PrintSuccess) {
-                                    historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
-                                    mainActivity.runOnUiThread {
-                                        view.include.receiptDone.visibility = View.VISIBLE
-                                    }
-                                } else if (status is PrintFailed) {
-                                    historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
-                                    mainActivity.runOnUiThread {
-                                        view.include.receiptError.visibility = View.VISIBLE
-                                    }
-                                }
+                                mainActivity.runOnUiThread { updateReceiptPrintUI() }
                             }
 
                             override fun error(errorStatus: ErrorStatus, exception: Exception) {
                                 historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
-                                mainActivity.runOnUiThread {
-                                    view.include.receiptProgress.visibility = View.GONE
-                                    view.include.receiptError.visibility = View.VISIBLE
-                                }
+                                mainActivity.runOnUiThread { updateReceiptPrintUI() }
                             }
                         }
                     )
-
                     receiptPrintDispatch.dispatchPrint(listOf(historicalOrder.order))
                 }
+            }
+
+            view.kitchenStatusBadge.setOnClickListener {
+                if (historicalOrder.KitchenPrinted != PrintStatus.SUCCESS_PRINT) {
+                    retryKitchenPrint()
+                }
+            }
+
+            view.receiptStatusBadge.setOnClickListener {
+                if (historicalOrder.RecipePrinted != PrintStatus.SUCCESS_PRINT) {
+                    retryReceiptPrint()
+                }
+            }
+
+            view.include.kitchenRetryButton.setOnClickListener {
+                retryKitchenPrint()
+            }
+
+            view.include.receiptRetryButton.setOnClickListener {
+                retryReceiptPrint()
             }
         }
     }
