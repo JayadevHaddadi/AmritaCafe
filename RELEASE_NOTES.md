@@ -1,4 +1,13 @@
-# Amrita Cafe — Build 80109
+# Amrita Cafe — Build 80110
+
+### 🚀 Verified Live Google Apps Script Deployment
+- Connected to new Apps Script deployment endpoint (`AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q`).
+- Verified 100% end-to-end functionality: successful order insertion, duplicate order detection & rejection, and retrospective GPay payment status updates.
+- Apps script upgraded with `LockService` for concurrency safety and fast batch row insertions.
+
+---
+
+# Previous Changes — Build 80109
 
 ### 🛡️ Google Sheets Duplicate Prevention (Idempotent Orders)
 - **Zero Duplicate Orders on Reconnection / Retry**: If an order was received by Google Sheets but the connection dropped before the tablet received the confirmation (or if network retries resend an order), `OrderEntry.gs` now inspects the sheet history (matching exact `TIME`, `TABLET`, and `ORDER`).

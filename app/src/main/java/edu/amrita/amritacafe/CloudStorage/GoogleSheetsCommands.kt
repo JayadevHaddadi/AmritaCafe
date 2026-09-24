@@ -18,7 +18,7 @@ fun getOrderScriptUrl(): String {
     return if (BuildConfig.ORDER_SCRIPT_URL.isNotEmpty()) {
         BuildConfig.ORDER_SCRIPT_URL
     } else {
-        "https://script.google.com/macros/s/AKfycbz9Jbpdz8VVG8Yo23F0-ti5xuUflFmEOugdV8sVyVtlGyjlNyD5R1HwFfLwAwoWqd26Xg/exec" // Replace with your actual URL
+        "https://script.google.com/macros/s/AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q/exec"
     }
 }
 
