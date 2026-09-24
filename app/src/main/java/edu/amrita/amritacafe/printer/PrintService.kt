@@ -1,6 +1,5 @@
 package edu.amrita.amritacafe.printer
 
-import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
@@ -11,9 +10,9 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
         fun kitchenPrinterFinished()
         fun receiptPrinterFinished()
         fun receiptPrinterError(response: PrintFailed)
-        fun receiptPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception)
+        fun receiptPrinterError(errorStatus: ErrorStatus, exception: Exception = Exception())
         fun kitchenPrinterError(response: PrintFailed)
-        fun kitchenPrinterError(errorStatus: ErrorStatus, exception: Epos2Exception)
+        fun kitchenPrinterError(errorStatus: ErrorStatus, exception: Exception = Exception())
         fun printingComplete()
     }
 
@@ -68,7 +67,7 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
                 }
             }
 
-            override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+            override fun error(errorStatus: ErrorStatus, exception: Exception) {
                 listener.kitchenPrinterError(errorStatus, exception)
             }
         }
@@ -91,10 +90,9 @@ class PrintService(private val orders: List<Order>, private val listener: PrintS
                 }
             }
 
-            override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+            override fun error(errorStatus: ErrorStatus, exception: Exception) {
                 listener.receiptPrinterError(errorStatus, exception)
             }
-
         }
     )
 }

@@ -1,36 +1,21 @@
 package edu.amrita.amritacafe.printer
 
-import com.epson.epos2.printer.Printer
-import com.epson.epos2.printer.PrinterStatusInfo
-
-enum class PrinterStatus(val message: String, val selector: (PrinterStatusInfo) -> Boolean) {
-    Ok("Printer OK.", { false }),
-    Unknown("No status was given.", { false }),
-    NoConnection("Check power and communication to printer.",
-        { it.connection == Printer.FALSE }),
-    Offline("Printer offline.  Check cover/paper/etc.",
-        { it.online == Printer.FALSE }),
-    StatusUnknown("Can't establish connection.",
-        { it.online == Printer.UNKNOWN }),
-    CoverOpen("Cover is open", { it.coverOpen == Printer.TRUE }),
-    PaperNearEnd("Printer is short on paper.  Please replace paper soon.",
-        { it.paper == Printer.PAPER_NEAR_END }),
-    PaperIsOut("Printer out of paper.  Please replace paper.",
-        { it.paper == Printer.PAPER_EMPTY} ),
-    PaperFeed("Paper is being fed manually.", {it.paperFeed == Printer.TRUE}),
-    PanelSwitch("A panel switch is being used", {it.panelSwitch == Printer.TRUE}),
-    RecoverableError("Check printer and try again", { false && it.autoRecoverError != Printer.NO_ERR }),
-    UnrecoverableError("Check and reboot printer.", {it.errorStatus != Printer.NO_ERR});
+enum class PrinterStatus(val message: String) {
+    Ok("Printer OK."),
+    Unknown("No status was given."),
+    NoConnection("Check power and communication to printer."),
+    Offline("Printer offline. Check cover/paper/etc."),
+    StatusUnknown("Can't establish connection."),
+    CoverOpen("Cover is open"),
+    PaperNearEnd("Printer is short on paper. Please replace paper soon."),
+    PaperIsOut("Printer out of paper. Please replace paper."),
+    PaperFeed("Paper is being fed manually."),
+    PanelSwitch("A panel switch is being used"),
+    RecoverableError("Check printer and try again"),
+    UnrecoverableError("Check and reboot printer.");
 
     companion object {
-        fun fromPrinterStatusInfo(printerStatusInfo: PrinterStatusInfo?) =
-            if (printerStatusInfo == null) {
-                listOf(Unknown)
-            } else {
-                values().filter { it.selector(printerStatusInfo) }
-                    .let { if (it.isEmpty()) listOf(Ok) else it }
-            }
+        fun fromPrinterStatusInfo(printerStatusInfo: Any? = null): List<PrinterStatus> =
+            listOf(Ok)
     }
-
-
 }

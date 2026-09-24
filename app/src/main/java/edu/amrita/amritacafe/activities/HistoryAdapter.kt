@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.epson.epos2.Epos2Exception
 import edu.amrita.amritacafe.R
 import edu.amrita.amritacafe.databinding.ItemHistoryBinding
 import edu.amrita.amritacafe.model.HistoricalOrder
@@ -165,7 +164,7 @@ class HistoryAdapter(
                                 }
                             }
 
-                            override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+                            override fun error(errorStatus: ErrorStatus, exception: Exception) {
                                 historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
                                 mainActivity.runOnUiThread {
                                     view.include.kitchenProgress.visibility = View.GONE
@@ -232,7 +231,7 @@ class HistoryAdapter(
                                 }
                             }
 
-                            override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+                            override fun error(errorStatus: ErrorStatus, exception: Exception) {
                                 historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
                                 mainActivity.runOnUiThread {
                                     view.include.receiptProgress.visibility = View.GONE

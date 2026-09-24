@@ -39,7 +39,6 @@ import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.epson.epos2.Epos2Exception
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
@@ -766,7 +765,7 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                        override fun error(errorStatus: ErrorStatus, exception: Epos2Exception) {
+                        override fun error(errorStatus: ErrorStatus, exception: Exception) {
                             runOnUiThread {
                                 currentOrdersHistories.forEach {
                                     it.RecipePrinted = PrintStatus.FAILED_PRINT
@@ -1128,7 +1127,7 @@ class MainActivity : AppCompatActivity() {
 
                     override fun kitchenPrinterError(
                         errorStatus: ErrorStatus,
-                        exception: Epos2Exception
+                        exception: Exception
                     ) = runOnUiThread {
                         histories.forEach {
                             it.KitchenPrinted = PrintStatus.FAILED_PRINT
@@ -1165,7 +1164,7 @@ class MainActivity : AppCompatActivity() {
 
                     override fun receiptPrinterError(
                         errorStatus: ErrorStatus,
-                        exception: Epos2Exception
+                        exception: Exception
                     ) = runOnUiThread {
                         histories.forEach {
                             it.RecipePrinted = PrintStatus.FAILED_PRINT

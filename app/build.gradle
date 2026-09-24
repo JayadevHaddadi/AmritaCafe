@@ -11,7 +11,7 @@ android {
         applicationId "edu.amrita.amritacafe"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 80104
+        versionCode 80105
         versionName "8.0"
         vectorDrawables {
             useSupportLibrary = true
@@ -26,10 +26,6 @@ android {
         buildConfigField "String", "ORDER_SCRIPT_URL", localProperties['google.script.order.url'] ?: "\"\""
         buildConfigField "String", "UPDATE_SCRIPT_URL", localProperties['google.script.update.url'] ?: "\"\""
         buildConfigField "String", "MENU_SCRIPT_URL", localProperties['google.script.menu.url'] ?: "\"\""
-
-        ndk{
-            abiFilters "armeabi", "x86" // for WIFI printer to work FFS DO NOT REMOVE!!!!
-        }
     }
 
     signingConfigs {
@@ -54,7 +50,6 @@ android {
         }
     }
 
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -67,13 +62,6 @@ android {
     packagingOptions {
         resources {
             excludes += ['META-INF/androidx.preference_preference.version', 'kotlin/collections/MapWithDefault.kotlin_metadata']
-        }
-    }
-
-
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['src/main/jniLibs/']
         }
     }
 
@@ -100,8 +88,6 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // NEVER DELETE, will make app crash, for epson printers
-    implementation files('libs/ePOS2.jar')
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20"
@@ -115,7 +101,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.preference:preference-ktx:1.2.1'
 
-    // MOst likely very important bluetooth
+    // Bluetooth printers (Hoin)
     implementation(name: 'hoinprinterlib-release', ext: 'aar')
     implementation(name: 'hoinSdk-release', ext: 'aar')
 
