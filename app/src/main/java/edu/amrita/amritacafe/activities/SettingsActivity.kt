@@ -19,6 +19,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +51,13 @@ import edu.amrita.amritacafe.model.Order
 import edu.amrita.amritacafe.printer.writer.CashierReceiptWriter
 import edu.amrita.amritacafe.printer.writer.KitchenWriter
 import edu.amrita.amritacafe.printer.writer.ReceiptWriter
+import edu.amrita.amritacafe.CloudStorage.MenuSync
+import edu.amrita.amritacafe.CloudStorage.OfflineOrderSync
+import edu.amrita.amritacafe.CloudStorage.getOrderScriptUrl
+import edu.amrita.amritacafe.IO.getListOfMenu
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var pref: SharedPreferences
@@ -348,6 +356,173 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             testKitchenPrintBtn.setOnClickListener {
                 testKitchenPrint()
             }
+
+            forceUpdateMenusBtn.setOnClickListener {
+                forceUpdateAllMenus(forceUpdateMenusBtn)
+            }
+
+            previewMenuBtn.setOnClickListener {
+                showMenuPreviewPicker()
+            }
+
+            viewQueueBtn.setOnClickListener {
+                showPendingQueueDialog()
+            }
+
+            forcePushQueueBtn.setOnClickListener {
+                forcePushQueueNow(forcePushQueueBtn)
+            }
+        }
+    }
+
+    private fun forceUpdateAllMenus(button: android.widget.Button) {
+        button.isEnabled = false
+        button.text = "Updating..."
+        MenuSync.forceUpdateAllMenus(this) { result ->
+            runOnUiThread {
+                button.isEnabled = true
+                button.text = "Force Update All Menus"
+                if (result.totalMenus == 0) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Update Failed ❌")
+                        .setMessage("Could not reach the menu server. Check your internet connection and try again.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                } else {
+                    val msg = StringBuilder("Updated ${result.successCount} of ${result.totalMenus} menu(s).")
+                    if (result.failedMenus.isNotEmpty()) {
+                        msg.append("\n\nFailed:\n").append(result.failedMenus.joinToString("\n"))
+                    }
+                    AlertDialog.Builder(this)
+                        .setTitle(if (result.failedMenus.isEmpty()) "All Menus Updated ✅" else "Partially Updated ⚠️")
+                        .setMessage(msg.toString())
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun showMenuPreviewPicker() {
+        val cached = pref.getString("cached_sheet_names", "") ?: ""
+        val names = cached.split(",").filter { it.isNotBlank() }
+        if (names.isEmpty()) {
+            Toast.makeText(this, "No menus downloaded yet. Try 'Force Update All Menus' first.", Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Select Menu to Preview")
+            .setItems(names.toTypedArray()) { _, which ->
+                showMenuPreview(names[which])
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showMenuPreview(menuName: String) {
+        val fileName = "${menuName.replace("[\\\\/]".toRegex(), "_")}.csv"
+        val file = getFileStreamPath(fileName)
+        if (!file.exists()) {
+            Toast.makeText(this, "Menu file not found for $menuName", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val items = getListOfMenu(file)
+        if (items.isEmpty()) {
+            Toast.makeText(this, "$menuName has no items", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val lines = mutableListOf<String>()
+        var lastCategory = ""
+        for (item in items) {
+            if (item.category != lastCategory) {
+                lines.add("── ${item.category} ──")
+                lastCategory = item.category
+            }
+            lines.add("${item.name}    ₹${item.price.toInt()}")
+        }
+        val listView = ListView(this)
+        listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, lines)
+        AlertDialog.Builder(this)
+            .setTitle("$menuName (${items.size} items)")
+            .setView(listView)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
+    private fun showPendingQueueDialog() {
+        val queue = OfflineOrderSync.getPendingQueueSnapshot(this)
+        if (queue.isEmpty()) {
+            Toast.makeText(this, "Queue is empty. Everything is synced with Google Sheets!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val sdf = SimpleDateFormat("dd MMM, HH:mm:ss", Locale.getDefault())
+        val lines = queue.mapIndexed { index, item ->
+            val time = sdf.format(Date(item.queuedTime))
+            val desc = item.description.ifBlank { "Order data" }
+            "${index + 1}. $desc\nQueued: $time   Attempts: ${item.attempts}"
+        }
+        val listView = ListView(this)
+        listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, lines)
+        AlertDialog.Builder(this)
+            .setTitle("Pending Sheets Queue (${queue.size})")
+            .setView(listView)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
+    private fun forcePushQueueNow(button: android.widget.Button) {
+        val initialCount = OfflineOrderSync.getPendingCount(this)
+        if (initialCount == 0) {
+            Toast.makeText(this, "Nothing to push. Queue is already empty!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        button.isEnabled = false
+        button.text = "Pushing... ($initialCount pending)"
+        OfflineOrderSync.syncPendingOrders(this, getOrderScriptUrl())
+
+        lifecycleScope.launch {
+            var lastCount = initialCount
+            var stableTicks = 0
+            var elapsedMs = 0
+            val maxWaitMs = 30000
+            val stepMs = 1000L
+
+            while (elapsedMs < maxWaitMs) {
+                delay(stepMs)
+                elapsedMs += stepMs.toInt()
+                val current = OfflineOrderSync.getPendingCount(this@SettingsActivity)
+
+                if (current == 0) {
+                    button.isEnabled = true
+                    button.text = "Force Push to Sheets Now"
+                    AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle("Push Complete ✅")
+                        .setMessage("All $initialCount item(s) were successfully pushed to Google Sheets.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@launch
+                }
+
+                button.text = "Pushing... ($current pending)"
+                if (current == lastCount) {
+                    stableTicks++
+                } else {
+                    stableTicks = 0
+                    lastCount = current
+                }
+                if (stableTicks >= 6) break
+            }
+
+            button.isEnabled = true
+            button.text = "Force Push to Sheets Now"
+            val finalCount = OfflineOrderSync.getPendingCount(this@SettingsActivity)
+            val pushed = initialCount - finalCount
+            AlertDialog.Builder(this@SettingsActivity)
+                .setTitle(if (pushed > 0) "Partially Pushed ⚠️" else "Push Failed ❌")
+                .setMessage("$pushed of $initialCount item(s) pushed.\n$finalCount remaining in queue.\n\nCheck your internet connection. The app will keep retrying automatically.")
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 

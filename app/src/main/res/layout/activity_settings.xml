@@ -684,6 +684,64 @@
                 android:layout_marginTop="8dp"
                 android:text="Receive Beta Updates" />
 
+            <!-- Menu Management -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Menu Management"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/force_update_menus_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="Force Update All Menus"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/preview_menu_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="Preview Menu"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <!-- Google Sheets Sync -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Google Sheets Sync"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/view_queue_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="View Pending Queue"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/force_push_queue_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="Force Push to Sheets Now"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
         </LinearLayout>
     </ScrollView>
 

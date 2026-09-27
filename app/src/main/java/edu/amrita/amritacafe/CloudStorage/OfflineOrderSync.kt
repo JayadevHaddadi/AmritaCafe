@@ -131,6 +131,10 @@ object OfflineOrderSync {
         return readQueueFromDisk(context).size
     }
 
+    fun getPendingQueueSnapshot(context: Context): List<PendingSheetsRequest> = synchronized(lock) {
+        return readQueueFromDisk(context)
+    }
+
     fun addOrder(
         context: Context,
         jsonString: String,
