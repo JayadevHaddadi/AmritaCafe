@@ -148,6 +148,16 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             betaUpdatesCheckBox.isChecked = configuration.betaUpdates
             betaUpdatesCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 configuration.betaUpdates = isChecked
+                if (!isChecked) {
+                    Toast.makeText(this@SettingsActivity, "Checking for the standard build...", Toast.LENGTH_SHORT).show()
+                    UpdateChecker.checkForStandardVersion(this@SettingsActivity) { offeredSwitch ->
+                        if (!offeredSwitch) {
+                            runOnUiThread {
+                                Toast.makeText(this@SettingsActivity, "You're already on the standard build.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
             }
 
             printAmmaQuoteCheckBox.isChecked = configuration.printAmmaQuote
@@ -372,7 +382,93 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             forcePushQueueBtn.setOnClickListener {
                 forcePushQueueNow(forcePushQueueBtn)
             }
+
+            forceCheckUpdateBtn.setOnClickListener {
+                forceCheckForUpdates(forceCheckUpdateBtn)
+            }
+
+            viewBuildsBtn.setOnClickListener {
+                showRecentBuildsDialog()
+            }
         }
+    }
+
+    private fun forceCheckForUpdates(button: android.widget.Button) {
+        button.isEnabled = false
+        button.text = "Checking..."
+        UpdateChecker.checkForUpdates(this, force = true) { updateFound ->
+            runOnUiThread {
+                button.isEnabled = true
+                button.text = "Force Check for Updates"
+                if (!updateFound) {
+                    Toast.makeText(this, "You're up to date!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun showRecentBuildsDialog() {
+        val loadingDialog = AlertDialog.Builder(this)
+            .setTitle("Loading builds...")
+            .setMessage("Fetching recent builds from GitHub.")
+            .setCancelable(false)
+            .create()
+        loadingDialog.show()
+
+        val currentVersionCode = try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode
+            }
+        } catch (e: Exception) { -1 }
+
+        UpdateChecker.fetchRecentReleases(
+            this,
+            onResult = { releases ->
+                runOnUiThread {
+                    loadingDialog.dismiss()
+                    if (releases.isEmpty()) {
+                        Toast.makeText(this, "No builds with APKs found.", Toast.LENGTH_SHORT).show()
+                        return@runOnUiThread
+                    }
+                    val labels = releases.map { r ->
+                        val kind = if (r.isPrerelease) "BETA" else "STABLE"
+                        val current = if (r.versionCode == currentVersionCode) "  (current)" else ""
+                        "[$kind] ${r.name}$current\n${r.publishedAt.take(10)}"
+                    }.toTypedArray()
+
+                    AlertDialog.Builder(this)
+                        .setTitle("Recent Builds")
+                        .setItems(labels) { _, which ->
+                            confirmDownloadBuild(releases[which])
+                        }
+                        .setNegativeButton("Close", null)
+                        .show()
+                }
+            },
+            onError = { message ->
+                runOnUiThread {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this, "Failed to load builds: $message", Toast.LENGTH_LONG).show()
+                }
+            }
+        )
+    }
+
+    private fun confirmDownloadBuild(release: UpdateChecker.ReleaseInfo) {
+        val kind = if (release.isPrerelease) "beta" else "standard"
+        AlertDialog.Builder(this)
+            .setTitle("Install ${release.name}?")
+            .setMessage("This will download and install the $kind build \"${release.name}\" (${release.tag}).")
+            .setPositiveButton("Download & Install") { _, _ ->
+                Toast.makeText(this, "Downloading ${release.name}...", Toast.LENGTH_SHORT).show()
+                UpdateChecker.startDownload(this, release.apkUrl)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun forceUpdateAllMenus(button: android.widget.Button) {

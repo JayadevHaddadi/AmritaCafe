@@ -684,6 +684,26 @@
                 android:layout_marginTop="8dp"
                 android:text="Receive Beta Updates" />
 
+            <Button
+                android:id="@+id/force_check_update_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="Force Check for Updates"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/view_builds_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="View Recent Builds"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
             <!-- Menu Management -->
             <TextView
                 android:layout_width="wrap_content"
