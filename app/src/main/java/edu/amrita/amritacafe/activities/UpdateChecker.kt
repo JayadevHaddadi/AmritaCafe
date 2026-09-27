@@ -248,7 +248,7 @@ object UpdateChecker {
         val queue = Volley.newRequestQueue(context)
         val request = object : StringRequest(
             Request.Method.GET, GITHUB_RELEASES_URL,
-            { response ->
+            success@{ response ->
                 try {
                     val releases = org.json.JSONArray(response)
                     var standardVersionCode = 0
@@ -288,7 +288,7 @@ object UpdateChecker {
 
                     if (standardVersionCode == 0 || standardUpdateUrl.isEmpty()) {
                         onComplete?.invoke(false)
-                        return@StringRequest
+                        return@success
                     }
 
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
