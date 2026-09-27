@@ -17,3 +17,12 @@ We connected the printer to a router with a TP cable and had the tablet connecte
 Youtube demonstration video:
 
 [![https://www.youtube.com/watch?v=6Tl5GKwi1p0](https://img.youtube.com/vi/6Tl5GKwi1p0/0.jpg)](https://www.youtube.com/watch?v=6Tl5GKwi1p0)
+
+## Development
+
+**Before pushing any app code change to `master`, bump `versionCode` in
+`app/build.gradle`.** The release workflow tags the beta build by
+`versionCode` — if you don't bump it, CI silently overwrites the previous
+release's APK under the same tag instead of publishing a new one, and
+devices running the app won't detect it as an update. See
+[CLAUDE.md](CLAUDE.md) for the full explanation.
