@@ -27,7 +27,7 @@ android {
             def raw = (input ?: fallback).trim()
             return raw.replaceAll('^"|"$', '')
         }
-        def defaultOrder = "https://script.google.com/macros/s/AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q/exec"
+        def defaultOrder = "https://script.google.com/macros/s/AKfycbxywQSl6c_fb05C1VxClRlIE2n8u2of4CkkSF84E5NrjZImLWlS6XBNObXyBNHKSPnE3g/exec"
         def defaultUpdate = "https://script.google.com/macros/s/AKfycbzsKjmn3n74W2kP1_FC1A93Cao5953VjswyVTPBkCFeiN46PpiMzWcXFY47d1VlQajm/exec"
         def defaultMenu = "https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec"
 
