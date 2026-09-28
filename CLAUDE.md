@@ -57,8 +57,43 @@ Script files, workflow config) don't need a version bump.
 - Commit and push directly to `master`. Don't create feature branches or
   PRs unless explicitly asked — this repo's owner has asked for direct
   commits to `master` going forward.
-- There's no Android SDK in the Claude Code cloud sandbox, so a local
-  Gradle build isn't possible here. After pushing, check the GitHub
-  Actions run for `.github/workflows/release.yml` on `master` to confirm
-  it actually compiled — don't assume success just because the push
-  succeeded.
+- **Build locally before pushing app code changes.** The Claude Code cloud
+  sandbox has no Android SDK preinstalled, but you can set one up in about
+  a minute (network access to `dl.google.com` works fine) and it will
+  catch real compile errors — including ones a plain Kotlin-only check
+  misses, like ViewBinding fields going nullable because a layout ID only
+  exists in `res/layout/` and not in `res/layout-land/` (this bit us once,
+  see commit `aad024c`). Setup:
+
+  ```bash
+  mkdir -p /home/user/android-sdk/cmdline-tools
+  cd /home/user/android-sdk/cmdline-tools
+  curl -sS -o /tmp/cmdline-tools.zip \
+    https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+  unzip -q /tmp/cmdline-tools.zip && mv cmdline-tools latest && rm /tmp/cmdline-tools.zip
+
+  export ANDROID_HOME=/home/user/android-sdk
+  yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+    "platform-tools" "platforms;android-37.0" "build-tools;36.0.0"
+  yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
+
+  echo "sdk.dir=$ANDROID_HOME" >> /home/user/AmritaCafe/local.properties
+  ```
+
+  Match `platforms;android-<N>.0` and `build-tools;<N>` to whatever
+  `compileSdk` currently is in `app/build.gradle` — check with
+  `grep compileSdk app/build.gradle` first, since it changes over time and
+  `sdkmanager`'s package name isn't always the plain number (e.g.
+  `compileSdk 37` needed `platforms;android-37.0`, not `;android-37`; run
+  `sdkmanager --list | grep platforms` if the exact name isn't obvious).
+
+  Then before pushing: `cd /home/user/AmritaCafe && export ANDROID_HOME=/home/user/android-sdk
+  && ./gradlew :app:assembleDebug --stacktrace`. This container is
+  ephemeral — a new session starts with no SDK, so this setup doesn't
+  carry forward automatically and needs redoing each session (fast after
+  the first `sdkmanager` download, since Gradle/dependency caches under
+  `~/.gradle` may or may not persist depending on the session).
+- Even with a local build passing, still check the GitHub Actions run for
+  `.github/workflows/release.yml` on `master` after pushing — CI is the
+  source of truth for what actually shipped, and it also runs the release
+  step (tagging, APK upload) that a local build doesn't.
