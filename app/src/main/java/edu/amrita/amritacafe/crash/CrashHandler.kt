@@ -67,4 +67,59 @@ object CrashHandler {
         val file = File(context.filesDir, CRASH_FILE_NAME)
         return if (file.exists()) file.delete() else true
     }
+
+    fun uploadPendingCrashLogs(context: Context) {
+        val file = File(context.filesDir, CRASH_FILE_NAME)
+        if (!file.exists() || file.length() == 0L) return
+
+        val content = try {
+            file.readText(Charsets.UTF_8).trim()
+        } catch (e: Exception) {
+            return
+        }
+
+        if (content.isEmpty()) return
+
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+        val tabletName = prefs.getString("tablet name", "Unknown") ?: "Unknown"
+
+        val json = org.json.JSONObject().apply {
+            put("action", "reportCrash")
+            put("tablet", tabletName)
+            put("appVersion", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            put("deviceInfo", "${Build.MANUFACTURER} ${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})")
+            put("stackTrace", content)
+        }
+
+        val url = edu.amrita.amritacafe.CloudStorage.getOrderScriptUrl()
+        val requestQueue = com.android.volley.toolbox.Volley.newRequestQueue(context)
+        val stringRequest = object : com.android.volley.toolbox.StringRequest(
+            Method.POST,
+            url,
+            { response ->
+                try {
+                    val res = org.json.JSONObject(response)
+                    if (res.optString("status") == "success") {
+                        file.delete()
+                        Log.d(TAG, "Crash logs successfully uploaded to Google Sheets and cleared locally.")
+                    }
+                } catch (e: Exception) {
+                    // Not parsed or error, leave on disk
+                }
+            },
+            { error ->
+                Log.w(TAG, "Could not upload crash logs to Google Sheets (${error.message}). Will retry next launch.")
+            }
+        ) {
+            override fun getBodyContentType(): String = "application/json; charset=utf-8"
+            override fun getBody(): ByteArray = json.toString().toByteArray(Charsets.UTF_8)
+        }
+
+        stringRequest.retryPolicy = com.android.volley.DefaultRetryPolicy(
+            30000,
+            0,
+            com.android.volley.DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        )
+        requestQueue.add(stringRequest)
+    }
 }

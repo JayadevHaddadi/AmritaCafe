@@ -142,6 +142,10 @@ class MainActivity : AppCompatActivity() {
         ConnectionIndicator.setPrinterConnected(false)
         ConnectionIndicator.setSheetsConnected(false)
 
+        binding.printerIndicator.setOnClickListener {
+            ConnectionIndicator.checkPrinters(this, configuration, scope, showToast = true)
+        }
+
         binding.sheetsIndicator.setOnClickListener {
             val pending = edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.getPendingCount(this)
             if (pending > 0) {
@@ -639,6 +643,12 @@ class MainActivity : AppCompatActivity() {
         
         // Attempt to sync any offline orders that were queued
         OfflineOrderSync.syncPendingOrders(this, getOrderScriptUrl())
+
+        // Actively check configured printers status
+        ConnectionIndicator.checkPrinters(this, configuration, scope, showToast = false)
+
+        // Upload any pending crash logs to Google Sheets
+        edu.amrita.amritacafe.crash.CrashHandler.uploadPendingCrashLogs(this)
     }
 
     private fun checkStoragePermission(activity: Activity): Boolean {
@@ -801,7 +811,6 @@ class MainActivity : AppCompatActivity() {
                 it.isGpay = isGpay
                 it.isRenunciate = renunciate
             }
-            sendToSheets(orders, configuration, this)
             startNewOrder()
             orderDone(orders)
             dialog.dismiss()
@@ -1196,6 +1205,7 @@ class MainActivity : AppCompatActivity() {
 
                 val listener = object : PrintService.PrintServiceListener {
                     override fun kitchenPrinterFinished() = runOnUiThread {
+                        ConnectionIndicator.setPrinterConnected(true)
                         histories.forEach {
                             it.KitchenPrinted = PrintStatus.SUCCESS_PRINT
                         }
@@ -1247,6 +1257,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun receiptPrinterFinished() = runOnUiThread {
+                        ConnectionIndicator.setPrinterConnected(true)
                         histories.forEach {
                             it.RecipePrinted = PrintStatus.SUCCESS_PRINT
                         }
@@ -1298,6 +1309,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun printingComplete() {
+                        ConnectionIndicator.setPrinterConnected(true)
                         runOnUiThread {
                             dialog.dismiss()
                         }
@@ -1348,6 +1360,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var currentOrdersHistories : List<HistoricalOrder>
     private fun orderDone(orders: List<Order>) {
+        sendToSheets(orders, configuration, this)
         currentOrdersHistories.forEach {
             orderHistory.add(it)
         }
@@ -1410,10 +1423,18 @@ class MainActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this)
             .setView(binding.root)
             .setCancelable(true)
-            .show()
+            .create()
+
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.show()
 
         val displayMetrics = resources.displayMetrics
-        val dialogWidth = (displayMetrics.widthPixels * 0.96).toInt()
+        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val dialogWidth = if (isLandscape) {
+            minOf((displayMetrics.widthPixels * 0.70).toInt(), (720 * displayMetrics.density).toInt())
+        } else {
+            (displayMetrics.widthPixels * 0.92).toInt()
+        }
         val dialogHeight = if (orderHistory.isEmpty()) {
             ViewGroup.LayoutParams.WRAP_CONTENT
         } else {

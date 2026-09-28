@@ -176,10 +176,11 @@ class HistoryAdapter(
                         configuration,
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {
-                                historicalOrder.KitchenPrinted = if (status is PrintSuccess) {
-                                    PrintStatus.SUCCESS_PRINT
+                                if (status is PrintSuccess) {
+                                    ConnectionIndicator.setPrinterConnected(true)
+                                    historicalOrder.KitchenPrinted = PrintStatus.SUCCESS_PRINT
                                 } else {
-                                    PrintStatus.FAILED_PRINT
+                                    historicalOrder.KitchenPrinted = PrintStatus.FAILED_PRINT
                                 }
                                 mainActivity.runOnUiThread {
                                     updateKitchenPrintUI()
@@ -211,6 +212,7 @@ class HistoryAdapter(
                             listOf(historicalOrder.order),
                             configuration
                         )
+                        ConnectionIndicator.setPrinterConnected(true)
                         historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
                         mainActivity.runOnUiThread {
                             updateReceiptPrintUI()
@@ -235,10 +237,11 @@ class HistoryAdapter(
                         configuration,
                         object : PrintStatusListener {
                             override fun printComplete(status: PrintDispatchResponse) {
-                                historicalOrder.RecipePrinted = if (status is PrintSuccess) {
-                                    PrintStatus.SUCCESS_PRINT
+                                if (status is PrintSuccess) {
+                                    ConnectionIndicator.setPrinterConnected(true)
+                                    historicalOrder.RecipePrinted = PrintStatus.SUCCESS_PRINT
                                 } else {
-                                    PrintStatus.FAILED_PRINT
+                                    historicalOrder.RecipePrinted = PrintStatus.FAILED_PRINT
                                 }
                                 mainActivity.runOnUiThread {
                                     updateReceiptPrintUI()

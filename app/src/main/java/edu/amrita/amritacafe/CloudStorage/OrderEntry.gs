@@ -78,6 +78,24 @@ function doPost(e) {
 
     // Parse the request data
     var data = JSON.parse(e.postData.getDataAsString());
+
+    // Handle Crash Log Reporting
+    if (data.action === "reportCrash") {
+      var crashSheet = ss.getSheetByName("Crash Logs");
+      if (!crashSheet) {
+        crashSheet = ss.insertSheet("Crash Logs");
+        crashSheet.appendRow(["TIMESTAMP", "TABLET", "APP_VERSION", "DEVICE_INFO", "STACK_TRACE"]);
+        crashSheet.getRange(1, 1, 1, 5).setFontWeight("bold");
+      }
+      var tabletName = (data.tablet || "Unknown").toString();
+      var appVer = (data.appVersion || "Unknown").toString();
+      var devInfo = (data.deviceInfo || "").toString();
+      var stack = (data.stackTrace || "").toString();
+      crashSheet.appendRow([new Date(), tabletName, appVer, devInfo, stack]);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Crash logged" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     var timeMillis = data.time;
     var tablet = (data.tablet || "").toString().trim();
     var isGpay = data.isGpay || false;
