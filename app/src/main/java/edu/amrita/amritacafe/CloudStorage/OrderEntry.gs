@@ -128,52 +128,78 @@ function doPost(e) {
       return ContentService.createTextOutput(found ? "Update successful!" : "Order not found in search range.");
     }
 
-    // Normal Order Entry
-    var order = (data.order || "").toString().trim();
-    var items = data.items || [];
+    // Order Entry (Single or Batch)
+    var isBatch = data.action === "batchOrders" || Array.isArray(data.orders);
+    var orderList = isBatch ? data.orders : [data];
     var appVersionColIndex = headers.indexOf("APP VERSION") + 1;
 
     // Deduplication Check: Prevent duplicate rows if exact order was already recorded
     var lastRow = sheet.getLastRow();
+    var checkValues = [];
     if (lastRow >= 2) {
       // Searching the last 5000 rows takes < 150ms even on a 100k-row sheet
       var searchDepth = 5000;
       var startRow = Math.max(2, lastRow - searchDepth + 1);
       var numRows = lastRow - startRow + 1;
-      var checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
+      checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
+    }
+
+    var rowsToAppend = [];
+    var insertedCount = 0;
+    var duplicateCount = 0;
+
+    for (var o = 0; o < orderList.length; o++) {
+      var itemData = orderList[o];
+      var oTimeMillis = itemData.time;
+      var oTablet = (itemData.tablet || "").toString().trim();
+      var oOrder = (itemData.order || "").toString().trim();
+      var oIsGpay = itemData.isGpay || false;
+      var oAppVersion = itemData.appVersion || "";
+      var oItems = itemData.items || [];
+      var oTimeFormat = formatAppTime(oTimeMillis);
+
+      var isDuplicate = false;
       for (var k = checkValues.length - 1; k >= 0; k--) {
         var rowTablet = checkValues[k][1] ? checkValues[k][1].toString().trim() : "";
         var rowOrder = checkValues[k][2] ? checkValues[k][2].toString().trim() : "";
-        if (rowTablet === tablet && rowOrder === order) {
+        if (rowTablet === oTablet && rowOrder === oOrder) {
           var rowTimeVal = checkValues[k][0];
-          if (isTimeMatching(rowTimeVal, timeMillis, timeFormat)) {
-            return ContentService.createTextOutput("Order already exists. Skipped duplicate insertion.");
+          if (isTimeMatching(rowTimeVal, oTimeMillis, oTimeFormat)) {
+            isDuplicate = true;
+            break;
           }
         }
       }
-    }
 
-    // Prepare rows for batch insertion
-    var rowsToAppend = [];
-    for (var i = 0; i < items.length; i++) {
-      var gpayAmount = isGpay ? items[i].total : 0;
-      var rowValues = [timeFormat, tablet, order, items[i].quantity, items[i].name, items[i].cost, items[i].total, gpayAmount];
-      
-      if (appVersionColIndex > 0) {
-        var maxCols = Math.max(rowValues.length, headers.length);
-        var fullRow = [];
-        for (var j = 0; j < maxCols; j++) {
-          if (j === appVersionColIndex - 1) {
-            fullRow.push(appVersion);
-          } else if (j < rowValues.length) {
-            fullRow.push(rowValues[j]);
-          } else {
-            fullRow.push("");
+      if (isDuplicate) {
+        duplicateCount++;
+        continue;
+      }
+
+      // Add to checkValues so later orders in this same batch don't duplicate
+      checkValues.push([oTimeFormat, oTablet, oOrder]);
+      insertedCount++;
+
+      for (var i = 0; i < oItems.length; i++) {
+        var gpayAmount = oIsGpay ? oItems[i].total : 0;
+        var rowValues = [oTimeFormat, oTablet, oOrder, oItems[i].quantity, oItems[i].name, oItems[i].cost, oItems[i].total, gpayAmount];
+        
+        if (appVersionColIndex > 0) {
+          var maxCols = Math.max(rowValues.length, headers.length);
+          var fullRow = [];
+          for (var j = 0; j < maxCols; j++) {
+            if (j === appVersionColIndex - 1) {
+              fullRow.push(oAppVersion);
+            } else if (j < rowValues.length) {
+              fullRow.push(rowValues[j]);
+            } else {
+              fullRow.push("");
+            }
           }
+          rowsToAppend.push(fullRow);
+        } else {
+          rowsToAppend.push(rowValues);
         }
-        rowsToAppend.push(fullRow);
-      } else {
-        rowsToAppend.push(rowValues);
       }
     }
 
@@ -181,7 +207,14 @@ function doPost(e) {
       sheet.getRange(lastRow + 1, 1, rowsToAppend.length, rowsToAppend[0].length).setValues(rowsToAppend);
     }
     
-    return ContentService.createTextOutput("Order inserted successfully!");
+    if (isBatch) {
+      return ContentService.createTextOutput("Batch processed: " + insertedCount + " inserted, " + duplicateCount + " duplicate(s) skipped.");
+    } else {
+      if (duplicateCount > 0 && insertedCount === 0) {
+        return ContentService.createTextOutput("Order already exists. Skipped duplicate insertion.");
+      }
+      return ContentService.createTextOutput("Order inserted successfully!");
+    }
   } finally {
     lock.releaseLock();
   }

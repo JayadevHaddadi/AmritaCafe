@@ -161,62 +161,86 @@ object OfflineOrderSync {
         }
     }
 
+    private const val BATCH_SIZE = 25
+
     fun syncPendingOrders(context: Context, targetUrl: String = getOrderScriptUrl()) {
         if (isSyncing) {
             Log.d(TAG, "Sync already in progress, skipping duplicate run.")
             return
         }
 
-        val nextItem: PendingSheetsRequest? = synchronized(lock) {
+        val batchItems: List<PendingSheetsRequest> = synchronized(lock) {
             val queue = readQueueFromDisk(context)
             if (queue.isEmpty()) {
                 ConnectionIndicator.setSheetsConnected(true)
-                null
+                emptyList()
             } else {
-                queue.first()
+                val first = queue.first()
+                if (first.payload.contains("\"action\"")) {
+                    listOf(first)
+                } else {
+                    val batch = mutableListOf<PendingSheetsRequest>()
+                    for (item in queue) {
+                        if (item.payload.contains("\"action\"")) break
+                        batch.add(item)
+                        if (batch.size >= BATCH_SIZE) break
+                    }
+                    if (batch.isEmpty()) listOf(first) else batch
+                }
             }
         }
 
-        if (nextItem == null) return
+        if (batchItems.isEmpty()) return
 
         isSyncing = true
-        sendSingleRequest(context, nextItem, targetUrl)
+        sendBatchRequest(context, batchItems, targetUrl)
     }
 
-    private fun sendSingleRequest(
+    private fun sendBatchRequest(
         context: Context,
-        item: PendingSheetsRequest,
+        batch: List<PendingSheetsRequest>,
         fallbackUrl: String
     ) {
-        val url = if (item.url.isNotBlank()) item.url else fallbackUrl
+        val url = if (batch.first().url.isNotBlank()) batch.first().url else fallbackUrl
         val requestQueue = Volley.newRequestQueue(context)
+
+        val payloadBytes: ByteArray = if (batch.size == 1) {
+            batch.first().payload.toByteArray(Charsets.UTF_8)
+        } else {
+            val array = JSONArray()
+            batch.forEach {
+                try {
+                    array.put(JSONObject(it.payload))
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
+            val root = JSONObject()
+            root.put("action", "batchOrders")
+            root.put("orders", array)
+            root.toString().toByteArray(Charsets.UTF_8)
+        }
 
         val stringRequest = object : StringRequest(
             Method.POST, url,
             { response ->
                 val trimmed = response.trim()
-                // Verify confirmation: Must not be HTML error or captive portal login page
                 val isHtml = trimmed.startsWith("<", ignoreCase = true) ||
                         trimmed.contains("<html>", ignoreCase = true) ||
                         trimmed.contains("<!DOCTYPE", ignoreCase = true)
                 val hasSyntaxError = trimmed.contains("SyntaxError", ignoreCase = true)
 
                 if (isHtml || hasSyntaxError) {
-                    Log.w(TAG, "Response from $url was HTML / Error (possible captive portal or script error), retaining order in queue: $trimmed")
+                    Log.w(TAG, "Response from $url was HTML / Error, retaining orders in queue: $trimmed")
                     ConnectionIndicator.setSheetsConnected(false)
                     isSyncing = false
                 } else {
-                    Log.d(TAG, "Confirmed delivery to Google Sheets for item ${item.id}: $trimmed")
+                    Log.d(TAG, "Confirmed delivery of ${batch.size} orders to Google Sheets: $trimmed")
                     var remainingCount = 0
+                    val batchIds = batch.map { it.id }.toSet()
                     synchronized(lock) {
                         val currentQueue = readQueueFromDisk(context)
-                        val iterator = currentQueue.iterator()
-                        while (iterator.hasNext()) {
-                            if (iterator.next().id == item.id) {
-                                iterator.remove()
-                                break
-                            }
-                        }
+                        currentQueue.removeAll { it.id in batchIds }
                         writeQueueToDisk(context, currentQueue)
                         remainingCount = currentQueue.size
                     }
@@ -226,26 +250,25 @@ object OfflineOrderSync {
                         ConnectionIndicator.setSheetsConnected(true)
                         isSyncing = false
                     } else {
-                        Log.d(TAG, "$remainingCount orders remaining in queue, processing next...")
+                        Log.d(TAG, "$remainingCount orders remaining in queue, processing next batch...")
                         isSyncing = false
-                        // Process next pending item
                         syncPendingOrders(context, fallbackUrl)
                     }
                 }
             },
             { error ->
-                Log.w(TAG, "Failed to reach Google Sheets (${error.javaClass.simpleName}: ${error.message}). Order kept safely on disk.")
+                Log.w(TAG, "Failed to reach Google Sheets (${error.javaClass.simpleName}: ${error.message}). Orders kept safely on disk.")
                 ConnectionIndicator.setSheetsConnected(false)
                 isSyncing = false
             }
         ) {
             override fun getBodyContentType(): String = "application/json; charset=utf-8"
-            override fun getBody(): ByteArray = item.payload.toByteArray(Charsets.UTF_8)
+            override fun getBody(): ByteArray = payloadBytes
         }
 
         stringRequest.retryPolicy = DefaultRetryPolicy(
-            45000, // 45s timeout for large sheets (50k+ rows)
-            0,     // 0 internal retries so queue maintains strict control
+            60000, // 60s timeout for batch requests
+            0,
             DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         )
 

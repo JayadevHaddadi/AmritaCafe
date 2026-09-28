@@ -762,6 +762,25 @@
                 android:textColor="@color/black"
                 android:textStyle="bold" />
 
+            <!-- Diagnostics & Crash Logs -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Diagnostics &amp; Crash Logs"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/view_crash_logs_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_other_buttons"
+                android:text="View Crash Logs"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
         </LinearLayout>
     </ScrollView>
 

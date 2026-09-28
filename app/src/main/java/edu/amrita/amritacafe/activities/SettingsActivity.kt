@@ -390,6 +390,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             viewBuildsBtn.setOnClickListener {
                 showRecentBuildsDialog()
             }
+
+            viewCrashLogsBtn.setOnClickListener {
+                showCrashLogsDialog()
+            }
         }
     }
 
@@ -579,10 +583,9 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
 
         lifecycleScope.launch {
             var lastCount = initialCount
-            var stableTicks = 0
             var elapsedMs = 0
-            val maxWaitMs = 30000
-            val stepMs = 1000L
+            val maxWaitMs = 180000 // 3 minutes max
+            val stepMs = 1500L
 
             while (elapsedMs < maxWaitMs) {
                 delay(stepMs)
@@ -601,13 +604,8 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 }
 
                 button.text = "Pushing... ($current pending)"
-                if (current == lastCount) {
-                    stableTicks++
-                } else {
-                    stableTicks = 0
-                    lastCount = current
-                }
-                if (stableTicks >= 6) break
+                // Continuously re-trigger sync so batches keep processing
+                OfflineOrderSync.syncPendingOrders(this@SettingsActivity, getOrderScriptUrl())
             }
 
             button.isEnabled = true
@@ -615,11 +613,46 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             val finalCount = OfflineOrderSync.getPendingCount(this@SettingsActivity)
             val pushed = initialCount - finalCount
             AlertDialog.Builder(this@SettingsActivity)
-                .setTitle(if (pushed > 0) "Partially Pushed ⚠️" else "Push Failed ❌")
-                .setMessage("$pushed of $initialCount item(s) pushed.\n$finalCount remaining in queue.\n\nCheck your internet connection. The app will keep retrying automatically.")
+                .setTitle(if (pushed > 0) "Partially Pushed ⚠️" else "Push Paused ❌")
+                .setMessage("$pushed of $initialCount item(s) pushed.\n$finalCount remaining in queue.\n\nThe app will continue uploading automatically in the background.")
                 .setPositiveButton("OK", null)
                 .show()
         }
+    }
+
+    private fun showCrashLogsDialog() {
+        val logs = edu.amrita.amritacafe.crash.CrashHandler.getCrashLogs(this)
+        if (logs.isBlank()) {
+            Toast.makeText(this, "No crashes recorded! App is healthy. ✓", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val textView = android.widget.TextView(this).apply {
+            text = logs
+            setPadding(32, 16, 32, 16)
+            textSize = 12f
+            setTextIsSelectable(true)
+            typeface = android.graphics.Typeface.MONOSPACE
+        }
+        val scrollView = android.widget.ScrollView(this).apply {
+            addView(textView)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Crash Diagnostics")
+            .setView(scrollView)
+            .setPositiveButton("Close", null)
+            .setNeutralButton("Clear Logs") { _, _ ->
+                edu.amrita.amritacafe.crash.CrashHandler.clearCrashLogs(this)
+                Toast.makeText(this, "Crash logs cleared.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Copy") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Crash Logs", logs)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Copied to clipboard.", Toast.LENGTH_SHORT).show()
+            }
+            .show()
     }
 
     private fun updateReceiptSpinner() {
@@ -913,12 +946,18 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             return
         }
 
-        if (!bluetoothAdapter!!.isEnabled) {
+        val adapter = bluetoothAdapter
+        if (adapter == null) {
+            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!adapter.isEnabled) {
             Toast.makeText(this, "Enable Bluetooth first", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val bondedDevices: Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
+        val bondedDevices: Set<BluetoothDevice> = adapter.bondedDevices ?: emptySet()
         val initialList = ArrayList<BluetoothDevice>(bondedDevices)
         val initialStrings = initialList.map { "${it.name ?: "Unknown"}\n${it.address} (Paired)" }.toTypedArray()
 
@@ -988,8 +1027,14 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             return
         }
 
+        val adapter = bluetoothAdapter
+        if (adapter == null) {
+            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // 2. Check if Enabled
-        if (!bluetoothAdapter!!.isEnabled) {
+        if (!adapter.isEnabled) {
             Toast.makeText(this, "Bluetooth is disabled. Please enable it.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -1014,19 +1059,19 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
         }
 
         // 4. Start Scan
-        if (bluetoothAdapter!!.isDiscovering) {
-            bluetoothAdapter!!.cancelDiscovery()
+        if (adapter.isDiscovering) {
+            adapter.cancelDiscovery()
         }
 
         discoveredDevices.clear()
-        discoveredDevices.addAll(bluetoothAdapter!!.bondedDevices)
+        discoveredDevices.addAll(adapter.bondedDevices ?: emptySet())
         
         val filter = IntentFilter()
         filter.addAction(BluetoothDevice.ACTION_FOUND)
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         registerReceiver(receiver, filter)
         
-        val success = bluetoothAdapter?.startDiscovery() ?: false
+        val success = adapter.startDiscovery()
         if (!success) {
             Toast.makeText(this, "Failed to start scanning. Is Bluetooth on?", Toast.LENGTH_SHORT).show()
             return

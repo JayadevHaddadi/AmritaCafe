@@ -1091,7 +1091,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val orderNumberStr = binding.orderNumberTV.text.toString()
-        val orderNumber = if (orderNumberStr.isNotEmpty()) orderNumberStr.toInt() else orderNumberService.currentOrderNumber
+        val orderNumber = orderNumberStr.toIntOrNull() ?: orderNumberService.currentOrderNumber
         orderNumberService.currentOrderNumber = orderNumber
 
         val orders = if (hasPizza && hasGrill) {

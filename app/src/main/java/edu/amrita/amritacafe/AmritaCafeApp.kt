@@ -16,5 +16,6 @@ class AmritaCafeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        edu.amrita.amritacafe.crash.CrashHandler.init(this)
     }
 }

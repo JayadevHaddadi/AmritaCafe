@@ -32,11 +32,18 @@ jobs:
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Create local.properties
+        env:
+          SECRET_ORDER_URL: ${{ secrets.GOOGLE_SCRIPT_ORDER_URL }}
+          SECRET_MENU_URL: ${{ secrets.GOOGLE_SCRIPT_MENU_URL }}
+          SECRET_UPDATE_URL: ${{ secrets.GOOGLE_SCRIPT_UPDATE_URL }}
         run: |
-          cat << 'EOF' > local.properties
-          google.script.menu.url="https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec"
-          google.script.order.url="https://script.google.com/macros/s/AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q/exec"
-          google.script.update.url="https://script.google.com/macros/s/AKfycbzsKjmn3n74W2kP1_FC1A93Cao5953VjswyVTPBkCFeiN46PpiMzWcXFY47d1VlQajm/exec"
+          ORDER_URL="${SECRET_ORDER_URL:-https://script.google.com/macros/s/AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q/exec}"
+          MENU_URL="${SECRET_MENU_URL:-https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec}"
+          UPDATE_URL="${SECRET_UPDATE_URL:-https://script.google.com/macros/s/AKfycbzsKjmn3n74W2kP1_FC1A93Cao5953VjswyVTPBkCFeiN46PpiMzWcXFY47d1VlQajm/exec}"
+          cat << EOF > local.properties
+          google.script.menu.url="$MENU_URL"
+          google.script.order.url="$ORDER_URL"
+          google.script.update.url="$UPDATE_URL"
           EOF
 
       - name: Make Gradle Wrapper Executable

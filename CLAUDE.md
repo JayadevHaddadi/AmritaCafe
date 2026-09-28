@@ -97,3 +97,35 @@ Script files, workflow config) don't need a version bump.
   `.github/workflows/release.yml` on `master` after pushing — CI is the
   source of truth for what actually shipped, and it also runs the release
   step (tagging, APK upload) that a local build doesn't.
+
+## Critical Rules to Prevent Breakages & Outages
+
+### 1. ViewBinding: Always Mirror Layouts (Portrait & Landscape)
+Whenever adding a `View` (button, text view, input, etc.) with an `android:id` in `res/layout/activity_*.xml`, you **MUST** also add the identical view/ID in `res/layout-land/activity_*.xml` (and vice versa).
+- **Why**: Android ViewBinding generates non-null properties when a view ID exists in all layout configurations. If it is missing in one configuration, the binding field becomes nullable or causes build failures / crashes on screen rotation.
+
+### 2. Never Use Force-Unwrap (`!!`)
+- Never use `!!` on system services (e.g. `bluetoothAdapter!!`), hardware sensors, or nullable preferences.
+- If a tablet has Bluetooth disabled or lacks hardware support, `bluetoothAdapter!!` will instantly crash the app. Always use safe calls (`?.`) or safe unwraps (`val adapter = bluetoothAdapter ?: return`).
+
+### 3. Parse Strings Safely
+- Never call `string.toInt()` or `string.toDouble()` on text views or inputs without safe parsing.
+- Always use `string.toIntOrNull() ?: defaultValue`.
+
+### 4. Background Sync Loops & Network Timeouts
+- Google Apps Script HTTPS calls involve cold starts, redirects, and sheet locks; a single call can take 5–10 seconds.
+- **Do not** write progress polling loops that break early if the count doesn't change after a few seconds (e.g., `stableTicks >= 6`). This prematurely aborts the UI feedback while syncing is still active in the background.
+- Use generous HTTP socket timeouts (at least 45–60s) for batch operations.
+
+### 5. Preserving Offline Queue Data
+- The tablet's offline queue (`google_sheets_pending_queue.json`) contains critical event sales data.
+- **Never** wipe, truncate, or overwrite the queue file during upgrades, migrations, or testing.
+- When working with a connected device via ADB, always back up `google_sheets_pending_queue.json` before touching sync logic or installing clean builds.
+
+### 6. Managing Script URLs and Secrets
+- Never commit active API keys, personal tokens, or production webhook secrets to git.
+- Build URLs are managed through a hierarchy:
+  1. Environment variables (`GOOGLE_SCRIPT_ORDER_URL`, etc.)
+  2. GitHub Repository Secrets in `.github/workflows/release.yml`
+  3. `local.properties` on local developer machines
+  4. Verified fallback defaults configured in `app/build.gradle` and `GoogleSheetsCommands.kt`.

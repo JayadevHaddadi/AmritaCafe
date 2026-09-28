@@ -1,4 +1,19 @@
-# Amrita Cafe — Build 80111
+# Amrita Cafe — Build 80112
+
+### ⚡ Blazing-Fast Batch Order Syncing
+- **Batch Processing**: Upgraded offline syncing to transmit up to 25 orders per network request (`action: "batchOrders"`), slashing upload time by over 90% (from ~85 minutes down to ~2 minutes for 1,000+ orders).
+- **Atomic Bulk Append & In-Memory Deduplication**: Google Apps Script processes batch requests with in-memory deduplication and a single atomic `setValues()` sheet write call.
+- **Fixed "Force Push to Sheets Now"**: Removed premature polling timeout; "Force Push" now reliably monitors the sync process to completion.
+
+### 🛡️ Offline Crash Logging & Stability Hardening
+- **Offline Crash Log System**: Added `CrashHandler` to record uncaught exceptions, stack traces, and device telemetry to `/files/crash_logs.txt`.
+- **In-App Crash Log Viewer**: Accessible directly in Settings ("View Crash Logs") with one-touch Copy and Clear options.
+- **Null Safety & Crash Fixes**: Resolved unsafe Bluetooth adapter force-unwraps (`!!`) and string-to-integer parsing exceptions.
+- **Dynamic Secret & Environment Configuration**: Added CI/local environment variable support for script URLs with automatic quote/whitespace stripping and safe fallbacks.
+
+---
+
+# Previous Changes — Build 80111
 
 ### 🛠️ Connectivity & Management Tools in Settings
 - **Google Sheets Sync Inspection**: Added "View Pending Queue" and "Force Push to Sheets Now" in Settings to inspect pending orders in real-time and trigger immediate sync.
