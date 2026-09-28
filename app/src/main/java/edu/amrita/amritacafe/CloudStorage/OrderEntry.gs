@@ -118,8 +118,8 @@ function doPost(e) {
       var totalColIndex = headers.indexOf("TOTAL") + 1 || 7;
       var gpayColIndex = headers.indexOf("GPAY AMOUNT") + 1 || 8;
 
-      // Efficiency: Check last 5000 rows for updates
-      var searchDepth = 5000;
+      // Efficiency: Check last 1000 rows for updates
+      var searchDepth = 1000;
       var startRow = Math.max(2, lastRow - searchDepth + 1);
       var numRows = lastRow - startRow + 1;
 
@@ -155,8 +155,8 @@ function doPost(e) {
     var lastRow = sheet.getLastRow();
     var checkValues = [];
     if (lastRow >= 2) {
-      // Searching the last 5000 rows takes < 150ms even on a 100k-row sheet
-      var searchDepth = 5000;
+      // Searching the last 1000 rows takes < 100ms even on a 100k-row sheet
+      var searchDepth = 1000;
       var startRow = Math.max(2, lastRow - searchDepth + 1);
       var numRows = lastRow - startRow + 1;
       checkValues = sheet.getRange(startRow, 1, numRows, 3).getValues(); // col 1: TIME, col 2: TABLET, col 3: ORDER
