@@ -1,4 +1,14 @@
-# Amrita Cafe — Build 80110
+# Amrita Cafe — Build 80111
+
+### 🛠️ Connectivity & Management Tools in Settings
+- **Google Sheets Sync Inspection**: Added "View Pending Queue" and "Force Push to Sheets Now" in Settings to inspect pending orders in real-time and trigger immediate sync.
+- **Menu Management**: Added "Force Update All Menus" and "Preview Menu" controls.
+- **Update Management**: Added "Force Check for Updates" and "View Recent Builds" in Settings.
+- **Robust Queue Migration**: Ensures all offline orders stored during previous builds are migrated to durable disk queue and synced to Google Sheets safely.
+
+---
+
+# Previous Changes — Build 80110
 
 ### 🚀 Verified Live Google Apps Script Deployment
 - Connected to new Apps Script deployment endpoint (`AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q`).

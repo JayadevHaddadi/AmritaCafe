@@ -35,7 +35,7 @@ jobs:
         run: |
           cat << 'EOF' > local.properties
           google.script.menu.url="https://script.google.com/macros/s/AKfycbyb4ey0BF43Vuk4g4r4SGs-2NP4HEvNF0kn-pPEhsYtODwXKyp4G7P-1_Zhlmd1LrEB/exec"
-          google.script.order.url="https://script.google.com/macros/s/AKfycbzQp6Ubp3lifOpr7kMwnTVVJoMQWPfNEsDv8W96clYZe10C9f2Sluy5jBXPNuJktERx/exec"
+          google.script.order.url="https://script.google.com/macros/s/AKfycbzqskK2xmsEF9qj35E-BiUAxmaafyj4Jlnvi2adQaP5f63qDO9PTDEFBC924U3utxPn-Q/exec"
           google.script.update.url="https://script.google.com/macros/s/AKfycbzsKjmn3n74W2kP1_FC1A93Cao5953VjswyVTPBkCFeiN46PpiMzWcXFY47d1VlQajm/exec"
           EOF
 

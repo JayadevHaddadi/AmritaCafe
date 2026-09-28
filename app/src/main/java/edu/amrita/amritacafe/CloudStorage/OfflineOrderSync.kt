@@ -68,12 +68,16 @@ object OfflineOrderSync {
             if (!legacyStr.isNullOrBlank() && legacyStr != "[]") {
                 val legacyArray = JSONArray(legacyStr)
                 for (i in 0 until legacyArray.length()) {
-                    val payload = legacyArray.getString(i)
+                    val rawItem = legacyArray.get(i)
+                    val payload = rawItem.toString()
+                    val orderNum = try { JSONObject(payload).optString("order", "") } catch (e: Exception) { "" }
+                    val tabletName = try { JSONObject(payload).optString("tablet", "") } catch (e: Exception) { "" }
+                    val desc = if (orderNum.isNotBlank()) "Order $orderNum ($tabletName)" else "Migrated order"
                     list.add(
                         PendingSheetsRequest(
                             url = getOrderScriptUrl(),
                             payload = payload,
-                            description = "Migrated order"
+                            description = desc
                         )
                     )
                 }
@@ -230,7 +234,7 @@ object OfflineOrderSync {
                 }
             },
             { error ->
-                Log.w(TAG, "Failed to reach Google Sheets (${error.message}). Order kept safely on disk.")
+                Log.w(TAG, "Failed to reach Google Sheets (${error.javaClass.simpleName}: ${error.message}). Order kept safely on disk.")
                 ConnectionIndicator.setSheetsConnected(false)
                 isSyncing = false
             }
@@ -240,7 +244,7 @@ object OfflineOrderSync {
         }
 
         stringRequest.retryPolicy = DefaultRetryPolicy(
-            15000, // 15s timeout
+            45000, // 45s timeout for large sheets (50k+ rows)
             0,     // 0 internal retries so queue maintains strict control
             DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         )
