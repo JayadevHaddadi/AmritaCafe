@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import edu.amrita.amritacafe.activities.ConnectionIndicator
 import org.json.JSONArray
 import org.json.JSONObject
@@ -193,7 +192,14 @@ object OfflineOrderSync {
         if (batchItems.isEmpty()) return
 
         isSyncing = true
-        sendBatchRequest(context, batchItems, targetUrl)
+        try {
+            sendBatchRequest(context, batchItems, targetUrl)
+        } catch (t: Throwable) {
+            // Orders are already safe on disk; never leave the sync flag stuck or crash the order flow.
+            Log.e(TAG, "Failed to start sync request, orders kept on disk: ${t.message}", t)
+            ConnectionIndicator.setSheetsConnected(false)
+            isSyncing = false
+        }
     }
 
     private fun sendBatchRequest(
@@ -202,7 +208,7 @@ object OfflineOrderSync {
         fallbackUrl: String
     ) {
         val url = if (batch.first().url.isNotBlank()) batch.first().url else fallbackUrl
-        val requestQueue = Volley.newRequestQueue(context)
+        val requestQueue = SharedRequestQueue.get(context)
 
         val payloadBytes: ByteArray = if (batch.size == 1) {
             batch.first().payload.toByteArray(Charsets.UTF_8)

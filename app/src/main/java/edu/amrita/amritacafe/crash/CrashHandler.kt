@@ -92,7 +92,7 @@ object CrashHandler {
         }
 
         val url = edu.amrita.amritacafe.CloudStorage.getOrderScriptUrl()
-        val requestQueue = com.android.volley.toolbox.Volley.newRequestQueue(context)
+        val requestQueue = edu.amrita.amritacafe.CloudStorage.SharedRequestQueue.get(context)
         val stringRequest = object : com.android.volley.toolbox.StringRequest(
             Method.POST,
             url,

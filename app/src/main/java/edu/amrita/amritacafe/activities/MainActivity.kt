@@ -43,7 +43,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
+import edu.amrita.amritacafe.CloudStorage.SharedRequestQueue
 import com.example.hoinprinterlib.HoinPrinter
 import com.example.hoinprinterlib.module.PrinterCallback
 import com.example.hoinprinterlib.module.PrinterEvent
@@ -383,7 +383,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun fetchMenuList(preferences: SharedPreferences) {
-        val requestQueue = Volley.newRequestQueue(this)
+        val requestQueue = SharedRequestQueue.get(this)
         val stringRequest = StringRequest(
             Request.Method.GET,
             BuildConfig.MENU_SCRIPT_URL,
@@ -466,7 +466,7 @@ class MainActivity : AppCompatActivity() {
             val url = "${BuildConfig.MENU_SCRIPT_URL}?sheetName=$encodedMenuName"
             if (!silent) Log.d("MainActivity", "Requesting update for menu: $selectedMenuName, URL: $url")
 
-            val requestQueue = Volley.newRequestQueue(this)
+            val requestQueue = SharedRequestQueue.get(this)
             val stringRequest = object : StringRequest(
                 Request.Method.GET,
                 url,

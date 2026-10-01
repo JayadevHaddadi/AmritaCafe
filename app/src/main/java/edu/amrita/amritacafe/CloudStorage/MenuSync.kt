@@ -23,7 +23,7 @@ object MenuSync {
     fun forceUpdateAllMenus(context: Context, onComplete: (MenuSyncResult) -> Unit) {
         val appContext = context.applicationContext
         val listUrl = BuildConfig.MENU_SCRIPT_URL
-        val requestQueue = Volley.newRequestQueue(appContext)
+        val requestQueue = SharedRequestQueue.get(appContext)
 
         val listRequest = StringRequest(
             com.android.volley.Request.Method.GET,
@@ -92,7 +92,7 @@ object MenuSync {
         try {
             val encodedMenuName = URLEncoder.encode(sheetName, "UTF-8")
             val url = "${BuildConfig.MENU_SCRIPT_URL}?sheetName=$encodedMenuName"
-            val requestQueue = Volley.newRequestQueue(context)
+            val requestQueue = SharedRequestQueue.get(context)
 
             val stringRequest = StringRequest(
                 com.android.volley.Request.Method.GET,

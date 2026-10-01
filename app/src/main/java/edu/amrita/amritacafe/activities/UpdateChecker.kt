@@ -19,7 +19,7 @@ import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
+import edu.amrita.amritacafe.CloudStorage.SharedRequestQueue
 import edu.amrita.amritacafe.BuildConfig
 import org.json.JSONObject
 import java.io.File
@@ -42,7 +42,7 @@ object UpdateChecker {
         }
 
         lastCheckTime = currentTime
-        val queue = Volley.newRequestQueue(context)
+        val queue = SharedRequestQueue.get(context)
         
         // 1. Query GitHub Releases API directly
         val githubRequest = object : StringRequest(
@@ -179,7 +179,7 @@ object UpdateChecker {
         onResult: (List<ReleaseInfo>) -> Unit,
         onError: (String) -> Unit
     ) {
-        val queue = Volley.newRequestQueue(context)
+        val queue = SharedRequestQueue.get(context)
         val request = object : StringRequest(
             Request.Method.GET, GITHUB_RELEASES_URL,
             { response ->
@@ -245,7 +245,7 @@ object UpdateChecker {
      * the device may currently be running (e.g. right after Beta Updates is turned off).
      */
     fun checkForStandardVersion(context: Context, onComplete: ((offeredSwitch: Boolean) -> Unit)? = null) {
-        val queue = Volley.newRequestQueue(context)
+        val queue = SharedRequestQueue.get(context)
         val request = object : StringRequest(
             Request.Method.GET, GITHUB_RELEASES_URL,
             success@{ response ->
@@ -366,7 +366,7 @@ object UpdateChecker {
             onComplete?.invoke(false)
             return
         }
-        val queue = Volley.newRequestQueue(context)
+        val queue = SharedRequestQueue.get(context)
         val stringRequest = StringRequest(
             Request.Method.GET, UPDATE_INFO_URL,
             { response ->
