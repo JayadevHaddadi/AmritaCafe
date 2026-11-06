@@ -91,7 +91,10 @@ function doPost(e) {
       var appVer = (data.appVersion || "Unknown").toString();
       var devInfo = (data.deviceInfo || "").toString();
       var stack = (data.stackTrace || "").toString();
-      crashSheet.appendRow([new Date(), tabletName, appVer, devInfo, stack]);
+      // Crash reports start with "=====", which Sheets parses as a formula (#ERROR!).
+      // Force plain text with a leading apostrophe and stay under the 50k cell limit.
+      if (stack.length > 49000) stack = stack.substring(0, 49000) + "\n...[truncated]";
+      crashSheet.appendRow([new Date(), tabletName, appVer, devInfo, "'" + stack]);
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Crash logged" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -256,4 +259,29 @@ function insertRowAtTop_v1(data, sheetName, targetRow) {
   sheet.insertRowBefore(targetRow);
   sheet.getRange(targetRow, 1, 1, data[0].length).setValues(data);
   SpreadsheetApp.flush();
+}
+/**
+ * One-time recovery for old "Crash Logs" rows whose STACK_TRACE shows #ERROR!.
+ * Those reports began with "=====" so Sheets stored them as (broken) formulas;
+ * the original text survives as the formula source. Run this manually from the
+ * Apps Script editor: it copies that text, as plain text, into column F
+ * ("STACK_TRACE_RECOVERED"). Column E is left untouched.
+ */
+function recoverCrashLogs() {
+  var ss = SpreadsheetApp.openById("1uUwh_9mLVUmG621v40kdGSMGblr_JyKZfpEE-xIL0vo");
+  var sheet = ss.getSheetByName("Crash Logs");
+  if (!sheet) return;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  sheet.getRange(1, 6).setValue("STACK_TRACE_RECOVERED").setFontWeight("bold");
+  var range = sheet.getRange(2, 5, lastRow - 1, 1);
+  var formulas = range.getFormulas();
+  var values = range.getDisplayValues();
+  var out = [];
+  for (var i = 0; i < formulas.length; i++) {
+    var text = formulas[i][0] || values[i][0] || "";
+    if (text.length > 49000) text = text.substring(0, 49000) + "\n...[truncated]";
+    out.push([text ? "'" + text : ""]);
+  }
+  sheet.getRange(2, 6, out.length, 1).setValues(out);
 }

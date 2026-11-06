@@ -314,6 +314,15 @@ data class Configuration(private val preferences: SharedPreferences) {
         get() = true
         set(_) {}
 
+    /** Off on the order-taking tablet; every other tablet pushes its orders to Google Sheets. */
+    var pushOrdersToSheets
+        get() = preferences.getBoolean(edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.PUSH_ORDERS_TO_SHEETS, true)
+        set(value) {
+            preferences.edit {
+                putBoolean(edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.PUSH_ORDERS_TO_SHEETS, value)
+            }
+        }
+
     var printAmmaQuote
         get() = preferences.getBoolean(PRINT_AMMA_QUOTE, false)
         set(value) {

@@ -375,6 +375,17 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
                 showMenuPreviewPicker()
             }
 
+            pushOrdersToSheetsCheckBox.isChecked = configuration.pushOrdersToSheets
+            pushOrdersToSheetsCheckBox.setOnCheckedChangeListener { _, isChecked ->
+                configuration.pushOrdersToSheets = isChecked
+                if (isChecked) {
+                    Toast.makeText(this@SettingsActivity, "Orders from this tablet will be pushed to Google Sheets.", Toast.LENGTH_SHORT).show()
+                    OfflineOrderSync.syncPendingOrders(this@SettingsActivity, getOrderScriptUrl())
+                } else {
+                    offerToDiscardPendingQueue()
+                }
+            }
+
             viewQueueBtn.setOnClickListener {
                 showPendingQueueDialog()
             }
@@ -549,8 +560,37 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
             .show()
     }
 
+    /** Called when pushing is switched off: offer (never force) deleting orders still waiting to upload. */
+    private fun offerToDiscardPendingQueue() {
+        lifecycleScope.launch {
+            val pending = withContext(Dispatchers.IO) { OfflineOrderSync.getPendingCount(applicationContext) }
+            if (pending == 0) {
+                Toast.makeText(this@SettingsActivity, "This tablet will no longer push orders to Google Sheets.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            AlertDialog.Builder(this@SettingsActivity)
+                .setTitle("Pushing to Sheets turned off")
+                .setMessage("This tablet still has $pending order(s) waiting to be uploaded.\n\n" +
+                        "Delete them? They will never be sent to Google Sheets. This cannot be undone.")
+                .setPositiveButton("Delete $pending") { _, _ ->
+                    lifecycleScope.launch {
+                        val removed = withContext(Dispatchers.IO) { OfflineOrderSync.clearQueue(applicationContext) }
+                        Toast.makeText(this@SettingsActivity, "Deleted $removed pending order(s).", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("Keep them", null)
+                .show()
+        }
+    }
+
     private fun showPendingQueueDialog() {
-        val queue = OfflineOrderSync.getPendingQueueSnapshot(this)
+        lifecycleScope.launch {
+            val queue = withContext(Dispatchers.IO) { OfflineOrderSync.getPendingQueueSnapshot(applicationContext) }
+            showPendingQueueDialog(queue)
+        }
+    }
+
+    private fun showPendingQueueDialog(queue: List<OfflineOrderSync.PendingSheetsRequest>) {
         if (queue.isEmpty()) {
             Toast.makeText(this, "Queue is empty. Everything is synced with Google Sheets!", Toast.LENGTH_SHORT).show()
             return
@@ -571,6 +611,10 @@ class SettingsActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener
     }
 
     private fun forcePushQueueNow(button: android.widget.Button) {
+        if (!OfflineOrderSync.isPushEnabled(this)) {
+            Toast.makeText(this, "Pushing to Google Sheets is turned off for this tablet.", Toast.LENGTH_LONG).show()
+            return
+        }
         val initialCount = OfflineOrderSync.getPendingCount(this)
         if (initialCount == 0) {
             Toast.makeText(this, "Nothing to push. Queue is already empty!", Toast.LENGTH_SHORT).show()

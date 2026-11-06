@@ -25,7 +25,14 @@ fun getOrderScriptUrl(): String {
 fun sendToSheets(
     orders: List<Order>, configuration: Configuration, context: Context
 ) {
+    if (!OfflineOrderSync.isPushEnabled(context)) {
+        Log.d("GoogleSheets", "Push to Google Sheets disabled on this tablet; ${orders.size} order(s) not queued.")
+        return
+    }
     val url = getOrderScriptUrl()
+    val appContext = context.applicationContext
+    val tabletName = configuration.tabletName
+    val payloads = mutableListOf<String>()
 
     orders.forEach { order ->
         val jsonData = JSONObject()
@@ -44,7 +51,7 @@ fun sendToSheets(
 
         try {
             jsonData.put("time", order.orderLongTime)
-            jsonData.put("tablet", configuration.tabletName)
+            jsonData.put("tablet", tabletName)
             jsonData.put("order", order.orderNumber.toString())
             jsonData.put("isGpay", order.isGpay)
             jsonData.put("items", jsonArray)
@@ -52,14 +59,14 @@ fun sendToSheets(
         } catch (e: JSONException) {
             e.printStackTrace()
         }
-        val jsonString = jsonData.toString()
-        
-        // Add to offline queue first for safety
-        OfflineOrderSync.addOrder(context, jsonString)
+        payloads.add(jsonData.toString())
     }
-    
-    // Trigger sync
-    OfflineOrderSync.syncPendingOrders(context, url)
+
+    // Persist to the offline queue first for safety, then sync - all off the main thread.
+    OfflineOrderSync.runInBackground {
+        payloads.forEach { OfflineOrderSync.addOrder(appContext, it) }
+        OfflineOrderSync.syncPendingOrders(appContext, url)
+    }
 }
 
 fun updateGPayOnSheets(
@@ -67,8 +74,10 @@ fun updateGPayOnSheets(
     configuration: Configuration,
     context: Context
 ) {
+    if (!OfflineOrderSync.isPushEnabled(context)) return
     val jsonData = JSONObject()
     val url = getOrderScriptUrl()
+    val appContext = context.applicationContext
 
     try {
         jsonData.put("action", "updateGPay")
@@ -82,11 +91,9 @@ fun updateGPayOnSheets(
     }
     
     val jsonString = jsonData.toString()
-    OfflineOrderSync.addOrder(
-        context,
-        jsonString,
-        url,
-        "Update GPay Order ${historicalOrder.order.orderNumber}"
-    )
-    OfflineOrderSync.syncPendingOrders(context, url)
+    val description = "Update GPay Order ${historicalOrder.order.orderNumber}"
+    OfflineOrderSync.runInBackground {
+        OfflineOrderSync.addOrder(appContext, jsonString, url, description)
+        OfflineOrderSync.syncPendingOrders(appContext, url)
+    }
 }

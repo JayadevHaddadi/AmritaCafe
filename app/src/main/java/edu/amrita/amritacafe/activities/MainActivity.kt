@@ -140,20 +140,29 @@ class MainActivity : AppCompatActivity() {
 
         ConnectionIndicator.init(binding.printerIndicator, binding.sheetsIndicator)
         ConnectionIndicator.setPrinterConnected(false)
-        ConnectionIndicator.setSheetsConnected(false)
+        if (OfflineOrderSync.isPushEnabled(this)) {
+            ConnectionIndicator.setSheetsConnected(false)
+        } else {
+            ConnectionIndicator.setSheetsDisabled()
+        }
 
         binding.printerIndicator.setOnClickListener {
             ConnectionIndicator.checkPrinters(this, configuration, scope, showToast = true)
         }
 
         binding.sheetsIndicator.setOnClickListener {
-            val pending = edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.getPendingCount(this)
-            if (pending > 0) {
-                Toast.makeText(this, "Google Sheets: $pending orders waiting to sync. Retrying now...", Toast.LENGTH_SHORT).show()
-                edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(this)
-            } else {
-                Toast.makeText(this, "Google Sheets: All orders synced ✓", Toast.LENGTH_SHORT).show()
-                edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(this)
+            if (!OfflineOrderSync.isPushEnabled(this)) {
+                Toast.makeText(this, "Google Sheets: pushing orders is turned off on this tablet (Settings)", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            scope.launch {
+                val pending = withContext(Dispatchers.IO) { OfflineOrderSync.getPendingCount(applicationContext) }
+                if (pending > 0) {
+                    Toast.makeText(this@MainActivity, "Google Sheets: $pending orders waiting to sync. Retrying now...", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MainActivity, "Google Sheets: All orders synced ✓", Toast.LENGTH_SHORT).show()
+                }
+                OfflineOrderSync.syncPendingOrders(applicationContext)
             }
         }
 
@@ -162,9 +171,8 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             while (isActive) {
                 delay(30000L)
-                if (edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.getPendingCount(applicationContext) > 0) {
-                    edu.amrita.amritacafe.CloudStorage.OfflineOrderSync.syncPendingOrders(applicationContext)
-                }
+                // Runs on a background thread and returns quickly when the queue is empty or pushing is off.
+                OfflineOrderSync.syncPendingOrders(applicationContext)
             }
         }
 
@@ -614,6 +622,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         configuration = Configuration(PreferenceManager.getDefaultSharedPreferences(this))
+        if (!OfflineOrderSync.isPushEnabled(this)) ConnectionIndicator.setSheetsDisabled()
         val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
         if (needsBluetooth && BT_STATE != BT_STATE_CONNECTED) {
             tryConnect()

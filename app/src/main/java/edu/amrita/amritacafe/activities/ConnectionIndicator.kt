@@ -33,6 +33,13 @@ object ConnectionIndicator {
         }
     }
 
+    /** Grey indicator: this tablet is configured not to push orders to Google Sheets. */
+    fun setSheetsDisabled() {
+        sheetsIndicatorRef?.get()?.post {
+            sheetsIndicatorRef?.get()?.setColorFilter(Color.GRAY)
+        }
+    }
+
     fun setSheetsConnected(connected: Boolean) {
         sheetsIndicatorRef?.get()?.post {
             sheetsIndicatorRef?.get()?.setColorFilter(if (connected) Color.GREEN else Color.RED)

@@ -167,7 +167,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Test"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <TextView
@@ -195,13 +195,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Select"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
                 <Button
                     android:id="@+id/test_bluetooth_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Test"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <TextView
@@ -246,7 +246,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Test"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <TextView
@@ -274,13 +274,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Select"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
                 <Button
                     android:id="@+id/test_bluetooth2_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Test"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" android:layout_marginStart="4dp" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <TextView
@@ -316,7 +316,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/receipt_font_large_tv"
                     android:layout_width="0dp"
@@ -332,7 +332,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
 
                 <View android:layout_width="8dp" android:layout_height="1dp" />
 
@@ -343,7 +343,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/receipt_font_small_tv"
                     android:layout_width="0dp"
@@ -359,7 +359,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <LinearLayout
@@ -375,7 +375,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/receipt_margin_before_tv"
                     android:layout_width="0dp"
@@ -391,7 +391,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
 
                 <View android:layout_width="8dp" android:layout_height="1dp" />
 
@@ -402,7 +402,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/receipt_margin_after_tv"
                     android:layout_width="0dp"
@@ -418,7 +418,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <Button
@@ -426,7 +426,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/background_other_buttons"
+                android:background="@drawable/background_settings_button"
                 android:text="Test Receipt Print"
                 android:textColor="@color/black"
                 android:textStyle="bold" />
@@ -453,7 +453,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/kitchen_font_large_tv"
                     android:layout_width="0dp"
@@ -469,7 +469,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
 
                 <View android:layout_width="8dp" android:layout_height="1dp" />
 
@@ -480,7 +480,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/kitchen_font_small_tv"
                     android:layout_width="0dp"
@@ -496,7 +496,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <LinearLayout
@@ -512,7 +512,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/kitchen_margin_before_tv"
                     android:layout_width="0dp"
@@ -528,7 +528,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
 
                 <View android:layout_width="8dp" android:layout_height="1dp" />
 
@@ -539,7 +539,7 @@
                     android:text="-"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
                 <TextView
                     android:id="@+id/kitchen_margin_after_tv"
                     android:layout_width="0dp"
@@ -555,7 +555,7 @@
                     android:text="+"
                     android:textSize="16sp"
                     android:padding="0dp"
-                    style="?android:attr/buttonStyleSmall" />
+                    android:background="@drawable/background_settings_button" android:textColor="@color/black" style="?android:attr/buttonStyleSmall" />
             </LinearLayout>
 
             <Button
@@ -563,7 +563,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/background_other_buttons"
+                android:background="@drawable/background_settings_button"
                 android:text="Test Kitchen Print"
                 android:textColor="@color/black"
                 android:textStyle="bold" />
@@ -684,25 +684,32 @@
                 android:layout_marginTop="8dp"
                 android:text="Receive Beta Updates" />
 
-            <Button
-                android:id="@+id/force_check_update_btn"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="Force Check for Updates"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+                <Button
+                    android:id="@+id/force_check_update_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="Force Check for Updates"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/view_builds_btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="View Recent Builds"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                <Button
+                    android:id="@+id/view_builds_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="View Recent Builds"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Menu Management -->
             <TextView
@@ -713,25 +720,32 @@
                 android:textStyle="bold"
                 android:layout_marginTop="16dp"/>
 
-            <Button
-                android:id="@+id/force_update_menus_btn"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="Force Update All Menus"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+                <Button
+                    android:id="@+id/force_update_menus_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="Force Update All Menus"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/preview_menu_btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="Preview Menu"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                <Button
+                    android:id="@+id/preview_menu_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="Preview Menu"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Google Sheets Sync -->
             <TextView
@@ -742,25 +756,39 @@
                 android:textStyle="bold"
                 android:layout_marginTop="16dp"/>
 
-            <Button
-                android:id="@+id/view_queue_btn"
-                android:layout_width="match_parent"
+            <CheckBox
+                android:id="@+id/pushOrdersToSheetsCheckBox"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="View Pending Queue"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                android:text="Push orders to Google Sheets (turn OFF on the order-taking tablet)" />
 
-            <Button
-                android:id="@+id/force_push_queue_btn"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
-                android:text="Force Push to Sheets Now"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+                <Button
+                    android:id="@+id/view_queue_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="View Pending Queue"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/force_push_queue_btn"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_settings_button"
+                    android:text="Force Push to Sheets Now"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Diagnostics & Crash Logs -->
             <TextView
@@ -776,7 +804,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/background_other_buttons"
+                android:background="@drawable/background_settings_button"
                 android:text="View Crash Logs"
                 android:textColor="@color/black"
                 android:textStyle="bold" />

@@ -11,4 +11,8 @@
     <color name="best_pink_very_dark">#BD51CF</color>
     <color name="green_selected">#4CAF50</color>
     <color name="transparent_white">#99FFFFFF</color>
+    <color name="settings_gold">#D4A537</color>
+    <color name="settings_gold_pressed">#B8862B</color>
+    <color name="settings_gold_border">#8B6A1F</color>
+    <color name="settings_gold_disabled">#6B5A30</color>
 </resources>

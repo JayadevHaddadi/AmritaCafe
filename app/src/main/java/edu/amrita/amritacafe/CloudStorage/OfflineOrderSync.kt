@@ -11,15 +11,40 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
+import java.util.concurrent.Executors
 
 object OfflineOrderSync {
     private const val TAG = "OfflineOrderSync"
     private const val QUEUE_FILE_NAME = "google_sheets_pending_queue.json"
     private const val LEGACY_PREFS_KEY = "offline_orders_queue"
 
+    const val PUSH_ORDERS_TO_SHEETS = "push_orders_to_sheets"
+
     private val lock = Any()
     @Volatile
     private var isSyncing = false
+
+    // In-memory copy of the on-disk queue. Loaded once, then kept in step with every write,
+    // so callers never re-parse a multi-MB JSON file (that caused ANRs on the main thread).
+    private var cache: MutableList<PendingSheetsRequest>? = null
+
+    // All queue disk I/O and sync bookkeeping runs here, never on the main thread.
+    private val io = Executors.newSingleThreadExecutor { r -> Thread(r, "OfflineOrderSync").apply { isDaemon = true } }
+
+    fun runInBackground(block: () -> Unit) {
+        io.execute {
+            try { block() } catch (t: Throwable) { Log.e(TAG, "Background sync task failed: ${t.message}", t) }
+        }
+    }
+
+    /** False on the order-taking tablet: it must not queue or push orders to Google Sheets. */
+    fun isPushEnabled(context: Context): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PUSH_ORDERS_TO_SHEETS, true)
+
+    private fun loadQueue(context: Context): MutableList<PendingSheetsRequest> {
+        cache?.let { return it }
+        return readQueueFromDisk(context).also { cache = it }
+    }
 
     data class PendingSheetsRequest(
         val id: String = UUID.randomUUID().toString(),
@@ -106,6 +131,7 @@ object OfflineOrderSync {
     }
 
     private fun writeQueueToDisk(context: Context, queue: List<PendingSheetsRequest>) {
+        cache = queue.toMutableList()
         val file = getQueueFile(context)
         val tmp = File(context.filesDir, "$QUEUE_FILE_NAME.tmp")
         try {
@@ -131,11 +157,19 @@ object OfflineOrderSync {
     }
 
     fun getPendingCount(context: Context): Int = synchronized(lock) {
-        return readQueueFromDisk(context).size
+        return loadQueue(context).size
     }
 
     fun getPendingQueueSnapshot(context: Context): List<PendingSheetsRequest> = synchronized(lock) {
-        return readQueueFromDisk(context)
+        return loadQueue(context).toList()
+    }
+
+    /** Deletes every pending request. Only used when the user explicitly confirms it in Settings. */
+    fun clearQueue(context: Context): Int = synchronized(lock) {
+        val count = loadQueue(context).size
+        writeQueueToDisk(context, emptyList())
+        Log.w(TAG, "Pending queue cleared by user ($count item(s) discarded).")
+        count
     }
 
     fun addOrder(
@@ -145,7 +179,7 @@ object OfflineOrderSync {
         description: String = ""
     ) = synchronized(lock) {
         try {
-            val queue = readQueueFromDisk(context)
+            val queue = loadQueue(context).toMutableList()
             val request = PendingSheetsRequest(
                 url = url,
                 payload = jsonString,
@@ -163,13 +197,22 @@ object OfflineOrderSync {
     private const val BATCH_SIZE = 25
 
     fun syncPendingOrders(context: Context, targetUrl: String = getOrderScriptUrl()) {
+        val appContext = context.applicationContext
+        if (!isPushEnabled(appContext)) {
+            Log.d(TAG, "Pushing to Google Sheets is disabled on this tablet; not syncing.")
+            return
+        }
+        runInBackground { syncPendingOrdersNow(appContext, targetUrl) }
+    }
+
+    private fun syncPendingOrdersNow(context: Context, targetUrl: String) {
         if (isSyncing) {
             Log.d(TAG, "Sync already in progress, skipping duplicate run.")
             return
         }
 
         val batchItems: List<PendingSheetsRequest> = synchronized(lock) {
-            val queue = readQueueFromDisk(context)
+            val queue = loadQueue(context)
             if (queue.isEmpty()) {
                 ConnectionIndicator.setSheetsConnected(true)
                 emptyList()
@@ -242,23 +285,27 @@ object OfflineOrderSync {
                     isSyncing = false
                 } else {
                     Log.d(TAG, "Confirmed delivery of ${batch.size} orders to Google Sheets: $trimmed")
-                    var remainingCount = 0
                     val batchIds = batch.map { it.id }.toSet()
-                    synchronized(lock) {
-                        val currentQueue = readQueueFromDisk(context)
-                        currentQueue.removeAll { it.id in batchIds }
-                        writeQueueToDisk(context, currentQueue)
-                        remainingCount = currentQueue.size
-                    }
+                    runInBackground {
+                        var remainingCount = 0
+                        try {
+                            synchronized(lock) {
+                                val currentQueue = loadQueue(context).toMutableList()
+                                currentQueue.removeAll { it.id in batchIds }
+                                writeQueueToDisk(context, currentQueue)
+                                remainingCount = currentQueue.size
+                            }
+                        } finally {
+                            isSyncing = false
+                        }
 
-                    if (remainingCount == 0) {
-                        Log.d(TAG, "All pending Google Sheets orders confirmed and synced!")
-                        ConnectionIndicator.setSheetsConnected(true)
-                        isSyncing = false
-                    } else {
-                        Log.d(TAG, "$remainingCount orders remaining in queue, processing next batch...")
-                        isSyncing = false
-                        syncPendingOrders(context, fallbackUrl)
+                        if (remainingCount == 0) {
+                            Log.d(TAG, "All pending Google Sheets orders confirmed and synced!")
+                            ConnectionIndicator.setSheetsConnected(true)
+                        } else {
+                            Log.d(TAG, "$remainingCount orders remaining in queue, processing next batch...")
+                            syncPendingOrders(context, fallbackUrl)
+                        }
                     }
                 }
             },

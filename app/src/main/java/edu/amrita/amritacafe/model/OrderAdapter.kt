@@ -101,7 +101,9 @@ class OrderAdapter(context: Context) : BaseAdapter() {
 
         with(binding) {
             amountTV.setOnClickListener {
-                val position = root.tag as Int
+                // The row's tag can be stale if the list was cleared/shrunk before this tap lands.
+                val position = root.tag as? Int ?: return@setOnClickListener
+                if (position !in orderList.indices) return@setOnClickListener
                 orderList[position].increment()
                 notifyDataSetChanged()
                 orderChanged()
@@ -118,7 +120,8 @@ class OrderAdapter(context: Context) : BaseAdapter() {
             }
 
             cancelButton.setOnClickListener {
-                remove(orderList[root.tag as Int])
+                val position = root.tag as? Int ?: return@setOnClickListener
+                orderList.getOrNull(position)?.let { remove(it) }
             }
 
             commentET.addTextChangedListener(object : TextWatcher {
@@ -127,8 +130,9 @@ class OrderAdapter(context: Context) : BaseAdapter() {
                 override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
                 override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                    val position = root.tag as Int
-                    orderList[position] = orderItems[position].editComment(p0.toString())
+                    val position = root.tag as? Int ?: return
+                    if (position !in orderList.indices) return
+                    orderList[position] = orderList[position].editComment(p0.toString())
                 }
             })
         }
