@@ -58,6 +58,9 @@ jobs:
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION_NAME ($VERSION_CODE)"
 
+      - name: Run unit tests (a failure stops the release from being published)
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
       - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace
 

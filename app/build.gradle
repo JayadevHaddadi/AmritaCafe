@@ -11,8 +11,9 @@ android {
         applicationId "edu.amrita.amritacafe"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 80116
+        versionCode 80117
         versionName "8.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -77,6 +78,13 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
+
     viewBinding {
         enabled = true
     }
@@ -124,4 +132,18 @@ dependencies {
     implementation 'com.android.volley:volley:1.2.1'
 
     implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
+
+    // Unit tests (JVM, Robolectric) - run with ./gradlew testDebugUnitTest
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation 'androidx.test:core-ktx:1.6.1'
+    testImplementation 'androidx.test.ext:junit-ktx:1.2.1'
+    // Volley references Apache HttpClient; Android has it, the plain JVM test runtime does not.
+    testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
+
+    // Device/emulator smoke tests - run with ./gradlew connectedDebugAndroidTest
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test:core-ktx:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit-ktx:1.2.1'
 }

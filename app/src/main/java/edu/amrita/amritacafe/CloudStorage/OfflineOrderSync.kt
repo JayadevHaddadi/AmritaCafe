@@ -41,6 +41,13 @@ object OfflineOrderSync {
     fun isPushEnabled(context: Context): Boolean =
         PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PUSH_ORDERS_TO_SHEETS, true)
 
+    /** Test hook: forget the in-memory queue so the next access re-reads the file (like an app restart). */
+    @androidx.annotation.VisibleForTesting
+    internal fun resetForTests() = synchronized(lock) {
+        cache = null
+        isSyncing = false
+    }
+
     private fun loadQueue(context: Context): MutableList<PendingSheetsRequest> {
         cache?.let { return it }
         return readQueueFromDisk(context).also { cache = it }
@@ -124,6 +131,11 @@ object OfflineOrderSync {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error reading queue file: ${e.message}")
+                // Never let the next write silently replace unreadable sales data: set it aside first.
+                val backup = File(context.filesDir, "$QUEUE_FILE_NAME.corrupt-${System.currentTimeMillis()}")
+                if (file.renameTo(backup)) {
+                    Log.e(TAG, "Unreadable queue file preserved as ${backup.name}")
+                }
             }
         }
 
