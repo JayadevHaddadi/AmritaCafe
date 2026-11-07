@@ -390,7 +390,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginBottom="4dp"
             android:background="@drawable/background_other_buttons"
-            android:onClick="cancelOrder"
+            android:onClick="deleteOrder"
             app:layout_constraintBottom_toTopOf="@+id/history_button"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/ic_delete_forever_black_24dp" />

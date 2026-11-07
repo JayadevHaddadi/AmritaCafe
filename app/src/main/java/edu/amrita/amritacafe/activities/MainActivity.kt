@@ -899,43 +899,58 @@ class MainActivity : AppCompatActivity() {
         binding.clearMoneyRecieved.setOnClickListener(onClickRecivedListener)
     }
 
-    fun tryConnect() = scope.launch(Dispatchers.IO) {
-        delay(1000L)
-        println("World")
+    // Only one Bluetooth connect attempt at a time. tryConnect() is called on every order while the
+    // printer is disconnected; overlapping attempts piled up Hoin SDK threads until the app hit
+    // "OutOfMemoryError: pthread_create" (seen on Canteen 1/3, 80113).
+    private val connectInProgress = java.util.concurrent.atomic.AtomicBoolean(false)
 
-        devices = mHoinPrinter.pairedDevice
-        println("JAYADEV $devices")
-        for (x in devices) {
-            println(x)
-            println("JAYADEV: ${x.name} ${x.address} ${x.alias} ${x.type} ")
-        }
+    /** True when Bluetooth exists, is switched on, and (Android 12+) we hold BLUETOOTH_CONNECT. */
+    private fun bluetoothUsable(): Boolean {
+        val adapter = try { BluetoothAdapter.getDefaultAdapter() } catch (t: Throwable) { null } ?: return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+        ) return false
+        return try { adapter.isEnabled } catch (t: Throwable) { false }
+    }
 
-        println("JAYADEV MODE ${configuration.mode}")
-        println("JAYADEV BT_STATE $BT_STATE")
-        val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
-        if (needsBluetooth) {
-            val address = configuration.bluetoothAddress
-            if (address.isNotEmpty()) {
-                // Standard connection attempt
-                mHoinPrinter.connect(address)
-            } else {
-                // Fallback to name if address is missing
-                val selection = devices.filter { it.name == configuration.bluetoothName }
-                if (selection.isNotEmpty()) {
-                    mHoinPrinter.connect(selection.first().address)
-                }
+    fun tryConnect() {
+        if (!connectInProgress.compareAndSet(false, true)) return
+        scope.launch(Dispatchers.IO) {
+            try {
+                connectToBluetoothPrinter()
+            } catch (t: Throwable) {
+                // Hoin SDK can throw NPE (null socket) or OOM (thread creation) from connect().
+                android.util.Log.e("MainActivity", "Bluetooth printer connect failed: ${t.javaClass.simpleName}: ${t.message}")
+                ConnectionIndicator.setPrinterConnected(false)
+            } finally {
+                connectInProgress.set(false)
             }
         }
+    }
 
-        println("JAYADEV MODE ${configuration.mode}")
-        println("JAYADEV BT_STATE $BT_STATE")
-        
+    private suspend fun connectToBluetoothPrinter() {
+        delay(1000L)
+        val needsBluetooth = configuration.isReceiptBluetooth || configuration.isKitchenBluetooth || configuration.workflowMode == Configuration.MODE_CASHIER
+        if (!needsBluetooth || BT_STATE == BT_STATE_CONNECTED) return
+        if (!bluetoothUsable()) {
+            ConnectionIndicator.setPrinterConnected(false)
+            return
+        }
+
+        devices = mHoinPrinter.pairedDevice ?: mutableSetOf()
+        val address = configuration.bluetoothAddress
+        if (address.isNotEmpty()) {
+            mHoinPrinter.connect(address)
+        } else {
+            // Fallback to name if address is missing
+            devices.firstOrNull { it.name == configuration.bluetoothName }?.let { mHoinPrinter.connect(it.address) }
+        }
+
         // If still disconnected after a short wait, try starting discovery as a fallback
-        delay(2000L) 
-        if (needsBluetooth && BT_STATE == BT_STATE_DISCONNECTED) {
+        delay(2000L)
+        if (BT_STATE == BT_STATE_DISCONNECTED && bluetoothUsable()) {
             mHoinPrinter.startBtDiscovery()
         }
-        println("Hello")
     }
 
     val BT_NOT_AVALIBLE = 1000; //Bluetooth is not available on this device

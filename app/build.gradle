@@ -11,7 +11,7 @@ android {
         applicationId "edu.amrita.amritacafe"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 80117
+        versionCode 80118
         versionName "8.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

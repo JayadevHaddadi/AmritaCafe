@@ -19,17 +19,36 @@ object CrashHandler {
     fun init(context: Context) {
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val survivable = isSurvivablePrinterSdkCrash(thread, throwable)
             try {
-                recordCrash(context.applicationContext, thread, throwable)
+                recordCrash(context.applicationContext, thread, throwable, handled = survivable)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to record crash: ${e.message}", e)
             } finally {
-                defaultHandler?.uncaughtException(thread, throwable)
+                if (survivable) {
+                    // Let only the Hoin SDK's worker thread die; keep the app (and the order on screen) alive.
+                    Log.e(TAG, "Contained Hoin printer SDK crash on thread ${thread.name}: $throwable")
+                } else {
+                    defaultHandler?.uncaughtException(thread, throwable)
+                }
             }
         }
     }
 
-    private fun recordCrash(context: Context, thread: Thread, throwable: Throwable) {
+    /**
+     * The Hoin Bluetooth SDK (bundled .aar, no source) runs its own AcceptThread / ConnectThread and
+     * dereferences a null socket when Bluetooth is off, unavailable or not permitted - e.g.
+     * "BluetoothServerSocket.accept() on a null object reference" (109 reports from Canteen 3 on 80113).
+     * Those exceptions only end that SDK worker thread; they must not take down the whole app.
+     */
+    internal fun isSurvivablePrinterSdkCrash(thread: Thread, throwable: Throwable): Boolean {
+        if (thread === android.os.Looper.getMainLooper()?.thread) return false
+        if (throwable !is NullPointerException && throwable !is java.io.IOException && throwable !is SecurityException) return false
+        val top = throwable.stackTrace.firstOrNull() ?: return false
+        return top.className.startsWith("com.hoin.") || top.className.startsWith("com.example.hoinprinterlib.")
+    }
+
+    private fun recordCrash(context: Context, thread: Thread, throwable: Throwable, handled: Boolean = false) {
         val sw = StringWriter()
         val pw = PrintWriter(sw)
         throwable.printStackTrace(pw)
@@ -38,6 +57,7 @@ object CrashHandler {
         val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
         val crashReport = buildString {
             append("========================================\n")
+            if (handled) append("HANDLED (app kept running): printer SDK background thread crash\n")
             append("TIME: $time\n")
             append("APP VERSION: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n")
             append("DEVICE: ${Build.MANUFACTURER} ${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})\n")
