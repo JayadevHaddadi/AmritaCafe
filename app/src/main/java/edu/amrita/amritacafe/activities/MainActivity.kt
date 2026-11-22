@@ -80,7 +80,6 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
-import kotlin.math.max
 
 
 fun String.capitalizeWords(): String =
@@ -756,53 +755,10 @@ class MainActivity : AppCompatActivity() {
                 android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E0F7FA"))
             } else null
 
-            fun applyRenunciate(items: List<RegularOrderItem>, isRenunciate: Boolean) {
-                var totalRenunciateItems = 0
-                var hasMilkCurdEgg = false
-
-                if (isRenunciate) {
-                    items.forEach {
-                        if ((it.menuItem.name == "Curd" || it.menuItem.name == "Milk" || it.menuItem.name == "Egg") && !hasMilkCurdEgg) {
-                            hasMilkCurdEgg = true
-                            it.quantityAsRenounciate = it.quantity - 1
-                            it.renounciateEffected = true
-                        }
-                    }
-
-                    items.forEach {
-                        if (it.menuItem.name.equals("Dressing") || it.menuItem.name.equals("Beschameal"))
-                            it.quantityAsRenounciate = it.quantity - 1
-                        else if (it.menuItem.name.equals("Bread")) {
-                            it.quantityAsRenounciate = max(it.quantity - 2, 0)
-                        } else if (it.menuItem.category.equals("LUNCH/DINNER (R)") && totalRenunciateItems < 3) {
-                            totalRenunciateItems += 1
-                            it.quantityAsRenounciate = it.quantity - 1
-                        }
-                        // 5 iddly or dosa are free for renunciates
-                        else if (it.menuItem.name.equals("Iddly") || it.menuItem.name.equals("Dosa")) {
-                            it.quantityAsRenounciate = max(it.quantity - 5, 0)
-                        } else if (it.menuItem.name.equals("Sambar Only/Ex")) {
-                            it.quantityAsRenounciate = 0
-                        } else if (it.menuItem.name.equals("Upma")) {
-                            it.quantityAsRenounciate = max(it.quantity - 2, 0)
-                        } else if (it.menuItem.name.equals("Sprouts")) {
-                            it.quantityAsRenounciate = max(it.quantity - 1, 0)
-                        }
-                        if (it.quantityAsRenounciate != it.quantity)
-                            it.renounciateEffected = true
-                    }
-                } else {
-                    items.forEach {
-                        it.quantityAsRenounciate = it.quantity
-                        it.renounciateEffected = false
-                    }
-                }
-            }
-
             val allItems = mutableListOf<RegularOrderItem>()
             orders.forEach { allItems.addAll(it.orderItems) }
-            applyRenunciate(orderAdapter.orderItems, renunciate)
-            applyRenunciate(allItems, renunciate)
+            RenunciateRules.apply(orderAdapter.orderItems, renunciate)
+            RenunciateRules.apply(allItems, renunciate)
 
             println("PRICE")
             // TODO STORE the renunciate indication on sheets
